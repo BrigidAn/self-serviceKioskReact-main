@@ -73,3 +73,21 @@ color: fff;
   padding: 10px 20px;
   font-size: 1.1rem;
 }
+
+.ribbon {
+  position: absolute;
+  top: 10px;
+  left: -25px;
+  background-color: red;
+  color: white;
+  padding: 5px 40px;
+  transform: rotate(-45deg);
+  font-weight: bold;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-img-top{
+  padding: 10px 40px;
+}
+
