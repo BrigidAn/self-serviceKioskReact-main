@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import CheckoutModal from '../components/CheckoutModal';
 
-function Checkout({ cart: propCart = [] }) {
-  // ✅ Support cart from both props and React Router state
+function Checkout({ cart: propCart = [], clearCart }) {
   const location = useLocation();
   const cart = location.state?.cart || propCart;
 
   const [step, setStep] = useState(1);
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     cardNumber: "",
@@ -14,12 +15,16 @@ function Checkout({ cart: propCart = [] }) {
     cvv: "",
   });
 
-  // ✅ Calculate total
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  // ✅ Fix handleChange (spread formData correctly)
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleConfirmPurchase = () => {
+    clearCart();
+    setShowModal(false);
+    setStep(3);
   };
 
   const nextStep = () => setStep((prev) => prev + 1);
@@ -27,7 +32,7 @@ function Checkout({ cart: propCart = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    nextStep(); // Go to payment success
+    setShowModal(true); // trigger the modal on submit
   };
 
   return (
@@ -148,6 +153,13 @@ function Checkout({ cart: propCart = [] }) {
           </button>
         </div>
       )}
+
+      <CheckoutModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        total={total}
+        onConfirm={handleConfirmPurchase}
+      />
     </div>
   );
 }

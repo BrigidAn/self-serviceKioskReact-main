@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import React from "react";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaPersonBooth, FaShoppingCart } from "react-icons/fa";
 
 function Navbar({ cartCount }) {
   return (
@@ -24,8 +24,8 @@ function Navbar({ cartCount }) {
           <FaShoppingCart />{" "}
           <span className="badge bg-light text-dark">{cartCount}</span>
         </Link>
-        <Link className="btn btn-outline-light mx-2" to="/cart">
-          <FaShoppingCart/>{" "}
+        <Link className="btn btn-outline-light mx-2" to="/register">
+          <FaPersonBooth/>{" "}
         </Link>
       </div>
     </nav>

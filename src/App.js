@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
+import { AuthProvider } from './context/AuthContext';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import LandingPage from './pages/LandingPage';
 import NotFound from "./pages/NotFound";
 import "./App.css";
 
@@ -17,7 +21,6 @@ function App() {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-
   const addToCart = (product) => setCart([...cart, product]);
 
   const removeFromCart = (index) => {
@@ -26,16 +29,25 @@ function App() {
     setCart(newCart);
   };
 
+  const clearCart = () => setCart([]);
+
   return (
-    <BrowserRouter>
-      <Navbar cartCount={cart.length} />
-      <Routes>
-        <Route path="/" element={<Home addToCart={addToCart} />} />
-        <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
-        <Route path="/checkout" element={<Checkout cart={cart} />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <Router>
+        <Navbar cartCount={cart.length} />
+        <div className="container mt-3">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/home" element={<Home addToCart={addToCart} />} />
+            <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
+            <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
