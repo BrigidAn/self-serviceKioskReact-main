@@ -16,7 +16,7 @@ function Navbar({ cartCount }) {
         to="/"
         style={{ textDecoration: "none" }}
       >
-        Kiosk 
+        Self-service Kiosk 
       </Link>
 
       <div>

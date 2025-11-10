@@ -20,7 +20,7 @@ function Home({ addToCart }) {
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">Self-Service Kiosk</h2>
+      <h2 className="text-center mb-4"> Kiosk</h2>
       <div className="row justify-content-center">
         {products.map((p) => (
           <div key={p.id} className="col-md-4 mb-4 d-flex justify-content-center">

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal} from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
  function BalanceModal({ show, onHide, balance }) {
   return (
@@ -11,7 +12,7 @@ import { Modal, Button } from 'react-bootstrap';
         <p className="fs-5">Current Balance: <strong>${balance.toFixed(2)}</strong></p>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={onHide}>Continue</Button>
+        <Link variant="primary" onClick={onHide} to="/home">Continue</Link>
       </Modal.Footer>
     </Modal>
   );

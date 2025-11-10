@@ -6,7 +6,7 @@
 
 .landing-left {
   flex: 1;
-  background: url("https://images.unsplash.com/photo-1522202176988-66273c2fd55f") no-repeat center center/cover;
+  background: url("https://plus.unsplash.com/premium_photo-1675883159573-874cf666f18e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGtpb3NrfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=500") no-repeat center center/cover;
   position: relative;
 }
 
@@ -73,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f8f9fb;
+  background: linear-gradient(90deg, rgba(168, 254, 255, 1) 0%, rgba(51, 186, 48, 1) 100%);
   padding: 2rem;
 }
 
