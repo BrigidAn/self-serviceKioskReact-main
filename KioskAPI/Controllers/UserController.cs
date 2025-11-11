@@ -22,7 +22,7 @@ namespace KioskAPI.Controllers
     // GET: api/admin/users
         // Admin can view all users and their roles
         [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetById([FromRoute] int UserId)
+        public async Task<IActionResult> GetUsers()
         {
             var users = await _context.Users.Include(u => u.Role)
                 .Select(u => new {
