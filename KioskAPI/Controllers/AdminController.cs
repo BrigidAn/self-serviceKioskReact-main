@@ -10,74 +10,126 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KioskAPI.Controllers
 {
-    [ApiController]
+   [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "Admin")] | -> So this controller is only accessible to Admins if role != Admin == no access
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public AdminController(AppDbContext context) => _context = context;
-       
 
-    // GET: api/admin/users
-        // Admin can view all users and their roles
-        [HttpGet("users")]
-        public async Task<IActionResult> GetAllUsers()
+        public AdminController(AppDbContext context)
         {
-            var users = await _context.Users.Include(u => u.Role)
-                .Select(u => new {
+            _context = context;
+        }
+
+        // ✅ Check if user is admin before accessing data
+        private async Task<bool> IsAdminAsync(int userId)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
+
+            return user?.Role?.RoleName == "Admin";
+        }
+
+        // 🧑‍💻 Get all users
+        [HttpGet("users")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] int adminId)
+        {
+            if (!await IsAdminAsync(adminId))
+                return Unauthorized(new { message = "Access denied. Admins only." });
+
+            var users = await _context.Users
+                .Include(u => u.Role)
+                .Select(u => new
+                {
                     u.UserId,
                     u.Name,
                     u.Email,
-                    Role = u.Role != null ? u.Role.RoleName : null,
-                    u.CreatedAt
-                }).ToListAsync();
+                    Role = u.Role.RoleName,
+                    u.CreatedAt,
+                    u.UpdatedAt
+                })
+                .ToListAsync();
 
             return Ok(users);
         }
 
-        // GET: api/admin/accounts
-        // Admin can view all account balances and last updated time
-        [HttpGet("accounts")]
-        public async Task<IActionResult> GetAllAccounts()
+        // 💰 Get all transactions
+        [HttpGet("transactions")]
+        public async Task<IActionResult> GetAllTransactions([FromQuery] int adminId)
         {
-            var accounts = await _context.Accounts
-                .Include(a => a.User)
-                .Select(a => new {
-                    a.AccountId,
-                    User = a.User != null ? a.User.Email : null,
-                    a.Balance,
-                    a.LastUpdated
-                }).ToListAsync();
+            if (!await IsAdminAsync(adminId))
+                return Unauthorized(new { message = "Access denied. Admins only." });
 
-            return Ok(accounts);
+            var transactions = await _context.Transactions
+                .Include(t => t.Account)
+                .ThenInclude(a => a.User)
+                .Select(t => new
+                {
+                    t.TransactionId,
+                    AccountOwner = t.Account.User.Name,
+                    t.Type,
+                    t.TotalAmount,
+                    t.Description,
+                    t.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(transactions);
         }
 
-        // POST: api/admin/credit/{userId}
-        // Admin can credit a user's account (for adjustments)
-        [HttpPost("credit/{userId}")]
-        public async Task<IActionResult> CreditUser(int userId, [FromBody] decimal amount)
+        // 🧾 Get all orders
+        [HttpGet("orders")]
+        public async Task<IActionResult> GetAllOrders([FromQuery] int adminId)
         {
-            if (amount <= 0) return BadRequest(new { message = "Amount must be positive" });
+            if (!await IsAdminAsync(adminId))
+                return Unauthorized(new { message = "Access denied. Admins only." });
 
-            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
-            if (account == null) return NotFound(new { message = "Account not found" });
+            var orders = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                .Select(o => new
+                {
+                    o.OrderId,
+                    Customer = o.User.Name,
+                    o.OrderDate,
+                    o.TotalAmount,
+                    o.Status,
+                    o.PaymentStatus,
+                    Items = o.OrderItems.Select(i => new
+                    {
+                        i.ProductId,
+                        i.Quantity,
+                        i.PriceAtPurchase
+                    })
+                })
+                .ToListAsync();
 
-            var tx = new Transaction
-            {
-                AccountId = account.AccountId,
-                Type = "credit",
-                TotalAmount = amount,
-                Description = "Admin credit"
-            };
+            return Ok(orders);
+        }
 
-            account.Balance += amount;
-            account.LastUpdated = DateTime.UtcNow;
+        // 📦 Get all products
+        [HttpGet("products")]
+        public async Task<IActionResult> GetAllProducts([FromQuery] int adminId)
+        {
+            if (!await IsAdminAsync(adminId))
+                return Unauthorized(new { message = "Access denied. Admins only." });
 
-            _context.Transactions.Add(tx);
-            await _context.SaveChangesAsync();
+            var products = await _context.Products
+                .Include(p => p.Supplier)
+                .Select(p => new
+                {
+                    p.ProductId,
+                    p.Name,
+                    p.Description,
+                    p.Price,
+                    p.Category,
+                    p.Quantity,
+                    Supplier = p.Supplier.Name
+                })
+                .ToListAsync();
 
-            return Ok(new { balance = account.Balance });
+            return Ok(products);
         }
     }
 }

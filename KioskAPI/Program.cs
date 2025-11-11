@@ -1,19 +1,16 @@
-using System.Text;
 using KioskAPI.Data;
 using KioskAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-builder.Services.AddAuthorization();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddAuthentication("MyCookieAuth")
 .AddCookie("MyCookieAuth", options =>
 {
@@ -28,10 +25,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 });
 
-// builder.Services.AddControllers().AddNewtonsoftJson(options =>
-// {
-//     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-// });
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
 
 
 var app = builder.Build();
@@ -51,7 +49,6 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
-app.UseAuthentication();
+app.UseCors("AllowAll");
 app.MapControllers();
 app.Run();

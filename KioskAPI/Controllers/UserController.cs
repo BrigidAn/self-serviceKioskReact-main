@@ -10,74 +10,122 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KioskAPI.Controllers
 {
-    [ApiController]
+     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize(Roles = "User")]
     public class UserController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public UserController(AppDbContext context) => _context = context;
-       
 
-    // GET: api/admin/users
-        // Admin can view all users and their roles
-        [HttpGet("{UserId}")]
-        public async Task<IActionResult> GetUsers()
+        public UserController(AppDbContext context)
         {
-            var users = await _context.Users.Include(u => u.Role)
-                .Select(u => new {
-                    u.UserId,
-                    u.Name,
-                    u.Email,
-                    Role = u.Role != null ? u.Role.RoleName : null,
-                    u.CreatedAt
-                }).ToListAsync();
-
-            return Ok(users);
+            _context = context;
         }
 
-        // GET: api/admin/accounts
-        // Admin can view all account balances and last updated time
-        [HttpGet("accounts")]
-        public async Task<IActionResult> GetAllAccounts()
+        // 🧍‍♂️ Get user profile
+        [HttpGet("profile/{userId}")]
+        public async Task<IActionResult> GetUserProfile(int userId)
         {
-            var accounts = await _context.Accounts
-                .Include(a => a.User)
-                .Select(a => new {
-                    a.AccountId,
-                    User = a.User != null ? a.User.Email : null,
-                    a.Balance,
-                    a.LastUpdated
-                }).ToListAsync();
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
-            return Ok(accounts);
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
+            return Ok(new
+            {
+                user.UserId,
+                user.Name,
+                user.Email,
+                Role = user.Role?.RoleName,
+                user.CreatedAt
+            });
         }
 
-        // POST: api/admin/credit/{userId}
-        // Admin can credit a user's account (for adjustments)
-        [HttpPost("credit/{userId}")]
-        public async Task<IActionResult> CreditUser(int userId, [FromBody] decimal amount)
+        // 💰 Get account details
+        [HttpGet("account/{userId}")]
+        public async Task<IActionResult> GetAccountDetails(int userId)
         {
-            if (amount <= 0) return BadRequest(new { message = "Amount must be positive" });
+            var account = await _context.Accounts
+                .Include(a => a.Transactions)
+                .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
+
+            return Ok(new
+            {
+                account.AccountId,
+                account.Balance,
+                account.LastUpdated,
+                Transactions = account.Transactions?.Select(t => new
+                {
+                    t.TransactionId,
+                    t.Type,
+                    t.TotalAmount,
+                    t.Description,
+                    t.CreatedAt
+                })
+            });
+        }
+
+        // ➕ Add funds to account
+        [HttpPost("account/topup")]
+        public async Task<IActionResult> TopUpBalance([FromBody] dynamic data)
+        {
+            int userId = data.userId;
+            decimal amount = data.amount;
 
             var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
-            if (account == null) return NotFound(new { message = "Account not found" });
-
-            var tx = new Transaction
-            {
-                AccountId = account.AccountId,
-                Type = "credit",
-                TotalAmount = amount,
-                Description = "Admin credit"
-            };
+            if (account == null)
+                return NotFound(new { message = "Account not found" });
 
             account.Balance += amount;
             account.LastUpdated = DateTime.UtcNow;
 
-            _context.Transactions.Add(tx);
+            // Record transaction
+            var transaction = new Transaction
+            {
+                AccountId = account.AccountId,
+                Type = "credit",
+                TotalAmount = amount,
+                Description = "Balance top-up",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
 
-            return Ok(new { balance = account.Balance });
+            return Ok(new { message = "Balance topped up successfully", account.Balance });
+        }
+
+        // 🧾 Get user orders
+        [HttpGet("orders/{userId}")]
+        public async Task<IActionResult> GetUserOrders(int userId)
+        {
+            var orders = await _context.Orders
+                .Include(o => o.OrderItems)
+                .Where(o => o.UserId == userId)
+                .Select(o => new
+                {
+                    o.OrderId,
+                    o.OrderDate,
+                    o.TotalAmount,
+                    o.Status,
+                    o.PaymentStatus,
+                    Items = o.OrderItems.Select(i => new
+                    {
+                        i.ProductId,
+                        i.Quantity,
+                        i.PriceAtPurchase
+                    })
+                })
+                .ToListAsync();
+
+            if (!orders.Any())
+                return NotFound(new { message = "No orders found for this user" });
+
+            return Ok(orders);
         }
     }
 }

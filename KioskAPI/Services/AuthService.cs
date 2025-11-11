@@ -1,67 +1,61 @@
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using KioskAPI.Data;
 using KioskAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace KioskAPI.Services
 {
     public class AuthService
     {
         private readonly AppDbContext _context;
-        private readonly IConfiguration _config;
-
-        public AuthService(AppDbContext context, IConfiguration config)
+        public AuthService(AppDbContext context)
         {
             _context = context;
-            _config = config;
         }
 
-        public async Task<string> Register(User user, string password)
+        // Register user
+        public async Task<string> RegisterAsync(string name, string email, string password)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email)) //when everything matches a user stored in the database 
-                return "User already exists";
+            if (await _context.Users.AnyAsync(u => u.Email == email))
+                return "Email already exists";
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password); //hide password
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync(); // adding a new user onto the platform 
-            return "User has been registered succesfully";
-        }
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
-        public async Task<string?> Login(string email, string password)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) //confirm password matches user
-                return null;
-            return "Logged In Successfully";
-            //return GenerateJwtToken(user);
-        }
-        /*
-        public string GenerateJwtToken(User user)
-        {
-            var claims = new[]
+            var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
+
+            var user = new User
             {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                Name = name,
+                Email = email,
+                PasswordHash = passwordHash,
+                RoleId = userRole?.RoleId ?? 1
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var tokens = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.Now.AddHours(3),
-            signingCredentials: creds);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-            return new JwtSecurityTokenHandler().WriteToken(tokens);
+            // Create account for new user
+            var account = new Account
+            {
+                UserId = user.UserId,
+                Balance = 0
+            };
+            _context.Accounts.Add(account);
+            await _context.SaveChangesAsync();
+
+            return "Registration successful";
         }
-        */
+
+        // Login user
+        public async Task<User?> LoginAsync(string email, string password)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                return null;
+
+            return user;
+        }
     }
 }
