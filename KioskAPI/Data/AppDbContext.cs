@@ -14,7 +14,7 @@ namespace KioskAPI.Data
         }
         
         // DbSets map to tables
-        public DbSet<Role> Roles => Set<Role>();
+        public DbSet<Role> Roles => Set<Role>();//public DbSet<Roel> Roles {get; set;}
         public DbSet<User> Users => Set<User>();
         public DbSet<Account> Accounts => Set<Account>();
         public DbSet<Transaction> Transactions => Set<Transaction>();

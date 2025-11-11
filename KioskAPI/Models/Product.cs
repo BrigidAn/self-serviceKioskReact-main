@@ -15,8 +15,9 @@ namespace KioskAPI.Models
         [Required]
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
-        public decimal Price { get; set; } // current price
 
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Price { get; set; } // current price
         public string? Category { get; set; }
         public string? ImageUrl { get; set; }
         public int Quantity { get; set; }

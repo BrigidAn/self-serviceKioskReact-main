@@ -9,11 +9,11 @@ import hostingImg from "../assets/hosting.png";
 
 function Home({ addToCart }) {
   const products = [
-    { id: 1, name: "Wireless Mouse", price: 199, image: mouseImg, avaliable: true },
+    { id: 1, name: "Wireless Mouse", price: 199, image: mouseImg, avaliable: false },
     { id: 2, name: "USB Keyboard", price: 299, image: keyboardImg, avaliable: true },
     { id: 3, name: "HD Monitor", price: 1599, image: monitorImg, avaliable: false },
-    { id: 4, name: "Adapter", price: 299, image: adapterImg, avaliable: false },
-    { id: 5, name: "Router", price: 1350, image: routerImg, avaliable: true },
+    { id: 4, name: "Adapter", price: 299, image: adapterImg, avaliable: true },
+    { id: 5, name: "Router", price: 1350, image: routerImg, avaliable: false },
     { id: 6, name: "CPU Unit", price: 35000, image: cpuImage, avaliable: true },
     { id: 7, name: "Web Hosting Service", price: 20000, image: hostingImg, avaliable: false },
   ];

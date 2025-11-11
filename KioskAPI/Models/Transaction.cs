@@ -22,7 +22,9 @@ namespace KioskAPI.Models
         // "credit" or "debit"
         public string Type { get; set; } = null!;
 
-        public decimal TotalAmount { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal TotalAmount { get; set; }        
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

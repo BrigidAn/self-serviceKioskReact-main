@@ -17,6 +17,8 @@ namespace KioskAPI.Models
         public User? User { get; set; }
 
         public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TotalAmount { get; set; }
         public string? Status { get; set; } // e.g., "Pending", "Completed"
         public string? DeliveryMethod { get; set; }

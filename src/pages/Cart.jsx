@@ -17,7 +17,7 @@ function Cart({ cart, removeFromCart }) {
       {cart.length === 0 ? (
         <div className="text-center">
           <p className="lead">No items in your cart.</p>
-          <Link to="/" className="btn btn-primary mt-3">
+          <Link to="/home" className="btn btn-primary mt-3">
             Continue Shopping
           </Link>
         </div>

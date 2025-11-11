@@ -12,12 +12,9 @@ namespace KioskAPI.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly JwtService _jwt;
-
-        public AuthController(AppDbContext context, JwtService jwt)
+        public AuthController(AppDbContext context)
         {
             _context = context;
-            _jwt = jwt;
         }
 
         //check if the user or email is already in the database
@@ -28,10 +25,6 @@ namespace KioskAPI.Controllers
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return BadRequest(new { message = "Email already registered." });
 
-            // By default assign the "User" role (role id 2 seeded earlier)
-            var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
-            if (userRole == null) return StatusCode(500, "Roles not seeded");
-
             // Hash password with bcrypt
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
@@ -40,45 +33,37 @@ namespace KioskAPI.Controllers
                 Name = dto.Name,
                 Email = dto.Email,
                 PasswordHash = passwordHash,
-                RoleId = userRole.RoleId,
+                RoleId = dto.Email.ToLower() == "don@admin.co.za" ? 1 : 2, // Assign Admin role if email matches
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.Users.Add(user);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
             // Create account for the user with zero balance
-            var account = new Account
-            {
-                UserId = user.UserId,
-                Balance = 0m,
-                LastUpdated = DateTime.UtcNow
-            };
+            // var account = new Account
+            // {
+            //     UserId = user.UserId,
+            //     Balance = 0m,
+            //     LastUpdated = DateTime.UtcNow
+            // };
 
-            _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Registration successful" });
+            return Ok(new { message = "Registration successful", role = user.RoleId == 2 ? "User" : "Admin" });
         }
 
         // POST: api/auth/login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
+            // Verify bcrypt password
             var user = await _context.Users.Include(u => u.Role).Include(u => u.Account).FirstOrDefaultAsync(u => u.Email == dto.Email);
-            if (user == null)
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Invalid credentials" });
 
-            // Verify bcrypt password
-            bool verified = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-            if (!verified) return Unauthorized(new { message = "Invalid credentials" });
-
-            // Generate JWT with role claim
-            var token = _jwt.GenerateToken(user, user.Role?.RoleName ?? "User");
+            
 
             var response = new AuthResponseDto
             {
-                Token = token,
                 Role = user.Role?.RoleName ?? "User",
                 Email = user.Email,
                 Name = user.Name

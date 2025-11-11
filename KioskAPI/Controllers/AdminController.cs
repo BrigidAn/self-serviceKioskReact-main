@@ -12,7 +12,7 @@ namespace KioskAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")] | -> So this controller is only accessible to Admins if role != Admin == no access
     public class AdminController : ControllerBase
     {
         private readonly AppDbContext _context;
