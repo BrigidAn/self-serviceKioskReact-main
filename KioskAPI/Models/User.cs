@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,12 +9,28 @@ namespace KioskAPI.Models
 {
     public class User
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Email { get; set; }
-        public string PasswordHash { get; set; }
-        public string Role { get; set; } = "user"; //depends on if this is a user or an admin
+        [Key]
+        public int UserId { get; set; }
+        public string Name { get; set; } = null!;
 
-        
-    }
+        [Required, EmailAddress]
+        public string Email { get; set; } = null!;
+
+        [Required]
+        public string PasswordHash { get; set; } = null!;
+
+
+        [ForeignKey(nameof(Role))]
+        public int RoleId { get; set; }
+        public Role? Role { get; set; }
+
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+
+        // Navigation
+        public Account? Account { get; set; }
+        public ICollection<Order>? Orders { get; set; }
+    } //depends on if this is a user or an admin
+
 }

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\BAnyawu\\Downloads\\self-serviceKioskReact-main\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj": {}
+    "C:\\Users\\ochim\\.vscode\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\BAnyawu\\Downloads\\self-serviceKioskReact-main\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj": {
+    "C:\\Users\\ochim\\.vscode\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\BAnyawu\\Downloads\\self-serviceKioskReact-main\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj",
+        "projectUniqueName": "C:\\Users\\ochim\\.vscode\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj",
         "projectName": "KioskAPI",
-        "projectPath": "C:\\Users\\BAnyawu\\Downloads\\self-serviceKioskReact-main\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj",
-        "packagesPath": "C:\\Users\\BAnyawu\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\BAnyawu\\Downloads\\self-serviceKioskReact-main\\self-serviceKioskReact-main\\KioskAPI\\obj\\",
+        "projectPath": "C:\\Users\\ochim\\.vscode\\self-serviceKioskReact-main\\KioskAPI\\KioskAPI.csproj",
+        "packagesPath": "C:\\Users\\ochim\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ochim\\.vscode\\self-serviceKioskReact-main\\KioskAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\BAnyawu\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ochim\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -25,7 +25,9 @@
           "net9.0"
         ],
         "sources": {
+          "C:\\LocalNuget": {},
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -42,17 +44,41 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "direct"
+          "auditMode": "all"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.9, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.10, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.5, )"
+            },
+            "Microsoft.EntityFrameworkCore.Tools": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "Swashbuckle.AspNetCore.SwaggerGen": {
+              "target": "Package",
+              "version": "[9.0.6, )"
+            },
+            "System.IdentityModel.Tokens.Jwt": {
+              "target": "Package",
+              "version": "[8.14.0, )"
             }
           },
           "imports": [
@@ -74,7 +100,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

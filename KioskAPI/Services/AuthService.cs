@@ -1,60 +1,78 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
+using KioskAPI.Data;
+using KioskAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace KioskAPI.Services
 {
     public class AuthService
     {
         private readonly AppDbContext _context;
-        private readonly IConfiguration _config;
 
-        public AuthService(AppDbContext context, ICIConfiguration config)
+        public AuthService(AppDbContext context)
         {
             _context = context;
-            _config = config;
         }
 
-        public async Task<string> Register(User user, string password)
+        public async Task<string> RegisterAsync(string name, string email, string password)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email)) //when everything matches a user stored in the database 
+
+            if (await _context.Users.AnyAsync(u => u.Email == email))
                 return "User already exists";
 
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password); //hide password
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync(); // adding a new user onto the platform 
-            return "User has been registered succesfully";
-        }
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
-        public async Task<string?> Login(string email, string password)
-        {
-            var user = await _context.Users.FirstorDefaultAsync(u => u.Email == email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) //confirm password matches user
-                return null;
+            string roleName = email.EndsWith("@admin.co.za", System.StringComparison.OrdinalIgnoreCase) ? "Admin" : "User";
 
-            return GenerateJwtToken(user);
-        }
-        
-        public string GenerateJwtToken(User user)
-        {
-            var claims = new[]
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName);
+            if (role == null)
             {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.Role)
+                role = new Role { RoleName = roleName, Description = roleName == "Admin" ? "Administrator" : "Standard user" };
+                _context.Roles.Add(role);
+                await _context.SaveChangesAsync();
+            }
+
+            var user = new User
+            {
+                Name = name,
+                Email = email,
+                PasswordHash = passwordHash,
+                RoleId = role.RoleId,
+                CreatedAt = System.DateTime.UtcNow,
+                UpdatedAt = System.DateTime.UtcNow
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var tokens = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.Now.AddHours(3),
-            signingCredentials: creds);
+            _context.Users.Add(user);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var account = new Account
+            {
+                User = user,
+                Balance = 0m,
+                LastUpdated = System.DateTime.UtcNow
+            };
+
+            _context.Accounts.Add(account);
+
+            await _context.SaveChangesAsync();
+
+            return $"Registered successfully as {roleName}.";
+        }
+        
+        public async Task<User?> LoginAsync(string email, string password)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+                return null;
+
+
+            bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+            if (!isValid)
+                return null;
+
+            return user;
         }
     }
 }

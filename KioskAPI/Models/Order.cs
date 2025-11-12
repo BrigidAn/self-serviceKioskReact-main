@@ -9,6 +9,7 @@ namespace KioskAPI.Models
 {
     public class Order
     {
+        
          [Key]
         public int OrderId { get; set; }
 
