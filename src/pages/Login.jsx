@@ -1,69 +1,77 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Button, Card, Alert } from 'react-bootstrap';
-import { useAuth } from '../context/AuthContext';
-import BalanceModal from '../components/BalanceModal';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Form, Button, Card, Alert } from "react-bootstrap";
 
 function Login() {
-  const { login, balance } = useAuth();
-  const [showBalance, setShowBalance] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const API_BASE_URL = "https://localhost:5016/api/Auth";
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      // Simulated API response
-      const userData = {
-        name: 'John Doe',
-        email,
-        balance: 120.50
-      };
-      login(userData);
-      setShowBalance(true);
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        email: email,
+        password: password,
+      });
+
+      const user = response.data.user;
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/home");
     } catch (err) {
-      setError('Invalid login credentials');
+      console.error(err);
+      setError("Invalid email or password.");
     }
   };
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <Card style={{ width: '25rem', padding: '2rem' }}>
+      <Card style={{ width: "25rem", padding: "2rem" }}>
         <h3 className="text-center mb-4">Login</h3>
         {error && <Alert variant="danger">{error}</Alert>}
+
         <Form onSubmit={handleLogin}>
           <Form.Group controlId="email" className="mb-3">
             <Form.Label>Email</Form.Label>
-            <Form.Control 
-              type="email" 
+            <Form.Control
+              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="Enter your email" 
-              required 
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
             />
           </Form.Group>
 
           <Form.Group controlId="password" className="mb-3">
             <Form.Label>Password</Form.Label>
-            <Form.Control 
-              type="password" 
+            <Form.Control
+              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Enter your password" 
-              required 
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
             />
           </Form.Group>
 
-          <Button type="submit" className="w-100">Login</Button>
+          <Button variant="primary" type="submit" className="w-100">
+            Login
+          </Button>
+
+          <div className="text-center mt-3">
+            <small>
+              Don’t have an account?{" "}
+              <a href="/register" className="text-decoration-none">
+                Register
+              </a>
+            </small>
+          </div>
         </Form>
-
-        <p className="text-center mt-3">
-          Don’t have an account? <a href="/register">Register</a>
-        </p>
-
-        <BalanceModal show={showBalance} onHide={() => { setShowBalance(false); navigate('/'); }} balance={balance} />
       </Card>
     </div>
   );

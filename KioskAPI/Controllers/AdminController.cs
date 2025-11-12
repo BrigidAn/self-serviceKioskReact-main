@@ -131,5 +131,17 @@ namespace KioskAPI.Controllers
 
             return Ok(products);
         }
+
+        [HttpPost("add-product")] //adding new products 
+        public async Task<IActionResult> AddProduct([FromQuery] int adminId, [FromBody] Product newProduct)
+        {
+            if (!await IsAdminAsync(adminId))
+                return Unauthorized(new { message = "Access denied. Admins only." });
+
+            _context.Products.Add(newProduct);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Product added successfully.", ProductId = newProduct.ProductId });
+        }
     }
 }

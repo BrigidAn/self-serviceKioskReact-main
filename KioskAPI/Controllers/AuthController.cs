@@ -19,16 +19,28 @@ namespace KioskAPI.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User dto)
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var result = await _authService.RegisterAsync(dto.Name, dto.Email, dto.PasswordHash);
+            if (string.IsNullOrWhiteSpace(dto.Name) ||
+            string.IsNullOrWhiteSpace(dto.Email) ||
+            string.IsNullOrWhiteSpace(dto.Password))
+            {
+                return BadRequest(new { message = "All fields are required." });
+            }
+            
+            var result = await _authService.RegisterAsync(dto.Name, dto.Email, dto.Password);
             return Ok(new { message = result });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User dto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var user = await _authService.LoginAsync(dto.Email, dto.PasswordHash);
+            if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
+            {
+                return BadRequest(new { message = "Email and password are required." });
+            }
+
+            var user = await _authService.LoginAsync(dto.Email, dto.Password);
             if (user == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 

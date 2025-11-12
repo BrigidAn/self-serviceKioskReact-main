@@ -26,8 +26,7 @@ namespace KioskAPI.Controllers
         public async Task<IActionResult> GetUserProfile(int userId)
         {
             var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserId == userId);
+                .Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
 
             if (user == null)
                 return NotFound(new { message = "User not found" });
