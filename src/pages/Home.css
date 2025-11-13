@@ -9,18 +9,22 @@
 /* Product Card */
 .product-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.05); /* glass effect */
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 15px;
+  background: rgba(20, 30, 40, 0.4); /* slightly darker glass tone */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 217, 255, 0.2); /* subtle glowing edge */
+  border-radius: 16px;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  color: #fff;
+  transition: all 0.4s ease;
+  color: #e6faff; /* soft white-blue text */
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.05);
 }
 
 .product-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 15px 30px rgba(0, 217, 255, 0.4);
+  transform: translateY(-8px);
+  background: rgba(25, 45, 55, 0.5);
+  box-shadow: 0 0 25px rgba(0, 217, 255, 0.25);
+  border-color: rgba(0, 217, 255, 0.6);
 }
 
 /* Product Image */
@@ -29,6 +33,7 @@
   height: 200px;
   object-fit: cover;
   display: block;
+  border-bottom: 1px solid rgba(0, 217, 255, 0.1);
 }
 
 /* Product Details */
@@ -39,30 +44,34 @@
 .product-card .details h3 {
   margin: 0;
   color: #00d9ff;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
+  text-shadow: 0 0 6px rgba(0, 217, 255, 0.4);
 }
 
 .product-card .details p.price {
   margin: 0.5rem 0 1rem;
-  color: #ccc;
-  font-size: 1.1rem;
+  color: #b8d8e3;
+  font-size: 1rem;
 }
 
-/* Button */
+/* Add to Cart Button */
 .product-card .details button {
   width: 100%;
   padding: 0.8rem 0;
-  background: #00d9ff;
-  color: #0f2027;
-  border: none;
+  background: rgba(0, 217, 255, 0.1);
+  color: #00d9ff;
+  border: 1px solid rgba(0, 217, 255, 0.5);
   border-radius: 10px;
   font-size: 1rem;
   font-weight: bold;
-  transition: box-shadow 0.3s ease;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
 }
 
 .product-card .details button:hover {
-  box-shadow: 0 0 15px #00d9ff;
+  background: #00d9ff;
+  color: #0f2027;
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
 }
 
 /* Ribbon for unavailable status */

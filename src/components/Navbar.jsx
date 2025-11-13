@@ -16,36 +16,34 @@ function Navbar({ cartCount }) {
   };
 
   return (
-    <nav className="navbar-glass navbar navbar-expand-lg navbar-dark px-4">
-      <div className="container-fluid">
+    <nav className="navbar-glass">
+      <div className="navbar-content">
         {/* Brand */}
-        <Link className="navbar-brand fw-bold" to="/">
+        <Link className="navbar-brand" to="/">
           Tech Shack
         </Link>
 
         {/* Navbar Links */}
-        <div className="collapse navbar-collapse">
-          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <Link className="nav-link" to="/products">
-                Products
-              </Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/about">
-                About
-              </Link>
-            </li>
-          </ul>
-        </div>
+        <ul className="navbar-links">
+          <li className="nav-item">
+            <Link className="nav-link" to="/products">
+              Products
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/about">
+              About
+            </Link>
+          </li>
+        </ul>
 
         {/* Right-side Icons */}
-        <div className="navbar-icons d-flex align-items-center">
+        <div className="navbar-icons">
           {/* Cart */}
           <Link className="btn-glass" to="/cart">
             <FaShoppingCart size={18} />
             {cartCount > 0 && (
-              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark" style={{ fontSize: "0.7rem" }}>
+              <span className="cart-badge" style={{ fontSize: "0.7rem" }}>
                 {cartCount}
               </span>
             )}
@@ -63,7 +61,7 @@ function Navbar({ cartCount }) {
               <FaUserCircle size={20} className="me-2" />
               Account
             </button>
-            <ul className="dropdown-menu dropdown-menu-end shadow " aria-labelledby="userDropdown">
+            <ul className="dropdown-menu dropdown-menu-end">
               <li>
                 <button className="dropdown-item" onClick={handleAddAccount}>
                   Add Account Balance
@@ -73,7 +71,10 @@ function Navbar({ cartCount }) {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <button className="dropdown-item text-danger" onClick={handleLogout}>
+                <button
+                  className="dropdown-item text-danger"
+                  onClick={handleLogout}
+                >
                   Logout
                 </button>
               </li>
