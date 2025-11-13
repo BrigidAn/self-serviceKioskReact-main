@@ -1,165 +1,167 @@
-import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
-import CheckoutModal from '../components/CheckoutModal';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function Checkout({ cart: propCart = [], clearCart }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const cart = location.state?.cart || propCart;
 
+  const [balance, setBalance] = useState(0);
+  const [topUpAmount, setTopUpAmount] = useState("");
   const [step, setStep] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-  });
-
+  const [loading, setLoading] = useState(false);
   const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // Fetch user balance on mount
+  useEffect(() => {
+    fetchBalance();
+  }, []);
+
+  const fetchBalance = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/account/balance", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setBalance(res.data.balance);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleConfirmPurchase = () => {
-    clearCart();
-    setShowModal(false);
-    setStep(3);
-  };
-
+  // Proceed to payment
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  const handleSubmit = (e) => {
+  // Top up user account
+  const handleTopUp = async (e) => {
     e.preventDefault();
-    setShowModal(true); // trigger the modal on submit
+    if (!topUpAmount || parseFloat(topUpAmount) <= 0) return;
+
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/account/topup",
+        parseFloat(topUpAmount),
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      setBalance(res.data.balance);
+      setTopUpAmount("");
+      alert("Balance topped up successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to top up.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Confirm purchase using account balance
+  const handlePurchase = async () => {
+    if (balance < total) {
+      alert("Insufficient balance. Please top up your account.");
+      return;
+    }
+
+    try {
+      // Call transaction API
+      const userId = localStorage.getItem("userId");
+      await axios.post(
+        "http://localhost:5000/api/transaction",
+        {
+          accountId: userId, // Or fetch actual accountId from backend
+          type: "debit",
+          totalAmount: total,
+          description: "Purchase from cart",
+        },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+
+      // Update balance locally
+      setBalance(balance - total);
+      clearCart();
+      setStep(3); // Payment success step
+    } catch (err) {
+      console.error(err);
+      alert("Purchase failed.");
+    }
   };
 
   return (
     <div className="container mt-5 mb-5">
       <h2 className="text-center mb-4">Checkout</h2>
 
-      {cart.length === 0 && step === 1 && (
-        <p className="text-center">Your cart is empty.</p>
-      )}
-
-      {step === 1 && cart.length > 0 && (
+      {/* Step 1: Review Cart */}
+      {step === 1 && (
         <div className="text-center">
-          <ul className="list-group mb-3">
-            {cart.map((item, index) => (
-              <li
-                key={index}
-                className="list-group-item d-flex justify-content-between align-items-center"
+          {cart.length === 0 ? (
+            <p>Your cart is empty.</p>
+          ) : (
+            <>
+              <ul className="list-group mb-3">
+                {cart.map((item, index) => (
+                  <li
+                    key={index}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    {item.name} <span>R{item.price.toFixed(2)}</span>
+                  </li>
+                ))}
+              </ul>
+              <h5>Total: R{total.toFixed(2)}</h5>
+              <button
+                className="btn btn-primary mt-3"
+                onClick={nextStep}
+                disabled={cart.length === 0}
               >
-                {item.name} <span>R{item.price.toFixed(2)}</span>
-              </li>
-            ))}
-          </ul>
-
-          <h5>Total: R{total.toFixed(2)}</h5>
-          <button
-            className="btn btn-primary mt-3"
-            onClick={nextStep}
-            disabled={cart.length === 0}
-          >
-            Proceed to Payment
-          </button>
+                Proceed to Payment
+              </button>
+            </>
+          )}
         </div>
       )}
 
+      {/* Step 2: Payment with Account Balance */}
       {step === 2 && (
-        <form
-          onSubmit={handleSubmit}
-          className="col-md-6 mx-auto border p-4 rounded bg-light shadow-sm"
-        >
-          <h4 className="mb-3 text-center">Payment Information</h4>
+        <div className="col-md-6 mx-auto border p-4 rounded bg-light shadow-sm">
+          <h4 className="mb-3 text-center">Payment Using Account Balance</h4>
+          <p>Current Balance: <strong>R{balance.toFixed(2)}</strong></p>
+          <p>Total Purchase: <strong>R{total.toFixed(2)}</strong></p>
 
-          <div className="mb-3">
-            <label className="form-label">Full Name on Card</label>
-            <input
-              type="text"
-              name="name"
-              className="form-control"
-              required
-              value={formData.name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Card Number</label>
-            <input
-              type="text"
-              name="cardNumber"
-              className="form-control"
-              maxLength="16"
-              required
-              value={formData.cardNumber}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <label className="form-label">Expiry Date</label>
+          {balance < total && (
+            <form onSubmit={handleTopUp} className="mb-3">
               <input
-                type="text"
-                name="expiry"
-                className="form-control"
-                placeholder="MM/YY"
-                maxLength="5"
-                required
-                value={formData.expiry}
-                onChange={handleChange}
+                type="number"
+                placeholder="Top up amount"
+                value={topUpAmount}
+                onChange={(e) => setTopUpAmount(e.target.value)}
+                className="form-control mb-2"
               />
-            </div>
-
-            <div className="col-md-6 mb-3">
-              <label className="form-label">CVV</label>
-              <input
-                type="password"
-                name="cvv"
-                className="form-control"
-                placeholder="***"
-                maxLength="3"
-                required
-                value={formData.cvv}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+              <button type="submit" className="btn btn-info" disabled={loading}>
+                {loading ? "Processing..." : "Top Up"}
+              </button>
+            </form>
+          )}
 
           <div className="d-flex justify-content-between">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={prevStep}
-            >
-              Back
-            </button>
-            <button type="submit" className="btn btn-success">
-              Confirm Payment
+            <button className="btn btn-secondary" onClick={prevStep}>Back</button>
+            <button className="btn btn-success" onClick={handlePurchase} disabled={balance < total}>
+              Confirm Purchase
             </button>
           </div>
-        </form>
+        </div>
       )}
 
+      {/* Step 3: Payment Success */}
       {step === 3 && (
         <div className="text-center mt-5">
           <h3>Payment Successful!</h3>
           <p className="lead">Thank you for your purchase.</p>
-          <button className="btn btn-dark mt-3" onClick={() => setStep(1)}>
+          <button className="btn btn-dark mt-3" onClick={() => navigate("/")}>
             Back To Home
           </button>
         </div>
       )}
-
-      <CheckoutModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        total={total}
-        onConfirm={handleConfirmPurchase}
-      />
     </div>
   );
 }

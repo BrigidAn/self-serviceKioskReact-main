@@ -20,8 +20,6 @@ namespace KioskAPI.Models
         public decimal Balance { get; set; } = 0m;
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
-        // JSON or text field for small transaction  summary if desired,
-        // but we'll store transactions in Transactions table.
         public string? TransactionsSummary { get; set; }
 
         public ICollection<Transaction>? Transactions { get; set; }

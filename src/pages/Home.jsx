@@ -23,12 +23,12 @@ function Home({ addToCart }) {
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4"> Kiosk</h2>
+      <h2 className="text-center mb-4 text-light fw-bold"> Kiosk</h2>
       <div className="row justify-content-center">
         {products.map((p) => (
           <div key={p.id} className="col-md-4 mb-4 d-flex justify-content-center">
 
-            <div className="card text-center p-3" style={{ width: "18rem", opacity: p.avaliable ? 1 : 0.5, 
+            <div className="product-card text-center" style={{ width: "18rem", opacity: p.avaliable ? 1 : 0.5, 
               pointerEvents: p.avaliable ? "auto" : "none", filter : p.avaliable ? "none" : "grayscale(100%)", boxShadow: "0 6px 15px rgba(0, 0, 0, 0.2)", // 👈 floating shadow
               borderRadius: "15px",transition: "all 0.3s ease", }}onMouseEnter={(e) => {if (p.available)e.currentTarget.style.transform = "translateY(-8px)";
                 e.currentTarget.style.boxShadow = "0 10px 20px rgba(21, 158, 236, 0.25)";
@@ -37,12 +37,37 @@ function Home({ addToCart }) {
                 e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.15)";
             }}>
                 
-              <img src={p.image} className="card-img-top" alt={p.name} style={{ height: "200px", objectFit: "cover", borderRadius: "15px"}}/>
+              <img src={p.image} className="card-img-top" alt={p.name} style={{ height: "200px", objectFit: "cover", borderRadius: "20px"}}/>
               <div className="card-body">
                 <h5 className="card-title">{p.name}</h5>
                 <p className="card-text">R{p.price}</p>
-                {p.avaliable ? (<button className="btn btn-primary" onClick={() => addToCart(p)}>
-                      Add to Cart
+                {p.avaliable ? 
+                (  <button
+                  className="btn"
+                  style={{
+                    width: "40%",
+                    padding: "0.8rem 0",
+                    background: "rgba(0, 217, 255, 0.1)",
+                    color: "#00d9ff",
+                    border: "1px solid rgba(0, 217, 255, 0.5)",
+                    borderRadius: "12px",
+                    fontWeight: "bold",
+                    letterSpacing: "0.5px",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#00d9ff";
+                    e.currentTarget.style.color = "#0f2027";
+                    e.currentTarget.style.boxShadow = "0 0 20px rgba(0, 217, 255, 0.6)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(0, 217, 255, 0.1)";
+                    e.currentTarget.style.color = "#00d9ff";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                  onClick={() => addToCart(p)}
+                >
+                  Add to Cart
                 </button>
                 ) : (
                   <button className="ribbon" disabled>

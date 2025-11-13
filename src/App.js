@@ -7,6 +7,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import LandingPage from './pages/LandingPage';
 import NotFound from "./pages/NotFound";
+import Account from "./pages/Account";
 import "./App.css";
 
 function App() {
@@ -36,7 +37,7 @@ function App() {
         <div className="container mt-3">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/account" element={<div>Account Balance Page (to be implemented)</div>} />
+            <Route path="/account" element={<Account/>} />
             <Route path="/home" element={<Home addToCart={addToCart} />} />
             <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
             <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />
