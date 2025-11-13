@@ -19,7 +19,7 @@ namespace KioskAPI.Controllers
             _context = context;
         }
 
-        // 🧾 GET: api/order
+   
         // Get all orders (admin only, optional)
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
@@ -49,7 +49,6 @@ namespace KioskAPI.Controllers
             return Ok(orders);
         }
 
-        // 👤 GET: api/order/user/{userId}
         // Get orders belonging to a specific user
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetOrdersByUser(int userId)
@@ -81,7 +80,7 @@ namespace KioskAPI.Controllers
             return Ok(orders);
         }
 
-        // ➕ POST: api/order
+        
         // Create a new order
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] Order newOrder)
@@ -124,7 +123,7 @@ namespace KioskAPI.Controllers
             });
         }
 
-        // ✏️ PUT: api/order/{orderId}
+        
         // Update order status (e.g., mark as completed or paid)
         [HttpPut("{orderId}")]
         public async Task<IActionResult> UpdateOrder(int orderId, [FromBody] Order updatedOrder)

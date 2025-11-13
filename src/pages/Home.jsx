@@ -6,6 +6,7 @@ import adapterImg from "../assets/adapter.png";
 import routerImg from "../assets/router.png";
 import cpuImage from "../assets/cpu.png";
 import hostingImg from "../assets/hosting.png";
+import "./Home.css";
 
 function Home({ addToCart }) {
   const products = [
@@ -16,6 +17,8 @@ function Home({ addToCart }) {
     { id: 5, name: "Router", price: 1350, image: routerImg, avaliable: false },
     { id: 6, name: "CPU Unit", price: 35000, image: cpuImage, avaliable: true },
     { id: 7, name: "Web Hosting Service", price: 20000, image: hostingImg, avaliable: false },
+     { id: 5, name: "Router", price: 1350, image: routerImg, avaliable: false }, //duplicate
+    { id: 6, name: "CPU Unit", price: 35000, image: cpuImage, avaliable: true }, // duplicate 
   ];
 
   return (
@@ -28,7 +31,7 @@ function Home({ addToCart }) {
             <div className="card text-center p-3" style={{ width: "18rem", opacity: p.avaliable ? 1 : 0.5, 
               pointerEvents: p.avaliable ? "auto" : "none", filter : p.avaliable ? "none" : "grayscale(100%)", boxShadow: "0 6px 15px rgba(0, 0, 0, 0.2)", // 👈 floating shadow
               borderRadius: "15px",transition: "all 0.3s ease", }}onMouseEnter={(e) => {if (p.available)e.currentTarget.style.transform = "translateY(-8px)";
-                e.currentTarget.style.boxShadow = "0 10px 20px rgba(0, 0, 0, 0.25)";
+                e.currentTarget.style.boxShadow = "0 10px 20px rgba(21, 158, 236, 0.25)";
             }}onMouseLeave={(e) => {if (p.available)
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow = "0 4px 10px rgba(0, 0, 0, 0.15)";

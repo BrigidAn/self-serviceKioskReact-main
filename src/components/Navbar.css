@@ -1,0 +1,104 @@
+.navbar-glass {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(132, 148, 155, 0.6); /* semi-transparent dark glass */
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(0, 217, 255, 0.2); /* subtle neon line */
+  padding: 0.5rem 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navbar-content {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content:space-between;
+  align-items: center;
+}
+
+/* Brand */
+.navbar-brand {
+  color: #00d9ff;
+  font-size: 1.6rem;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.navbar-brand:hover {
+  text-shadow: 0 0 10px #00d9ff;
+}
+
+/* Links */
+.navbar-links {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+}
+
+.navbar-links .nav-link {
+  color: #ccc;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.navbar-links .nav-link:hover {
+  color: #00d9ff;
+  text-shadow: 0 0 8px #00d9ff;
+}
+
+/* Glass Buttons */
+.btn-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #00d9ff;
+  border: 1px solid #00d9ff;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-left: 1rem;
+  position: relative;
+}
+
+.btn-glass:hover {
+  box-shadow: 0 0 15px #00d9ff;
+  background: rgba(0, 217, 255, 0.1);
+  color: #0f2027;
+}
+
+/* Cart Badge */
+.cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: #00d9ff;
+  color: #0f2027;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  background: rgba(15, 32, 39, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  min-width: 180px;
+}
+
+.dropdown-item {
+  transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #00d9ff;
+  color: #0f2027;
+}

@@ -43,11 +43,11 @@ namespace KioskAPI.Controllers
 
             var query = _context.Users.Include(u => u.Role).AsQueryable();
 
-            // 🔍 Search by name or email
+            // Search by name or email
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(u => u.Name.Contains(search) || u.Email.Contains(search));
 
-            // ↕️ Sorting dynamically
+            // Sorting dynamically
             query = sortBy?.ToLower() switch
             {
                 "name" => sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name),

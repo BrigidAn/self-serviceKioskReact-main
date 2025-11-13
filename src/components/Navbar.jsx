@@ -1,48 +1,51 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
+import "./Navbar.css";
 
 function Navbar({ cartCount }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Example: remove auth data from local storage (you can adjust this)
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/");
   };
 
   const handleAddAccount = () => {
-    // redirect to account balance page
     navigate("/account");
   };
 
   return (
-    <nav
-      className="navbar navbar-expand-lg p-3 mb-4"
-      style={{
-        background:
-          "linear-gradient(90deg, rgba(55,153,191,1) 0%, rgba(87,199,133,1) 84%)",
-        color: "white",
-      }}
-    >
-      <div className="container-fluid d-flex justify-content-between align-items-center">
-        <Link
-          className="navbar-brand text-white fw-bold"
-          to="/"
-          style={{ textDecoration: "none" }}
-        >
-          Tech Stack
+    <nav className="navbar-glass navbar navbar-expand-lg navbar-dark px-4">
+      <div className="container-fluid">
+        {/* Brand */}
+        <Link className="navbar-brand fw-bold" to="/">
+          Tech Shack
         </Link>
 
-        <div className="d-flex align-items-center">
-          {/* Cart Button */}
-          <Link className="btn btn-outline-light mx-2 position-relative" to="/cart">
+        {/* Navbar Links */}
+        <div className="collapse navbar-collapse">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            <li className="nav-item">
+              <Link className="nav-link" to="/products">
+                Products
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/about">
+                About
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Right-side Icons */}
+        <div className="navbar-icons d-flex align-items-center">
+          {/* Cart */}
+          <Link className="btn-glass" to="/cart">
             <FaShoppingCart size={18} />
             {cartCount > 0 && (
-              <span
-                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark"
-                style={{ fontSize: "0.7rem" }}
-              >
+              <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-light text-dark" style={{ fontSize: "0.7rem" }}>
                 {cartCount}
               </span>
             )}
@@ -51,7 +54,7 @@ function Navbar({ cartCount }) {
           {/* User Dropdown */}
           <div className="dropdown">
             <button
-              className="btn btn-outline-light dropdown-toggle d-flex align-items-center"
+              className="btn-glass dropdown-toggle ms-3"
               type="button"
               id="userDropdown"
               data-bs-toggle="dropdown"
@@ -60,16 +63,9 @@ function Navbar({ cartCount }) {
               <FaUserCircle size={20} className="me-2" />
               Account
             </button>
-
-            <ul
-              className="dropdown-menu dropdown-menu-end shadow"
-              aria-labelledby="userDropdown"
-            >
+            <ul className="dropdown-menu dropdown-menu-end shadow " aria-labelledby="userDropdown">
               <li>
-                <button
-                  className="dropdown-item"
-                  onClick={handleAddAccount}
-                >
+                <button className="dropdown-item" onClick={handleAddAccount}>
                   Add Account Balance
                 </button>
               </li>
@@ -77,10 +73,7 @@ function Navbar({ cartCount }) {
                 <hr className="dropdown-divider" />
               </li>
               <li>
-                <button
-                  className="dropdown-item text-danger"
-                  onClick={handleLogout}
-                >
+                <button className="dropdown-item text-danger" onClick={handleLogout}>
                   Logout
                 </button>
               </li>
@@ -90,8 +83,6 @@ function Navbar({ cartCount }) {
       </div>
     </nav>
   );
-
-  
 }
 
 export default Navbar;

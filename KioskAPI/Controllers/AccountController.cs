@@ -19,7 +19,7 @@ namespace KioskAPI.Controllers
         private readonly AppDbContext _context;
          public AccountController(AppDbContext context) => _context = context;
 
-       // GET: api/account/balance
+   
         // Returns the current user's balance
         [HttpGet("balance")]
         public async Task<IActionResult> GetBalance()
@@ -31,7 +31,7 @@ namespace KioskAPI.Controllers
             return Ok(new { balance = account.Balance });
         }
 
-        // POST: api/account/topup
+      
         // Top up the current user's account by a specified amount
         [HttpPost("topup")]
         public async Task<IActionResult> TopUp([FromBody] decimal amount)

@@ -3,8 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import { AuthProvider } from './context/AuthContext';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import LandingPage from './pages/LandingPage';
@@ -38,8 +36,7 @@ function App() {
         <div className="container mt-3">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/account" element={<div>Account Balance Page (to be implemented)</div>} />
             <Route path="/home" element={<Home addToCart={addToCart} />} />
             <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
             <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />

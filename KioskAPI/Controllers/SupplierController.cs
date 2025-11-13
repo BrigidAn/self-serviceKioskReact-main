@@ -18,7 +18,7 @@ namespace KioskAPI.Controllers
             _context = context;
         }
 
-        // 📋 GET: api/supplier
+        
         // Get all suppliers
         [HttpGet]
         public async Task<IActionResult> GetAllSuppliers()
@@ -47,21 +47,21 @@ namespace KioskAPI.Controllers
             return Ok(supplier);
         }
 
-        // ➕ POST: api/supplier
+       
         // Add a new supplier
         [HttpPost]
-        public async Task<IActionResult> AddSupplier([FromBody] Supplier newSupplier)
+        public async Task<IActionResult> AddSupplier([FromBody] Supplier supplier)
         {
-            if (string.IsNullOrWhiteSpace(newSupplier.Name))
-                return BadRequest(new { message = "Supplier name is required." });
+            if (supplier == null || string.IsNullOrWhiteSpace(supplier.Name) || string.IsNullOrWhiteSpace(supplier.ContactInfo))
+                return BadRequest(new { message = "Supplier name and contact info are required." });
 
-            _context.Suppliers.Add(newSupplier);
+            _context.Suppliers.Add(supplier);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Supplier added successfully.", newSupplier.SupplierId });
+            return Ok(new { message = "Supplier added successfully.", supplier.SupplierId });
         }
 
-        // ✏️ PUT: api/supplier/{id}
+      
         // Update supplier details
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSupplier(int id, [FromBody] Supplier updatedSupplier)
@@ -77,7 +77,7 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Supplier updated successfully." });
         }
 
-        // ❌ DELETE: api/supplier/{id}
+        
         // Delete a supplier
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier(int id)

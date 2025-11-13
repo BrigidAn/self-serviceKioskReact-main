@@ -1,108 +1,130 @@
+/* Landing Container */
 .landing-container {
   display: flex;
-  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   font-family: 'Poppins', sans-serif;
+  box-shadow: 0 0 25px #00d9ff55;
 }
 
-.landing-left {
+/* Split Card */
+.split-card {
+  display: flex;
+  width: 1000px;
+  height: 600px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 25px #00d9ff55;
+}
+
+/* Form Section */
+.form-section {
   flex: 1;
-  background: url("https://plus.unsplash.com/premium_photo-1675883159573-874cf666f18e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fGtpb3NrfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=500") no-repeat center center/cover;
-  position: relative;
-}
-
-.landing-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(10, 10, 20, 0.65);
+  background: rgba(255, 255, 255, 0.05); /* glass effect */
+  backdrop-filter: blur(15px); /* glass blur */
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 15px 0 0 15px;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
+  color: #fff;
+  transition: transform 0.5s ease-in-out;
+}
+.form-section.shift-left {
+  transform: translateX(-20px); /* slight slide for register */
 }
 
-.landing-title {
-  font-size: 3rem;
-  font-weight: 700;
+.form-section h1 {
+  color: #00d9ff;
+  font-size: 2.5rem;
   margin-bottom: 0.5rem;
 }
-
-.landing-subtitle {
-  font-size: 1.2rem;
+.form-section p {
   margin-bottom: 2rem;
   color: #ccc;
 }
 
-.landing-buttons .btn-primary,
-.landing-buttons .btn-outline {
-  display: inline-block;
-  margin: 0.5rem;
-  padding: 0.8rem 2rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  text-decoration: none;
+/* Auth Form */
+.auth-wrapper {
+  margin-bottom: 1rem;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+.auth-form input {
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 217, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.auth-form input::placeholder {
+  color: #aaa;
+}
+.auth-form button {
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  background: #00d9ff;
+  color: #0f2027;
+  font-weight: bold;
+  cursor: pointer;
   transition: all 0.3s ease;
 }
+.auth-form button:hover {
+  box-shadow: 0 0 15px #00d9ff;
+}
+.toggle-link {
+  color: #00d9ff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-align: center;
+  margin-top: 0.5rem;
+}
 
-.btn-primary {
-  background-color: #007bff;
-  color: white;
+/* Shop Button */
+.shop-btn {
+  margin-top: 1rem;
+  padding: 0.8rem 2rem;
   border: none;
+  background-color: #00d9ff;
+  color: #0f2027;
+  font-weight: bold;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.shop-btn:hover {
+  box-shadow: 0 0 15px #00d9ff;
 }
 
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-outline {
-  border: 2px solid white;
-  color: white;
-}
-
-.btn-outline:hover {
-  background-color: white;
-  color: #007bff;
-}
-
-.landing-right {
+/* Image Section */
+.image-section {
   flex: 1;
+  background: #111;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(90deg, rgba(168, 254, 255, 1) 0%, rgba(51, 186, 48, 1) 100%);
-  padding: 2rem;
+}
+.image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9);
 }
 
-.login-preview-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2.5rem;
-  max-width: 400px;
-  text-align: left;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.login-preview-card h2 {
-  font-size: 1.5rem;
+/* Error Message */
+.auth-error {
+  background-color: #ff4d4d;
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-align: center;
   margin-bottom: 1rem;
-  color: #333;
-}
-
-.login-preview-card p {
-  color: #666;
-  margin-bottom: 1rem;
-}
-
-.login-preview-card ul {
-  list-style: none;
-  padding: 0;
-  color: #444;
-}
-
-.login-preview-card li {
-  margin-bottom: 0.5rem;
+  font-weight: bold;
 }

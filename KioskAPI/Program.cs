@@ -1,7 +1,7 @@
 using KioskAPI.Data;
 using KioskAPI.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,10 +31,8 @@ builder.Services.AddAuthentication("MyCookieAuth")
         options.LoginPath = "/api/Auth/login";
     });
 
-// ✅ Add Authorization
 builder.Services.AddAuthorization();
 
-// ✅ Register custom services
 builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
@@ -42,7 +40,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 // ✅ Enable HTTPS

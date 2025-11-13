@@ -47,7 +47,6 @@ namespace KioskAPI.Controllers
             return Ok(role);
         }
 
-        // ➕ POST: api/role
         // Create a new role
         [HttpPost]
         public async Task<IActionResult> CreateRole([FromBody] Role newRole)
@@ -80,7 +79,7 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Role updated successfully." });
         }
 
-        // ❌ DELETE: api/role/{id}
+       
         // Delete a role
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
