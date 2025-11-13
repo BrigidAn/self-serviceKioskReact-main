@@ -7,7 +7,7 @@
 
 # testing
 /coverage
-/KioskAPI/bin/
+KioskAPI/bin/
 # production
 /build
 
