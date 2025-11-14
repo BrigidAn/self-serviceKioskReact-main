@@ -17,7 +17,7 @@ function Account() {
 
   const fetchBalance = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/account/balance", {
+      const res = await axios.get("http://localhost:5016/api/User/account/{userId}", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setBalance(res.data.balance);
@@ -30,7 +30,7 @@ function Account() {
   const fetchTransactions = async () => {
     try {
       const userId = localStorage.getItem("userId"); // assuming you save it on login
-      const res = await axios.get(`http://localhost:5000/api/transaction/user/${userId}`, {
+      const res = await axios.get(`http://localhost:5016/api/Transaction/user/${userId}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setTransactions(res.data);
@@ -50,7 +50,7 @@ function Account() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/account/topup",
+        "http://localhost:5016/api/User/account/topup",
         parseFloat(amount),
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );

@@ -20,7 +20,7 @@ function Checkout({ cart: propCart = [], clearCart }) {
 
   const fetchBalance = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/account/balance", {
+      const res = await axios.get("http://localhost:5016/api/Account/balance", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setBalance(res.data.balance);
@@ -41,7 +41,7 @@ function Checkout({ cart: propCart = [], clearCart }) {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/account/topup",
+        "http://localhost:5016/api/Account/topup",
         parseFloat(topUpAmount),
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
@@ -67,7 +67,7 @@ function Checkout({ cart: propCart = [], clearCart }) {
       // Call transaction API
       const userId = localStorage.getItem("userId");
       await axios.post(
-        "http://localhost:5000/api/transaction",
+        "http://localhost:5016/api/Transaction",
         {
           accountId: userId, // Or fetch actual accountId from backend
           type: "debit",

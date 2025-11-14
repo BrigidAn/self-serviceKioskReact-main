@@ -19,7 +19,7 @@ function Navbar({ cartCount }) {
     <nav className="navbar-glass">
       <div className="navbar-content">
         {/* Brand */}
-        <Link className="navbar-brand" to="/">
+        <Link className="navbar-brand" to="/home">
           Tech Shack
         </Link>
 

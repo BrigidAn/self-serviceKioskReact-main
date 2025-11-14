@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KioskAPI.Data;
+using KioskAPI.Dtos;
 using KioskAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -69,50 +70,58 @@ namespace KioskAPI.Controllers
         }
 
         // Create a new transaction (credit or debit)
-        [HttpPost]
-        public async Task<IActionResult> CreateTransaction([FromBody] Transaction newTransaction)
+      [HttpPost]
+        public async Task<IActionResult> CreateTransaction([FromBody] TransactionDto dto)
         {
-            if (newTransaction == null)
+            if (dto == null)
                 return BadRequest(new { message = "Transaction data is required." });
 
             var account = await _context.Accounts
-                .Include(a => a.User)
-                .FirstOrDefaultAsync(a => a.AccountId == newTransaction.AccountId);
+                .FirstOrDefaultAsync(a => a.AccountId == dto.AccountId);
 
             if (account == null)
                 return NotFound(new { message = "Account not found." });
 
-            // ✅ Handle credit and debit
-            if (newTransaction.Type.ToLower() == "credit")
+            // Create real transaction
+            var transaction = new Transaction
             {
-                account.Balance += newTransaction.TotalAmount;
+                AccountId = dto.AccountId,
+                Type = dto.Type,
+                TotalAmount = dto.TotalAmount,
+                Description = dto.Description ?? $"{dto.Type} of {dto.TotalAmount:C}",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Apply credit/debit
+            if (dto.Type.ToLower() == "credit")
+            {
+                account.Balance += dto.TotalAmount;
             }
-            else if (newTransaction.Type.ToLower() == "debit")
+            else if (dto.Type.ToLower() == "debit")
             {
-                if (account.Balance < newTransaction.TotalAmount)
+                if (account.Balance < dto.TotalAmount)
                     return BadRequest(new { message = "Insufficient balance." });
 
-                account.Balance -= newTransaction.TotalAmount;
+                account.Balance -= dto.TotalAmount;
             }
             else
             {
                 return BadRequest(new { message = "Transaction type must be 'credit' or 'debit'." });
             }
 
-            newTransaction.CreatedAt = DateTime.UtcNow;
-            newTransaction.Description ??= $"{newTransaction.Type} of {newTransaction.TotalAmount:C}";
             account.LastUpdated = DateTime.UtcNow;
 
-            _context.Transactions.Add(newTransaction);
+            _context.Transactions.Add(transaction);
             await _context.SaveChangesAsync();
 
             return Ok(new
             {
                 message = "Transaction recorded successfully.",
-                newTransaction.TransactionId,
+                transaction.TransactionId,
                 account.Balance
             });
         }
+
 
         // Delete a transaction (admin use)
         [HttpDelete("{transactionId}")]

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace KioskAPI.Dtos
 {
-    public class SupplierDto
+    public class TopUpDto
     {
-        public string Name { get; set; } = null!;
-        public string? ContactInfo { get; set; }
+        public int UserId { get; set; }
+        public decimal Amount { get; set; }
     }
 }

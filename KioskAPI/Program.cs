@@ -23,6 +23,15 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromDays(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+
 // ✅ Add Authentication (cookie-based for now)
 builder.Services.AddAuthentication("MyCookieAuth")
     .AddCookie("MyCookieAuth", options =>
@@ -45,8 +54,7 @@ if (app.Environment.IsDevelopment())
 
 // ✅ Enable HTTPS
 app.UseHttpsRedirection();
-
-// ✅ Enable CORS
+app.UseSession();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();

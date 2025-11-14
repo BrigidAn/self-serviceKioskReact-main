@@ -39,6 +39,8 @@ namespace KioskAPI.Controllers
             if (user == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 
+            HttpContext.Session.SetInt32("UserId", user.UserId);
+
             return Ok(new
             {
                 message = "Login successful",
