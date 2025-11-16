@@ -21,50 +21,70 @@ namespace KioskAPI.Controllers
          public AccountController(AppDbContext context) => _context = context;
 
    
-        // Returns the current user's balance
-        [HttpGet("balance")]
-        public async Task<IActionResult> GetBalance()
-        {
-            var userId = GetUserId();
-            if (userId == 0) return Unauthorized(new { message = "Not logged In" });
+ // GET BALANCE (SESSION-BASED)
+    [HttpGet("balance")]
+    public async Task<IActionResult> GetBalance()
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return Unauthorized(new { message = "Not logged in" });
 
-            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
-            if (account == null) return NotFound(new { message = "Account not found" });
+        var account = await _context.Accounts
+            .FirstOrDefaultAsync(a => a.UserId == userId);
 
-            return Ok(new { balance = account.Balance });
-        }
+        return Ok(new { balance = account?.Balance ?? 0 });
+    }
 
       
-        // Top up the current user's account by a specified amount
-       [HttpPost("topup")]
-        public async Task<IActionResult> TopUp([FromBody] TopUpDto dto)
+// TOP-UP onto ACCOUNT session-based
+    [HttpPost("topup")]
+    public async Task<IActionResult> TopUp([FromBody] decimal amount)
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return Unauthorized();
+
+        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
+        if (account == null) return NotFound();
+
+        account.Balance += amount;
+
+        // Create credit transaction
+        _context.Transactions.Add(new Transaction
         {
-            if (dto.Amount <= 0) 
-            return BadRequest(new { message = "Amount must be positive" });
+            AccountId = account.AccountId,
+            Type = "credit",
+            TotalAmount = amount,
+            Description = "Top-up",
+            CreatedAt = DateTime.UtcNow
+        });
 
-            var userId = GetUserId();
-            if (userId == 0) return Unauthorized(new { message = "Not logged In" });
+        await _context.SaveChangesAsync();
 
-            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
-            if (account == null) return NotFound(new { message = "Account not found" });
+        return Ok(new { balance = account.Balance });
+    }
 
-            var tx = new Transaction
-            {
-                AccountId = account.AccountId,
-                Type = "credit",
-                TotalAmount = dto.Amount,
-                Description = "Top-up",
-                CreatedAt = DateTime.UtcNow
-            };
 
-            account.Balance += dto.Amount;
-            account.LastUpdated = DateTime.UtcNow;
+         // GET USER TRANSACTIONS
+    [HttpGet("transactions")]
+    public async Task<IActionResult> GetMyTransactions()
+    {
+        int? userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return Unauthorized();
 
-            _context.Transactions.Add(tx);
-            await _context.SaveChangesAsync();
+        var user = await _context.Users
+            .Include(u => u.Account)
+            .ThenInclude(a => a.Transactions)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
 
-            return Ok(new { balance = account.Balance });
-        }
+        var tx = user.Account.Transactions.Select(t => new {
+            t.TransactionId,
+            t.Type,
+            t.TotalAmount,
+            t.Description,
+            t.CreatedAt
+        });
+
+        return Ok(tx);
+    }
 
         private int GetUserId()
         {

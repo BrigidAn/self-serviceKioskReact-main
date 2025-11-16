@@ -18,7 +18,8 @@ namespace KioskAPI.Controllers
             _context = context;
         }
 
-        // 🛍️ Get all products
+        // GET ALL PRODUCTS
+        // Returns clean JSON + includes ImageUrl + Available flag
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {
@@ -26,20 +27,26 @@ namespace KioskAPI.Controllers
                 .Include(p => p.Supplier)
                 .Select(p => new
                 {
-                    p.ProductId,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.Category,
-                    p.Quantity,
-                    Supplier = p.Supplier.Name
+                    productId = p.ProductId,
+                    name = p.Name,
+                    description = p.Description,
+                    price = p.Price,
+                    category = p.Category,
+                    quantity = p.Quantity,
+                    imageUrl = p.ImageUrl,
+
+                    // Supplier can be null
+                    supplier = p.Supplier != null ? p.Supplier.Name : "Unknown",
+
+                    // EASY indicator for React (no quantity = unavailable)
+                    isAvailable = p.Quantity > 0
                 })
                 .ToListAsync();
 
             return Ok(products);
         }
 
-        // 🛒 Get product by id
+        // GET PRODUCT BY ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
@@ -52,55 +59,72 @@ namespace KioskAPI.Controllers
 
             return Ok(new
             {
-                product.ProductId,
-                product.Name,
-                product.Description,
-                product.Price,
-                product.Category,
-                product.Quantity,
-                Supplier = product.Supplier.Name
+                productId = product.ProductId,
+                name = product.Name,
+                description = product.Description,
+                price = product.Price,
+                category = product.Category,
+                quantity = product.Quantity,
+                imageUrl = product.ImageUrl,
+                supplier = product.Supplier != null ? product.Supplier.Name : "Unknown",
+                isAvailable = product.Quantity > 0
             });
         }
 
-        // ➕ Add new product (Admin only)
+        // ADD NEW PRODUCT (ADMIN)
         [HttpPost]
         public async Task<IActionResult> AddProduct([FromBody] Product newProduct)
         {
+            if (newProduct.Quantity < 0)
+                return BadRequest(new { message = "Quantity cannot be negative" });
+
             _context.Products.Add(newProduct);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Product added successfully", newProduct.ProductId });
+            return Ok(new
+            {
+                message = "Product added successfully",
+                productId = newProduct.ProductId
+            });
         }
 
-        //Update product (Admin only)
+        // UPDATE PRODUCT (ADMIN)
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
         {
             var product = await _context.Products.FindAsync(id);
+
             if (product == null)
                 return NotFound(new { message = "Product not found" });
+
+            if (updatedProduct.Quantity < 0)
+                return BadRequest(new { message = "Quantity cannot be negative" });
 
             product.Name = updatedProduct.Name;
             product.Description = updatedProduct.Description;
             product.Price = updatedProduct.Price;
             product.Category = updatedProduct.Category;
+            product.ImageUrl = updatedProduct.ImageUrl;
             product.Quantity = updatedProduct.Quantity;
             product.SupplierId = updatedProduct.SupplierId;
 
             await _context.SaveChangesAsync();
+
             return Ok(new { message = "Product updated successfully" });
         }
 
-        // Delete product (Admin only)
+        // DELETE PRODUCT (ADMIN)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
+
             if (product == null)
                 return NotFound(new { message = "Product not found" });
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+
             return Ok(new { message = "Product deleted successfully" });
         }
     }

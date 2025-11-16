@@ -1,32 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
+import { useAuth } from "../context/AuthContext";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { setUser, refreshBalance } = useAuth();
   const navigate = useNavigate();
-
-  const API_BASE_URL = "https://localhost:5016/api/Auth";
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
-
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, {
-        email: email,
-        password: password,
-      });
-
-      const user = response.data.user;
-      localStorage.setItem("user", JSON.stringify(user));
+      const res = await api.post("/Auth/login", { email, password });
+      // server should set session cookie and return user info
+      setUser(res.data.user || null);
+      await refreshBalance(); // update balance in context
       navigate("/home");
     } catch (err) {
       console.error(err);
-      setError("Invalid email or password.");
+      alert(err.response?.data?.message || "Login failed");
     }
   };
 

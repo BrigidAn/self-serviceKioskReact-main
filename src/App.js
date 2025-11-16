@@ -8,6 +8,7 @@ import Checkout from "./pages/Checkout";
 import LandingPage from './pages/LandingPage';
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
+import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
 function App() {
@@ -39,8 +40,8 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/account" element={<Account/>} />
             <Route path="/home" element={<Home addToCart={addToCart} />} />
-            <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
-            <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />
+            <Route path="/cart" element={<ProtectedRoute><Cart cart={cart} removeFromCart={removeFromCart} /></ProtectedRoute>} />
+            <Route path="/checkout" element={<ProtectedRoute><Checkout cart={cart} clearCart={clearCart} /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

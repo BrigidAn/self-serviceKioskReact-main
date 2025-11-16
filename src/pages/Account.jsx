@@ -1,66 +1,50 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../api";
+import { useAuth } from "../context/AuthContext";
 import "./Account.css";
 
 function Account() {
-  const [balance, setBalance] = useState(0);
+const { balance, setBalance, refreshBalance } = useAuth();
   const [amount, setAmount] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Fetch balance and transactions on mount
   useEffect(() => {
-    fetchBalance();
-    fetchTransactions();
+    (async () => {
+      await refreshBalance();
+      await fetchTransactions();
+    })();
+    // eslint-disable-next-line
   }, []);
-
-  const fetchBalance = async () => {
-    try {
-      const res = await axios.get("http://localhost:5016/api/User/account/{userId}", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setBalance(res.data.balance);
-    } catch (err) {
-      console.error(err);
-      setMessage("Failed to fetch balance.");
-    }
-  };
 
   const fetchTransactions = async () => {
     try {
-      const userId = localStorage.getItem("userId"); // assuming you save it on login
-      const res = await axios.get(`http://localhost:5016/api/Transaction/user/${userId}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setTransactions(res.data);
+      const res = await api.get("/Account/transactions");
+      setTransactions(res.data || []);
     } catch (err) {
-      console.error(err);
+      console.error("fetchTransactions", err);
       setMessage("Failed to fetch transactions.");
     }
   };
 
   const handleTopUp = async (e) => {
     e.preventDefault();
-    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+    const val = parseFloat(amount);
+    if (!val || val <= 0) {
       setMessage("Enter a valid amount");
       return;
     }
-
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:5016/api/User/account/topup",
-        parseFloat(amount),
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      setBalance(res.data.balance);
+      const res = await api.post("/Account/topup", val);
+      setBalance(res.data.balance ?? 0);
       setAmount("");
       setMessage("Balance topped up successfully!");
-      fetchTransactions(); // refresh transaction list
+      await fetchTransactions();
     } catch (err) {
-      console.error(err);
-      setMessage("Top-up failed.");
+      console.error("topup", err);
+      setMessage(err.response?.data?.message || "Top-up failed.");
     } finally {
       setLoading(false);
     }
@@ -70,7 +54,7 @@ function Account() {
     <div className="account-container">
       <div className="account-card">
         <h2 className="account-title">Account</h2>
-        <p className="account-balance">R {balance.toFixed(2)}</p>
+        <p className="account-balance">R {Number(balance).toFixed(2)}</p>
 
         <form onSubmit={handleTopUp}>
           <input

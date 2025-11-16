@@ -1,26 +1,38 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import api from "../api";
 
 const AuthContext = createContext();
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null); // optional user info from login
   const [balance, setBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
 
-  const login = (userData) => {
-    setUser(userData);
-    setBalance(userData.balance || 0);
+  const refreshBalance = async () => {
+    try {
+      setLoadingBalance(true);
+      const res = await api.get("/Account/balance");
+      setBalance(res.data.balance ?? 0);
+    } catch (err) {
+      // console.warn("refreshBalance", err);
+      setBalance(0);
+    } finally {
+      setLoadingBalance(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    setBalance(0);
-  };
+  useEffect(() => {
+    // try to fetch balance on app start in case session exists
+    refreshBalance();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, balance, setBalance, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, balance, setBalance, refreshBalance, loadingBalance }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}

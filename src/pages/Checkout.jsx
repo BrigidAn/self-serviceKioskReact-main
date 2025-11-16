@@ -1,91 +1,70 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
+import { useAuth } from "../context/AuthContext";
 
 function Checkout({ cart: propCart = [], clearCart }) {
-  const location = useLocation();
+ const location = useLocation();
   const navigate = useNavigate();
   const cart = location.state?.cart || propCart;
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  const [balance, setBalance] = useState(0);
+  const { balance, setBalance, refreshBalance } = useAuth();
   const [topUpAmount, setTopUpAmount] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
 
-  // Fetch user balance on mount
   useEffect(() => {
-    fetchBalance();
+    refreshBalance();
+    // eslint-disable-next-line
   }, []);
 
-  const fetchBalance = async () => {
-    try {
-      const res = await axios.get("http://localhost:5016/api/Account/balance", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      setBalance(res.data.balance);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const nextStep = () => setStep((s) => s + 1);
+  const prevStep = () => setStep((s) => s - 1);
 
-  // Proceed to payment
-  const nextStep = () => setStep((prev) => prev + 1);
-  const prevStep = () => setStep((prev) => prev - 1);
-
-  // Top up user account
   const handleTopUp = async (e) => {
     e.preventDefault();
-    if (!topUpAmount || parseFloat(topUpAmount) <= 0) return;
-
+    const val = parseFloat(topUpAmount);
+    if (!val || val <= 0) return;
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:5016/api/Account/topup",
-        parseFloat(topUpAmount),
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-      setBalance(res.data.balance);
+      const res = await api.post("/Account/topup", val);
+      setBalance(res.data.balance ?? 0);
       setTopUpAmount("");
       alert("Balance topped up successfully!");
     } catch (err) {
       console.error(err);
-      alert("Failed to top up.");
+      alert(err.response?.data?.message || "Top-up failed.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Confirm purchase using account balance
   const handlePurchase = async () => {
     if (balance < total) {
       alert("Insufficient balance. Please top up your account.");
       return;
     }
-
+    setLoading(true);
     try {
-      // Call transaction API
-      const userId = localStorage.getItem("userId");
-      await axios.post(
-        "http://localhost:5016/api/Transaction",
-        {
-          accountId: userId, // Or fetch actual accountId from backend
-          type: "debit",
-          totalAmount: total,
-          description: "Purchase from cart",
-        },
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
-
-      // Update balance locally
-      setBalance(balance - total);
+      // server will resolve account from session
+      const res = await api.post("/Transaction", {
+        type: "debit",
+        totalAmount: total,
+        description: "Purchase from cart",
+      });
+      setBalance(res.data.balance ?? balance - total);
       clearCart();
-      setStep(3); // Payment success step
+      setStep(3);
     } catch (err) {
       console.error(err);
-      alert("Purchase failed.");
+      alert(err.response?.data?.message || "Purchase failed.");
+    } finally {
+      setLoading(false);
+      refreshBalance();
     }
   };
+
 
   return (
     <div className="container mt-5 mb-5">

@@ -1,10 +1,13 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaUserCircle } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 import "./Navbar.css";
 
 function Navbar({ cartCount }) {
   const navigate = useNavigate();
+  const { balance } = useAuth();
+
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -39,6 +42,7 @@ function Navbar({ cartCount }) {
 
         {/* Right-side Icons */}
         <div className="navbar-icons">
+           <span style={{ color: "#00d9ff", marginRight: 12 }}>R{Number(balance).toFixed(2)}</span>
           {/* Cart */}
           <Link className="btn-glass" to="/cart">
             <FaShoppingCart size={18} />
