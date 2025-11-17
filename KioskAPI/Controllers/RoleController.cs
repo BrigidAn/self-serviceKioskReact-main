@@ -18,7 +18,7 @@ namespace KioskAPI.Controllers
             _context = context;
         }
 
-        // 📋 GET: api/role
+        //GET: api/role
         // Get all roles
         [HttpGet]
         public async Task<IActionResult> GetAllRoles()
@@ -35,7 +35,7 @@ namespace KioskAPI.Controllers
             return Ok(roles);
         }
 
-        // 🧾 GET: api/role/{id}
+        //GET: api/role/{id}
         // Get details of a specific role
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(int id)
@@ -63,7 +63,7 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Role created successfully.", newRole.RoleId });
         }
 
-        // ✏️ PUT: api/role/{id}
+        //PUT: api/role/{id}
         // Update an existing role
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] Role updatedRole)

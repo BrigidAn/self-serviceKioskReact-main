@@ -1,9 +1,8 @@
-using System.Linq;
-using System.Threading.Tasks;
+using KioskAPI.Data;
+using KioskAPI.Dtos;
+using KioskAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using KioskAPI.Data;
-using KioskAPI.Models;
 
 namespace KioskAPI.Controllers
 {
@@ -18,42 +17,54 @@ namespace KioskAPI.Controllers
             _context = context;
         }
 
-        
-        // Get all suppliers
+        // GET: api/supplier
         [HttpGet]
         public async Task<IActionResult> GetAllSuppliers()
         {
             var suppliers = await _context.Suppliers
-                .Select(s => new
+                .Select(s => new SupplierDto
                 {
-                    s.SupplierId,
-                    s.Name,
-                    s.ContactInfo
+                    SupplierId = s.SupplierId,
+                    Name = s.Name,
+                    ContactInfo = s.ContactInfo
                 })
                 .ToListAsync();
 
             return Ok(suppliers);
         }
 
-        // 🧾 GET: api/supplier/{id}
-        // Get a supplier by ID
+        // GET: api/supplier/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSupplierById(int id)
         {
-            var supplier = await _context.Suppliers.FindAsync(id);
+            var supplier = await _context.Suppliers
+                .Where(s => s.SupplierId == id)
+                .Select(s => new SupplierDto
+                {
+                    SupplierId = s.SupplierId,
+                    Name = s.Name,
+                    ContactInfo = s.ContactInfo
+                })
+                .FirstOrDefaultAsync();
+
             if (supplier == null)
                 return NotFound(new { message = "Supplier not found." });
 
             return Ok(supplier);
         }
 
-       
-        // Add a new supplier
+        // POST: api/supplier
         [HttpPost]
-        public async Task<IActionResult> AddSupplier([FromBody] Supplier supplier)
+        public async Task<IActionResult> AddSupplier([FromBody] SupplierCreateDto dto)
         {
-            if (supplier == null || string.IsNullOrWhiteSpace(supplier.Name) || string.IsNullOrWhiteSpace(supplier.ContactInfo))
-                return BadRequest(new { message = "Supplier name and contact info are required." });
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest(new { message = "Supplier name is required." });
+
+            var supplier = new Supplier
+            {
+                Name = dto.Name,
+                ContactInfo = dto.ContactInfo
+            };
 
             _context.Suppliers.Add(supplier);
             await _context.SaveChangesAsync();
@@ -61,24 +72,22 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Supplier added successfully.", supplier.SupplierId });
         }
 
-      
-        // Update supplier details
+        // PUT: api/supplier/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSupplier(int id, [FromBody] Supplier updatedSupplier)
+        public async Task<IActionResult> UpdateSupplier(int id, [FromBody] SupplierUpdateDto dto)
         {
             var supplier = await _context.Suppliers.FindAsync(id);
             if (supplier == null)
                 return NotFound(new { message = "Supplier not found." });
 
-            supplier.Name = updatedSupplier.Name ?? supplier.Name;
-            supplier.ContactInfo = updatedSupplier.ContactInfo ?? supplier.ContactInfo;
+            supplier.Name = dto.Name ?? supplier.Name;
+            supplier.ContactInfo = dto.ContactInfo ?? supplier.ContactInfo;
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Supplier updated successfully." });
         }
 
-        
-        // Delete a supplier
+        // DELETE: api/supplier/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
@@ -86,7 +95,7 @@ namespace KioskAPI.Controllers
             if (supplier == null)
                 return NotFound(new { message = "Supplier not found." });
 
-            // Optional: Prevent deletion if supplier has products
+            // Prevent deletion if linked to products
             bool hasProducts = await _context.Products.AnyAsync(p => p.SupplierId == id);
             if (hasProducts)
                 return BadRequest(new { message = "Cannot delete supplier with products assigned." });

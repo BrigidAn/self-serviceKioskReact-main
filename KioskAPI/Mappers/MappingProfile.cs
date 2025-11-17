@@ -33,6 +33,14 @@ namespace KioskAPI.Mappers
             .ForMember(dest => dest.PriceAtPurchase, opt => opt.Ignore())
             .ForMember(dest => dest.OrderItemId, opt => opt.Ignore());
 
+            CreateMap<Product, ProductDto>()
+            .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier != null ? src.Supplier.Name : "Unknown"))
+            .ForMember(dest => dest.IsAvailable, opt => opt.MapFrom(src => src.Quantity > 0));
+
+        CreateMap<CreateProductDto, Product>();
+        CreateMap<UpdateProductDto, Product>()
+            .ForAllMembers(opt => opt.Condition((src, dest, value) => value != null)); // Ignore nulls
+
         }
     }
 }
