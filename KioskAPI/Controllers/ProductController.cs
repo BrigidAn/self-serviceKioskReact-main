@@ -34,9 +34,8 @@ namespace KioskAPI.Controllers
                     category = p.Category,
                     quantity = p.Quantity,
                     imageUrl = p.ImageUrl,
-
-                    // Supplier can be null
-                    supplier = p.Supplier != null ? p.Supplier.Name : "Unknown",
+                    supplier = p.Supplier,
+                    
 
                     // EASY indicator for React (no quantity = unavailable)
                     isAvailable = p.Quantity > 0

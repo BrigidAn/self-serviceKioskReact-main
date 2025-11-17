@@ -8,12 +8,19 @@ namespace KioskAPI.Dtos
 {
     public class OrderDto
     {
-        public int UserId { get; set; }
-        public User? User { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string? Status { get; set; } // e.g., "Pending", "Completed"
-        public string? DeliveryMethod { get; set; }
-        public string? PaymentStatus { get; set; } // e.g., "Paid", "Unpaid"
+    public int OrderId { get; set; }
+    public string? CustomerName { get; set; }
+    public DateTime OrderDate { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string? Status { get; set; } // e.g., "Pending", "Completed"
+    public string? PaymentStatus { get; set; } // e.g., "Paid", "Unpaid"
+    public List<OrderItemDto>? Items { get; set; }
 
+    }
+
+    public class CreateOrderDto
+    {
+        public int UserId { get; set; }
+        public List<CreateOrderItemDto> Items { get; set; } = new();
     }
 }

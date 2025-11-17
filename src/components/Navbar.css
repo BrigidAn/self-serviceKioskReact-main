@@ -6,14 +6,15 @@
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px) saturate(180%);
   -webkit-backdrop-filter: blur(15px) saturate(180%);
-  border-bottom: 1px solid rgba(0, 217, 255, 0.25);
+  border-bottom: 2px solid rgba(0, 217, 255, 0.25);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  
 }
 
 .navbar-content {
-  max-width: 1300px;
-  margin: 0 auto;
-  display: grid;
+  max-width: 800px;
+  margin: 0 2px;
+  display: contents;
   grid-template-columns: 1fr auto 1fr; /* left - center - right */
   align-items: center;
   padding: 0.8rem 2rem;
@@ -22,11 +23,11 @@
 /* Brand */
 .navbar-brand {
   color: #00d9ff;
-  font-size: 15rem;
+  font-size: 80rem;
   font-weight: 800;
   text-decoration: none;
   transition: all 0.3s ease;
-  justify-self: start;
+  justify-content: center;
 }
 
 .navbar-brand:hover {
@@ -76,6 +77,7 @@
 /* Icons Section */
 .navbar-icons {
   justify-self: end; /* right */
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -92,6 +94,7 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
+  margin-inline-end: 35px;
   position: relative;
 }
 
@@ -141,4 +144,64 @@
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hamburger button */
+.hamburger-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  margin-right: 30px;
+  margin-left: 30px;
+  margin-top: 20px;
+}
+
+/* Sidebar */
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100vh;
+  background: rgba(8, 8, 10, 0.7);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  transition: left 0.3s ease;
+  z-index: 2000;
+}
+
+.side-menu.open {
+  left: 0;
+}
+
+.close-btn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 32px;
+  float: right;
+  cursor: pointer;
+}
+
+.side-link {
+  display: block;
+  color: #00eaff;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  text-decoration: none;
+}
+
+.side-link:hover {
+  color: white;
+  transform: translateX(5px);
+  transition: 0.2s;
+}
+
+.menu-title {
+  color: white;
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+  font-weight: bold;
 }

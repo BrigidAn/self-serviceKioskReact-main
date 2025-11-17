@@ -7,9 +7,9 @@ namespace KioskAPI.Dtos
 {
     public class AuthResponseDto
     {
-         public string Token { get; set; } = null!;
-        public string Role { get; set; } = null!;
-        public string Email { get; set; } = null!;
-        public string Name { get; set; } = null!;
+        public string Role { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        
     }
 }

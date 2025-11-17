@@ -84,6 +84,36 @@ namespace KioskAPI.Migrations
                     b.ToTable("Admin");
                 });
 
+            modelBuilder.Entity("KioskAPI.Models.CartItem", b =>
+                {
+                    b.Property<int>("CartItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartItemId"));
+
+                    b.Property<bool>("IsCheckedOut")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReservedUntil")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CartItemId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("CartItems");
+                });
+
             modelBuilder.Entity("KioskAPI.Models.Order", b =>
                 {
                     b.Property<int>("OrderId")
@@ -323,6 +353,17 @@ namespace KioskAPI.Migrations
                     b.HasOne("KioskAPI.Models.Role", null)
                         .WithMany("Admins")
                         .HasForeignKey("RoleId");
+                });
+
+            modelBuilder.Entity("KioskAPI.Models.CartItem", b =>
+                {
+                    b.HasOne("KioskAPI.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("KioskAPI.Models.Order", b =>

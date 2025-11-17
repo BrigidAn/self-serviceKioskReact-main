@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using KioskAPI.Data;
 using KioskAPI.Dtos;
+using KioskAPI.interfaces;
 using KioskAPI.Models;
 using KioskAPI.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -14,76 +16,61 @@ namespace KioskAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
     public class AccountController : ControllerBase
     {
-        private readonly AppDbContext _context;
-         public AccountController(AppDbContext context) => _context = context;
+    private readonly IAccountRepository _accountRepo;
+    private readonly IMapper _mapper;
 
-   
- // GET BALANCE (SESSION-BASED)
-    [HttpGet("balance")]
-    public async Task<IActionResult> GetBalance()
+    public AccountController(IAccountRepository accountRepo, IMapper mapper)
     {
-        int? userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return Unauthorized(new { message = "Not logged in" });
-
-        var account = await _context.Accounts
-            .FirstOrDefaultAsync(a => a.UserId == userId);
-
-        return Ok(new { balance = account?.Balance ?? 0 });
+        _accountRepo = accountRepo;
+        _mapper = mapper;
     }
 
+ // GET BALANCE (SESSION-BASED)
+    [HttpGet("balance")]
+      public async Task<IActionResult> GetBalance()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null) return Unauthorized();
+
+        var account = await _accountRepo.GetAccountByUserIdAsync(userId.Value);
+        if (account == null) return NotFound();
+
+        var dto = _mapper.Map<AccountDto>(account);
+        return Ok(dto);
+    }
       
 // TOP-UP onto ACCOUNT session-based
     [HttpPost("topup")]
-    public async Task<IActionResult> TopUp([FromBody] decimal amount)
+       public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
     {
-        int? userId = HttpContext.Session.GetInt32("UserId");
+        var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null) return Unauthorized();
 
-        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
-        if (account == null) return NotFound();
+        if (request.Amount <= 0)
+            return BadRequest(new { message = "Amount must be positive" });
 
-        account.Balance += amount;
+        await _accountRepo.UpdateBalanceAsync(userId.Value, request.Amount);
 
-        // Create credit transaction
-        _context.Transactions.Add(new Transaction
-        {
-            AccountId = account.AccountId,
-            Type = "credit",
-            TotalAmount = amount,
-            Description = "Top-up",
-            CreatedAt = DateTime.UtcNow
-        });
+        var account = await _accountRepo.GetAccountByUserIdAsync(userId.Value);
 
-        await _context.SaveChangesAsync();
-
-        return Ok(new { balance = account.Balance });
+        return Ok(_mapper.Map<AccountDto>(account));
     }
 
 
          // GET USER TRANSACTIONS
-    [HttpGet("transactions")]
-    public async Task<IActionResult> GetMyTransactions()
+  [HttpGet("transactions")]
+    public async Task<IActionResult> GetTransactions()
     {
-        int? userId = HttpContext.Session.GetInt32("UserId");
+        var userId = HttpContext.Session.GetInt32("UserId");
         if (userId == null) return Unauthorized();
 
-        var user = await _context.Users
-            .Include(u => u.Account)
-            .ThenInclude(a => a.Transactions)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
+        var transactions = await _accountRepo.GetTransactionsAsync(userId.Value);
 
-        var tx = user.Account.Transactions.Select(t => new {
-            t.TransactionId,
-            t.Type,
-            t.TotalAmount,
-            t.Description,
-            t.CreatedAt
-        });
+        var dtos = _mapper.Map<IEnumerable<TransactionDto>>(transactions);
 
-        return Ok(tx);
+        return Ok(dtos);
     }
 
         private int GetUserId()

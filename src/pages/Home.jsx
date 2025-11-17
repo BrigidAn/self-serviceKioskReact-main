@@ -4,11 +4,9 @@ import "./Home.css";
 function Home({ addToCart }) {
   const [products, setProducts] = useState([]);
 
-  // ---------------------------------------------
   // Fetch products from ASP.NET backend on load
-  // ---------------------------------------------
   useEffect(() => {
-    fetch("https://localhost:7245/api/Product") // <-- your API endpoint
+    fetch("https://localhost:5016/api/Product") // <-- your API endpoint
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);

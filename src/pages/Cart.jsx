@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import "../api";
 
 function Cart() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ function Cart() {
 
   // Fetch cart items from backend
   const fetchCartItems = useCallback(() => {
-    fetch("/api/cart", { credentials: "include" }) // session-based fetch
+    fetch("/api/OrderItem", { credentials: "include" }) // session-based fetch
       .then((res) => {
         if (res.status === 401) navigate("/login"); // redirect if not logged in
         return res.json();
@@ -32,7 +33,7 @@ function Cart() {
 
   // Remove expired items (backend cleanup)
   const cleanupCart = useCallback(() => {
-    fetch("/api/cart/cleanup", { method: "POST", credentials: "include" });
+    fetch("/api/orderItem/cleanup", { method: "POST", credentials: "include" });
   }, []);
 
   // Load cart on mount
@@ -66,7 +67,7 @@ function Cart() {
 
   // Remove item from cart
   const removeFromCart = async (cartItemId) => {
-    await fetch(`/api/cart/remove/${cartItemId}`, {
+    await fetch(`/api/OrderItem/remove/${cartItemId}`, {
       method: "DELETE",
       credentials: "include",
     });

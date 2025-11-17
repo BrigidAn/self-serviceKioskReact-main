@@ -1,4 +1,6 @@
 using KioskAPI.Data;
+using KioskAPI.interfaces;
+using KioskAPI.Repository;
 using KioskAPI.Services;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -9,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+
 
 // ✅ Database context
 builder.Services.AddDbContext<AppDbContext>(options =>

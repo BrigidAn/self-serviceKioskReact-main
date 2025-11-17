@@ -1,10 +1,9 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using KioskAPI.Data;
+using KioskAPI.Dtos;
+using KioskAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using KioskAPI.Data;
-using KioskAPI.Models;
 
 namespace KioskAPI.Controllers
 {
@@ -13,132 +12,109 @@ namespace KioskAPI.Controllers
     public class OrderItemController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public OrderItemController(AppDbContext context)
+        public OrderItemController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // Get all order items (for admin or reports)
+        // GET all order items
         [HttpGet]
         public async Task<IActionResult> GetAllOrderItems()
         {
             var items = await _context.OrderItems
-                .Include(oi => oi.Order)
                 .Include(oi => oi.Product)
-                .Select(oi => new
-                {
-                    oi.OrderItemId,
-                    oi.OrderId,
-                    oi.ProductId,
-                    ProductName = oi.Product.Name,
-                    oi.Quantity,
-                    oi.PriceAtPurchase,
-                    Total = oi.Quantity * oi.PriceAtPurchase
-                })
                 .ToListAsync();
 
-            return Ok(items);
+            var itemsDto = _mapper.Map<List<OrderItemDto>>(items);
+            return Ok(itemsDto);
         }
 
-        // Get all items belonging to a specific order
+        // GET items by order
         [HttpGet("order/{orderId}")]
         public async Task<IActionResult> GetItemsByOrder(int orderId)
         {
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
-                .FirstOrDefaultAsync(o => o.OrderId == orderId);
+            var items = await _context.OrderItems
+                .Include(oi => oi.Product)
+                .Where(oi => oi.OrderId == orderId)
+                .ToListAsync();
 
-            if (order == null)
-                return NotFound(new { message = "Order not found." });
+            if (!items.Any())
+                return NotFound(new { message = "No items found for this order." });
 
-            var items = order.OrderItems.Select(oi => new
-            {
-                oi.OrderItemId,
-                oi.ProductId,
-                ProductName = oi.Product.Name,
-                oi.Quantity,
-                oi.PriceAtPurchase,
-                Total = oi.Quantity * oi.PriceAtPurchase
-            });
+            var itemsDto = _mapper.Map<List<OrderItemDto>>(items);
+            var orderTotal = itemsDto.Sum(i => i.Total);
 
             return Ok(new
             {
-                OrderId = order.OrderId,
-                OrderDate = order.OrderDate,
-                Items = items,
-                OrderTotal = items.Sum(i => i.Total)
+                OrderId = orderId,
+                Items = itemsDto,
+                OrderTotal = orderTotal
             });
         }
 
-        // Add an item to an existing order
+        // POST add order item
         [HttpPost]
-        public async Task<IActionResult> AddOrderItem([FromBody] OrderItem newItem)
+        public async Task<IActionResult> AddOrderItem([FromBody] CreateOrderItemDto newItemDto)
         {
-            if (newItem == null)
+            if (newItemDto == null)
                 return BadRequest(new { message = "Invalid order item data." });
 
             var order = await _context.Orders
                 .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.OrderId == newItem.OrderId);
-
+                .FirstOrDefaultAsync(o => o.OrderId == newItemDto.OrderId);
             if (order == null)
                 return NotFound(new { message = "Order not found." });
 
-            var product = await _context.Products.FindAsync(newItem.ProductId);
+            var product = await _context.Products.FindAsync(newItemDto.ProductId);
             if (product == null)
                 return NotFound(new { message = "Product not found." });
 
-            // ✅ Set default price from product if not provided
-            if (newItem.PriceAtPurchase <= 0)
-                newItem.PriceAtPurchase = product.Price;
+            var orderItem = _mapper.Map<OrderItem>(newItemDto);
+            orderItem.PriceAtPurchase = product.Price;
 
-            // ✅ Add item to the order
-            _context.OrderItems.Add(newItem);
+            _context.OrderItems.Add(orderItem);
             await _context.SaveChangesAsync();
 
-            // ✅ Update order total
+            // Update order total
             order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.PriceAtPurchase);
             await _context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                message = "Item added successfully.",
-                newItem.OrderItemId,
-                order.TotalAmount
-            });
+            var orderItemDto = _mapper.Map<OrderItemDto>(orderItem);
+            return Ok(new { message = "Item added successfully", orderItem = orderItemDto, order.TotalAmount });
         }
 
-        // Update item quantity or price
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOrderItem(int id, [FromBody] OrderItem updatedItem)
-        {
-            var existingItem = await _context.OrderItems.FindAsync(id);
-            if (existingItem == null)
-                return NotFound(new { message = "Order item not found." });
+        // PUT update order item
+        // [HttpPut("{id}")]
+        // public async Task<IActionResult> UpdateOrderItem(int id, [FromBody] OrderItem updatedItem)
+        // {
+        //     var existingItem = await _context.OrderItems.FindAsync(id);
+        //     if (existingItem == null)
+        //         return NotFound(new { message = "Order item not found." });
 
-            existingItem.Quantity = updatedItem.Quantity > 0 ? updatedItem.Quantity : existingItem.Quantity;
-            existingItem.PriceAtPurchase = updatedItem.PriceAtPurchase > 0 ? updatedItem.PriceAtPurchase : existingItem.PriceAtPurchase;
+        //     existingItem.Quantity = updatedItem.Quantity > 0 ? updatedItem.Quantity : existingItem.Quantity;
+        //     existingItem.PriceAtPurchase = updatedItem.PriceAtPurchase > 0 ? updatedItem.PriceAtPurchase : existingItem.PriceAtPurchase;
 
-            await _context.SaveChangesAsync();
+        //     await _context.SaveChangesAsync();
 
-            // Recalculate order total
-            var order = await _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.OrderId == existingItem.OrderId);
+        //     // Recalculate order total
+        //     var order = await _context.Orders
+        //         .Include(o => o.OrderItems)
+        //         .FirstOrDefaultAsync(o => o.OrderId == existingItem.OrderId);
 
-            if (order != null)
-            {
-                order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.PriceAtPurchase);
-                await _context.SaveChangesAsync();
-            }
+        //     if (order != null)
+        //     {
+        //         order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.PriceAtPurchase);
+        //         await _context.SaveChangesAsync();
+        //     }
 
-            return Ok(new { message = "Order item updated successfully." });
-        }
+        //     var orderItemDto = _mapper.Map<OrderItemDto>(existingItem);
+        //     return Ok(new { message = "Order item updated successfully", orderItem = orderItemDto, order.TotalAmount });
+        // }
 
-        // ❌ DELETE: api/orderitem/{id}
-        // Remove an item from an order
+        // DELETE order item
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderItem(int id)
         {

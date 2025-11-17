@@ -69,8 +69,6 @@ namespace KioskAPI.Controllers
             return Ok(transactions);
         }
 
-        
-
         // Create a new transaction (credit or debit)
       [HttpPost]
         public async Task<IActionResult> CreateTransaction([FromBody] TransactionDto dto)
