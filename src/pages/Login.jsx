@@ -8,19 +8,32 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setUser, refreshBalance } = useAuth();
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError(null);
+
     try {
       const res = await api.post("/Auth/login", { email, password });
-      // server should set session cookie and return user info
+
+      // Save user to context (your existing logic)
       setUser(res.data.user || null);
-      await refreshBalance(); // update balance in context
-      navigate("/home");
+      await refreshBalance();
+
+      // DEMO: Simple admin check by email
+      const isAdmin = email.toLowerCase().endsWith("@admin.co.za");
+
+      if (isAdmin) {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/home");
+      }
+
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 

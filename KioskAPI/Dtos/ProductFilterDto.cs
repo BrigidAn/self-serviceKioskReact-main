@@ -13,8 +13,12 @@ namespace KioskAPI.Dtos
     public bool? IsAvailable { get; set; }
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
-    public string? SortBy { get; set; }        // "price", "name"
-    public bool Desc { get; set; } 
+    public string? SortBy { get; set; } // "price", "name"
+    public bool Desc { get; set; }
+
+        // PAGINATION (added)
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
      
     }
 }

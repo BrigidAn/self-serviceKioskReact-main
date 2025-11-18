@@ -9,6 +9,9 @@ import LandingPage from './pages/LandingPage';
 import NotFound from "./pages/NotFound";
 import Account from "./pages/Account";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminDashboard from "./admin/AdminDashboard";
+import ManageProducts from "./admin/ManageProducts";
+import ManageOrders from "./admin/ManageOrders";
 import "./App.css";
 
 function App() {
@@ -39,7 +42,10 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/account" element={<Account/>} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} /> 
             <Route path="/home" element={<Home addToCart={addToCart} />} />
+            <Route path="/admin/products" element={<ManageProducts />} />
+            <Route path="/admin/orders" element={<ManageOrders />} />
             <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} />} />
             <Route path="/checkout" element={<Checkout cart={cart} clearCart={clearCart} />} />
             <Route path="*" element={<NotFound />} />

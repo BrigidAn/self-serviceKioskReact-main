@@ -100,37 +100,40 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Product deleted successfully" });
         }
 
-        [HttpPost("filter")]
-    public async Task<IActionResult> FilterProducts([FromBody] ProductFilterDto filter)
-    {
-        var query = _context.Products
-            .Include(p => p.Supplier)
-            .AsQueryable();
-
-        // SEARCH
-        if (!string.IsNullOrWhiteSpace(filter.Search))
+     [HttpPost("filter")]
+        public async Task<IActionResult> FilterProducts([FromBody] ProductFilterDto filter)
         {
-            query = query.Where(p =>
-                p.Name.Contains(filter.Search) ||
-                p.Description.Contains(filter.Search));
-        }
+            var query = _context.Products
+                .Include(p => p.Supplier)
+                .AsQueryable();
 
-        // CATEGORY FILTER
-        if (!string.IsNullOrWhiteSpace(filter.Category))
-            query = query.Where(p => p.Category == filter.Category);
+            // 🔍 SEARCH (NAME + DESCRIPTION + CATEGORY SO "laptops" SHOWS ONLY LAPTOPS)
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                string search = filter.Search.ToLower();
 
-        // SUPPLIER FILTER
-        if (filter.SupplierId.HasValue)
-            query = query.Where(p => p.SupplierId == filter.SupplierId);
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(search) ||
+                    p.Description!.ToLower().Contains(search) ||
+                    p.Category.ToLower().Contains(search)
+                );
+            }
 
-        // AVAILABILITY
-        if (filter.IsAvailable.HasValue)
-        {
-            if (filter.IsAvailable.Value)
-                query = query.Where(p => p.Quantity > 0);
-            else
-                query = query.Where(p => p.Quantity == 0);
-        }
+            // CATEGORY FILTER
+            if (!string.IsNullOrWhiteSpace(filter.Category))
+                query = query.Where(p => p.Category.ToLower() == filter.Category.ToLower());
+
+            // SUPPLIER FILTER
+            if (filter.SupplierId.HasValue)
+                query = query.Where(p => p.SupplierId == filter.SupplierId);
+
+            // AVAILABILITY
+            if (filter.IsAvailable.HasValue)
+            {
+                query = filter.IsAvailable.Value
+                    ? query.Where(p => p.Quantity > 0)
+                    : query.Where(p => p.Quantity == 0);
+            }
 
             // PRICE RANGE
             if (filter.MinPrice.HasValue)
@@ -140,30 +143,32 @@ namespace KioskAPI.Controllers
                 query = query.Where(p => p.Price <= filter.MaxPrice.Value);
 
             // SORTING
-                if (!string.IsNullOrWhiteSpace(filter.SortBy))
-                {
-                    switch (filter.SortBy.ToLower())
-                    {
-                        case "price":
-                            query = filter.Desc ? query.OrderByDescending(p => p.Price)
-                                                : query.OrderBy(p => p.Price);
-                            break;
+            query = filter.SortBy?.ToLower() switch
+            {
+                "price" => filter.Desc ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
+                "name"  => filter.Desc ? query.OrderByDescending(p => p.Name)  : query.OrderBy(p => p.Name),
+                _       => query.OrderBy(p => p.ProductId)
+            };
 
-                        case "name":
-                            query = filter.Desc ? query.OrderByDescending(p => p.Name)
-                                                : query.OrderBy(p => p.Name);
-                            break;
-                    }
-                }
+            // PAGINATION
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
 
-                var products = await query.ToListAsync();
+            var products = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
 
-                // MAP USING AUTOMAPPER
-                var result = _mapper.Map<List<ProductDto>>(products);
+            var result = _mapper.Map<List<ProductDto>>(products);
 
-            return Ok(result);
-
-            }
-
+            return Ok(new
+            {
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Page = filter.Page,
+                PageSize = filter.PageSize,
+                Data = result
+            });
         }
     }
+}
