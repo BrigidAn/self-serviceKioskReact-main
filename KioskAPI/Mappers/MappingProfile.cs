@@ -83,6 +83,9 @@ namespace KioskAPI.Mappers
                 .ForMember(dest => dest.Product, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderItemId, opt => opt.Ignore())
                 .ForMember(dest => dest.PriceAtPurchase, opt => opt.Ignore());
+
+            CreateMap<Account, AccountDto>();
+            CreateMap<Transaction, TransactionDto>();
         }
     }
 }

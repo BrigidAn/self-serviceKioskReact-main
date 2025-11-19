@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KioskAPI.Data;
+using KioskAPI.Dtos;
 using KioskAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -68,35 +69,49 @@ namespace KioskAPI.Controllers
             });
         }
 
-        // ➕ Add funds to account
-        [HttpPost("account/topup")]
-        public async Task<IActionResult> TopUpBalance([FromBody] dynamic data)
+        // Add funds to account
+       [HttpPost("account/topup")]
+        public async Task<IActionResult> TopUpBalance([FromBody] TopUpDto data)
         {
-            int userId = data.userId;
-            decimal amount = data.amount;
+            // 1. Basic validation
+            if (data.Amount <= 0)
+                return BadRequest(new { message = "Amount must be greater than zero." });
 
-            var account = await _context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId);
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(a => a.UserId == data.UserId);
+
+            // 2. Account not found
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = "Account not found." });
 
-            account.Balance += amount;
+            // 4. Optional: Maximum balance (example: R100,000)
+            if (account.Balance + data.Amount > 100000)
+                return BadRequest(new { message = "Balance cannot exceed R100,000." });
+
+            // Apply the top-up
+            account.Balance += data.Amount;
             account.LastUpdated = DateTime.UtcNow;
 
-            // Record transaction
             var transaction = new Transaction
             {
                 AccountId = account.AccountId,
                 Type = "credit",
-                TotalAmount = amount,
+                TotalAmount = data.Amount,
                 Description = "Balance top-up",
                 CreatedAt = DateTime.UtcNow
             };
 
             _context.Transactions.Add(transaction);
+
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Balance topped up successfully", account.Balance });
+            return Ok(new
+            {
+                message = "Balance topped up successfully",
+                balance = account.Balance
+            });
         }
+
 
         // 🧾 Get user orders
         [HttpGet("orders/{userId}")]
@@ -126,5 +141,24 @@ namespace KioskAPI.Controllers
 
             return Ok(orders);
         }
+
+
+        [HttpGet("account/{userId}/transactions")]
+        public async Task<IActionResult> GetTransactionHistory(int userId)
+        {
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(a => a.UserId == userId);
+
+            if (account == null)
+                return NotFound(new { message = "Account not found." });
+
+            var transactions = await _context.Transactions
+                .Where(t => t.AccountId == account.AccountId)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return Ok(transactions);
+        }
+
     }
 }

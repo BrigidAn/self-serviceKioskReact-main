@@ -38,6 +38,9 @@ namespace KioskAPI.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
+            if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+
             var product = await _context.Products
                 .Include(p => p.Supplier)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
@@ -53,8 +56,9 @@ namespace KioskAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> AddProduct([FromBody] CreateProductDto dto)
         {
-            if (dto.Quantity < 0)
-                return BadRequest(new { message = "Quantity cannot be negative" });
+            if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+            
 
             var product = _mapper.Map<Product>(dto);
             _context.Products.Add(product);
@@ -71,6 +75,9 @@ namespace KioskAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
         {
+                    if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+
             var product = await _context.Products
                 .FirstOrDefaultAsync(p => p.ProductId == id);
 
