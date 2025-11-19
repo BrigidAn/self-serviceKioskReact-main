@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using KioskAPI.Data;
 using KioskAPI.Dtos;
 using KioskAPI.Models;
@@ -100,74 +101,72 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Product deleted successfully" });
         }
 
-     [HttpPost("filter")]
-        public async Task<IActionResult> FilterProducts([FromBody] ProductFilterDto filter)
+        [HttpGet("products")]
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] string? search,
+            [FromQuery] string? category,
+            [FromQuery] bool? isAvailable,
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string? sortBy,
+            [FromQuery] bool desc = false)
         {
-            var query = _context.Products
-                .Include(p => p.Supplier)
-                .AsQueryable();
+            // Start query from products including supplier
+            var query = _context.Products.Include(p => p.Supplier).AsQueryable();
 
-            // 🔍 SEARCH (NAME + DESCRIPTION + CATEGORY SO "laptops" SHOWS ONLY LAPTOPS)
-            if (!string.IsNullOrWhiteSpace(filter.Search))
+            // SEARCH: name, description, category
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                string search = filter.Search.ToLower();
-
+                string s = search.ToLower();
                 query = query.Where(p =>
-                    p.Name.ToLower().Contains(search) ||
-                    p.Description!.ToLower().Contains(search) ||
-                    p.Category.ToLower().Contains(search)
+                    p.Name.ToLower().Contains(s) ||
+                    p.Description.ToLower().Contains(s) ||
+                    p.Category.ToLower().Contains(s)
                 );
             }
 
             // CATEGORY FILTER
-            if (!string.IsNullOrWhiteSpace(filter.Category))
-                query = query.Where(p => p.Category.ToLower() == filter.Category.ToLower());
-
-            // SUPPLIER FILTER
-            if (filter.SupplierId.HasValue)
-                query = query.Where(p => p.SupplierId == filter.SupplierId);
+            if (!string.IsNullOrWhiteSpace(category))
+                query = query.Where(p => p.Category.ToLower() == category.ToLower());
 
             // AVAILABILITY
-            if (filter.IsAvailable.HasValue)
-            {
-                query = filter.IsAvailable.Value
+            if (isAvailable.HasValue)
+                query = isAvailable.Value
                     ? query.Where(p => p.Quantity > 0)
                     : query.Where(p => p.Quantity == 0);
-            }
 
             // PRICE RANGE
-            if (filter.MinPrice.HasValue)
-                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+            if (minPrice.HasValue)
+                query = query.Where(p => p.Price >= minPrice.Value);
 
-            if (filter.MaxPrice.HasValue)
-                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+            if (maxPrice.HasValue)
+                query = query.Where(p => p.Price <= maxPrice.Value);
 
             // SORTING
-            query = filter.SortBy?.ToLower() switch
+            if (!string.IsNullOrWhiteSpace(sortBy))
             {
-                "price" => filter.Desc ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
-                "name"  => filter.Desc ? query.OrderByDescending(p => p.Name)  : query.OrderBy(p => p.Name),
-                _       => query.OrderBy(p => p.ProductId)
-            };
+                query = sortBy.ToLower() switch
+                {
+                    "price" => desc ? query.OrderByDescending(p => p.Price) : query.OrderBy(p => p.Price),
+                    "name"  => desc ? query.OrderByDescending(p => p.Name) : query.OrderBy(p => p.Name),
+                    _ => query
+                };
+            }
 
-            // PAGINATION
-            int totalItems = await query.CountAsync();
-            int totalPages = (int)Math.Ceiling(totalItems / (double)filter.PageSize);
+            // Fetch products
+            var products = await query.ToListAsync();
+            var productDtos = _mapper.Map<List<ProductDto>>(products);
 
-            var products = await query
-                .Skip((filter.Page - 1) * filter.PageSize)
-                .Take(filter.PageSize)
+            // Fetch distinct categories
+            var categories = await _context.Products
+                .Select(p => p.Category)
+                .Distinct()
                 .ToListAsync();
-
-            var result = _mapper.Map<List<ProductDto>>(products);
 
             return Ok(new
             {
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Page = filter.Page,
-                PageSize = filter.PageSize,
-                Data = result
+                Products = productDtos,
+                Categories = categories
             });
         }
     }

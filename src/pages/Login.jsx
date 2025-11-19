@@ -22,15 +22,6 @@ function Login() {
       setUser(res.data.user || null);
       await refreshBalance();
 
-      // DEMO: Simple admin check by email
-      const isAdmin = email.toLowerCase().endsWith("@admin.co.za");
-
-      if (isAdmin) {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/home");
-      }
-
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Login failed");

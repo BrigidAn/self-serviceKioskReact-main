@@ -39,9 +39,9 @@ function Navbar({ cartCount }) {
           <div className="navbar-icons">
 
             {/*BALANCE */}
-            <span className="balance-display">
+            {/* <span className="balance-display">
               R{Number(balance).toFixed(2)}
-            </span>
+            </span> */}
 
             {/*CART BUTTON */}
             <Link className="btn-glass" to="/cart">
