@@ -101,7 +101,7 @@ namespace KioskAPI.Controllers
             return Ok(new { message = "Product deleted successfully" });
         }
 
-        [HttpGet("products")]
+        [HttpGet("FilterProducts")]
         public async Task<IActionResult> GetProducts(
             [FromQuery] string? search,
             [FromQuery] string? category,
