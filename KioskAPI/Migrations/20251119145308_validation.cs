@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
+﻿#nullable disable
 
 namespace KioskAPI.Migrations
 {
-    /// <inheritdoc />
-    public partial class validation : Migration
+  using Microsoft.EntityFrameworkCore.Migrations;
+
+  /// <inheritdoc />
+  public partial class validation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

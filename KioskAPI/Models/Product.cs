@@ -1,40 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace KioskAPI.Models
 {
-    public class Product
-    {
-         [Key]
-        public int ProductId { get; set; }
+  using System.ComponentModel.DataAnnotations;
+  using System.ComponentModel.DataAnnotations.Schema;
 
-        [Required]
-        [MaxLength(100, ErrorMessage = "Name length cannot exceed 100 characters.")]
-        public string Name { get; set; } = null!;
+  public class Product
+  {
+    [Key]
+    public int ProductId { get; set; }
 
-          [Required]
-        [MaxLength(500, ErrorMessage = "Description length cannot exceed 500 characters.")]
-        public string? Description { get; set; }
+    [Required]
+    [MaxLength(100, ErrorMessage = "Name length cannot exceed 100 characters.")]
+    public string Name { get; set; } = null!;
 
-        [Column(TypeName = "decimal(18,2)")]
-        [Required]
-        public decimal Price { get; set; } // current price
+    [Required]
+    [MaxLength(500, ErrorMessage = "Description length cannot exceed 500 characters.")]
+    public string? Description { get; set; }
 
-        [Required]
-        [MaxLength(100, ErrorMessage = "category length cannot exceed 100 characters.")]
-        public string? Category { get; set; }
-        public string? ImageUrl { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+    [Required]
+    public decimal Price { get; set; } // current price
 
-        [Required]
-        [MaxLength(500, ErrorMessage = "Quantity length cannot exceed 500 characters.")]
-        public int Quantity { get; set; }
+    [Required]
+    [MaxLength(100, ErrorMessage = "category length cannot exceed 100 characters.")]
+    public string? Category { get; set; }
+    public string? ImageUrl { get; set; }
 
-        [ForeignKey(nameof(Supplier))]
-        public int? SupplierId { get; set; }
-        public Supplier? Supplier { get; set; }
-    }
+    [Required]
+    [MaxLength(500, ErrorMessage = "Quantity length cannot exceed 500 characters.")]
+    public int Quantity { get; set; }
+
+    [ForeignKey(nameof(Supplier))]
+    public int? SupplierId { get; set; }
+    public Supplier? Supplier { get; set; }
+  }
 }

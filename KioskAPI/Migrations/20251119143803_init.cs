@@ -1,14 +1,14 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
+﻿#nullable disable
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace KioskAPI.Migrations
 {
-    /// <inheritdoc />
-    public partial class init : Migration
+  using System;
+  using Microsoft.EntityFrameworkCore.Migrations;
+
+  /// <inheritdoc />
+  public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -9,85 +9,100 @@ using KioskAPI.Dtos;
 [Route("api/[controller]")]
 public class OrderController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly IMapper _mapper;
+  private readonly AppDbContext _context;
+  private readonly IMapper _mapper;
 
-    public OrderController(AppDbContext context, IMapper mapper)
+  public OrderController(AppDbContext context, IMapper mapper)
+  {
+    this._context = context;
+    this._mapper = mapper;
+  }
+
+  // GET all orders
+  [HttpGet]
+  public async Task<IActionResult> GetAllOrders()
+  {
+    var orders = await this._context.Orders
+        .Include(o => o.User)
+        .Include(o => o.OrderItems).ThenInclude(i => i.Product)
+        .ToListAsync().ConfigureAwait(true);
+
+    return this.Ok(this._mapper.Map<List<OrderDto>>(orders));
+  }
+
+  // GET orders for a user
+  [HttpGet("user/{userId}")]
+  public async Task<IActionResult> GetOrdersByUser(int userId)
+  {
+    var orders = await this._context.Orders
+        .Include(o => o.OrderItems).ThenInclude(i => i.Product)
+        .Where(o => o.UserId == userId)
+        .ToListAsync().ConfigureAwait(true);
+
+    if (!orders.Any())
     {
-        _context = context;
-        _mapper = mapper;
+      return this.NotFound(new { message = "No orders found for this user." });
     }
 
-    // GET all orders (admin)
-    [HttpGet]
-    public async Task<IActionResult> GetAllOrders()
-    {
-        var orders = await _context.Orders
-            .Include(o => o.User)
-            .Include(o => o.OrderItems)
-            .ThenInclude(i => i.Product)
-            .ToListAsync();
+    return this.Ok(this._mapper.Map<List<OrderDto>>(orders));
+  }
 
-        var ordersDto = _mapper.Map<List<OrderDto>>(orders);
-        return Ok(ordersDto);
+  // POST create new order
+  [HttpPost]
+  public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto newOrderDto)
+  {
+    if (!this.ModelState.IsValid)
+    {
+      return this.BadRequest(this.ModelState);
     }
 
-    // GET orders by user
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetOrdersByUser(int userId)
+    var order = new Order
     {
-        var orders = await _context.Orders
-            .Include(o => o.OrderItems)
-            .ThenInclude(i => i.Product)
-            .Include(o => o.User)
-            .Where(o => o.UserId == userId)
-            .ToListAsync();
+      UserId = newOrderDto.UserId,
+      OrderDate = DateTime.UtcNow,
+      Status = "Pending",
+      PaymentStatus = "Unpaid",
+      OrderItems = new List<OrderItem>()
+    };
 
-        if (!orders.Any())
-            return NotFound(new { message = "No orders found for this user." });
+    decimal totalAmount = 0;
 
-        var ordersDto = _mapper.Map<List<OrderDto>>(orders);
-        return Ok(ordersDto);
+    foreach (var itemDto in newOrderDto.Items)
+    {
+      var product = await this._context.Products.FindAsync(itemDto.ProductId).ConfigureAwait(true);
+      if (product == null)
+      {
+        return this.BadRequest(new { message = $"Product ID {itemDto.ProductId} not found." });
+      }
+
+      if (product.Quantity < itemDto.Quantity)
+      {
+        return this.BadRequest(new { message = $"Not enough stock for {product.Name}." });
+      }
+
+      // Stock update
+      product.Quantity -= itemDto.Quantity;
+
+      var orderItem = new OrderItem
+      {
+        ProductId = itemDto.ProductId,
+        Quantity = itemDto.Quantity,
+        PriceAtPurchase = product.Price
+      };
+
+      order.OrderItems.Add(orderItem);
+      totalAmount += product.Price * itemDto.Quantity;
     }
 
-    // POST create order
-    [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto newOrderDto)
+    order.TotalAmount = totalAmount;
+
+    this._context.Orders.Add(order);
+    await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+    return this.Ok(new
     {
-        if (newOrderDto == null || newOrderDto.Items == null || !newOrderDto.Items.Any())
-            return BadRequest(new { message = "Order must contain at least one item." });
-
-        var order = _mapper.Map<Order>(newOrderDto);
-        order.OrderDate = DateTime.UtcNow;
-        order.Status = "Pending";
-        order.PaymentStatus = "Unpaid";
-        order.OrderItems = new List<OrderItem>();
-
-        decimal totalAmount = 0;
-
-        foreach (var itemDto in newOrderDto.Items)
-        {
-            var product = await _context.Products.FindAsync(itemDto.ProductId);
-            if (product == null)
-                return BadRequest(new { message = $"Product ID {itemDto.ProductId} not found." });
-
-            if (product.Quantity < itemDto.Quantity)
-                return BadRequest(new { message = $"Not enough stock for product {product.Name}." });
-
-            product.Quantity -= itemDto.Quantity;
-
-            var orderItem = _mapper.Map<OrderItem>(itemDto);
-            orderItem.PriceAtPurchase = product.Price;
-
-            order.OrderItems.Add(orderItem);
-            totalAmount += product.Price * itemDto.Quantity;
-        }
-
-        order.TotalAmount = totalAmount;
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        var orderDto = _mapper.Map<OrderDto>(order);
-        return Ok(new { message = "Order created successfully", order = orderDto });
-    }
+      message = "Order created successfully",
+      order = this._mapper.Map<OrderDto>(order)
+    });
+  }
 }

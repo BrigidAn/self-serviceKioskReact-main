@@ -1,81 +1,87 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using KioskAPI.Data;
-using KioskAPI.Dtos;
-using KioskAPI.interfaces;
-using KioskAPI.Models;
-using KioskAPI.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 namespace KioskAPI.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class AccountController : ControllerBase
-    {
+  using System.Collections.Generic;
+  using System.Threading.Tasks;
+  using AutoMapper;
+  using KioskAPI.Dtos;
+  using KioskAPI.interfaces;
+  using Microsoft.AspNetCore.Mvc;
+
+  [ApiController]
+  [Route("api/[controller]")]
+  public class AccountController : ControllerBase
+  {
     private readonly IAccountRepository _accountRepo;
     private readonly IMapper _mapper;
 
     public AccountController(IAccountRepository accountRepo, IMapper mapper)
     {
-        _accountRepo = accountRepo;
-        _mapper = mapper;
+      this._accountRepo = accountRepo;
+      this._mapper = mapper;
     }
 
- // GET BALANCE (SESSION-BASED)
+    // GET BALANCE (SESSION-BASED)
     [HttpGet("balance")]
-      public async Task<IActionResult> GetBalance()
+    public async Task<IActionResult> GetBalance()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return Unauthorized();
+      var userId = this.HttpContext.Session.GetInt32("UserId");
+      if (userId == null)
+      {
+        return this.Unauthorized();
+      }
 
-        var account = await _accountRepo.GetAccountByUserIdAsync(userId.Value);
-        if (account == null) return NotFound();
+      var account = await this._accountRepo.GetAccountByUserIdAsync(userId.Value).ConfigureAwait(true);
+      if (account == null)
+      {
+        return this.NotFound();
+      }
 
-        var dto = _mapper.Map<AccountDto>(account);
-        return Ok(dto);
+      var dto = this._mapper.Map<AccountDto>(account);
+      return this.Ok(dto);
     }
-      
-// TOP-UP onto ACCOUNT session-based
+
+    // TOP-UP onto ACCOUNT session-based
     [HttpPost("topup")]
-       public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
+    public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return Unauthorized();
+      var userId = this.HttpContext.Session.GetInt32("UserId");
+      if (userId == null)
+      {
+        return this.Unauthorized();
+      }
 
-        if (request.Amount <= 0)
-            return BadRequest(new { message = "Amount must be positive" });
+      if (request.Amount <= 0)
+      {
+        return this.BadRequest(new { message = "Amount must be positive" });
+      }
 
-        await _accountRepo.UpdateBalanceAsync(userId.Value, request.Amount);
+      await this._accountRepo.UpdateBalanceAsync(userId.Value, request.Amount).ConfigureAwait(true);
 
-        var account = await _accountRepo.GetAccountByUserIdAsync(userId.Value);
+      var account = await this._accountRepo.GetAccountByUserIdAsync(userId.Value).ConfigureAwait(true);
 
-        return Ok(_mapper.Map<AccountDto>(account));
+      return this.Ok(this._mapper.Map<AccountDto>(account));
     }
 
-
-         // GET USER TRANSACTIONS
-  [HttpGet("transactions")]
+    // GET USER TRANSACTIONS
+    [HttpGet("transactions")]
     public async Task<IActionResult> GetTransactions()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null) return Unauthorized();
+      var userId = this.HttpContext.Session.GetInt32("UserId");
+      if (userId == null)
+      {
+        return this.Unauthorized();
+      }
 
-        var transactions = await _accountRepo.GetTransactionsAsync(userId.Value);
+      var transactions = await this._accountRepo.GetTransactionsAsync(userId.Value).ConfigureAwait(true);
 
-        var dtos = _mapper.Map<IEnumerable<TransactionDto>>(transactions);
+      var dtos = this._mapper.Map<IEnumerable<TransactionDto>>(transactions);
 
-        return Ok(dtos);
+      return this.Ok(dtos);
     }
 
-        private int GetUserId()
-        {
-          return HttpContext.Session.GetInt32("UserId") ?? 0;
-        }
+    private int GetUserId()
+    {
+      return this.HttpContext.Session.GetInt32("UserId") ?? 0;
     }
+  }
 }
