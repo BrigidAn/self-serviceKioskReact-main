@@ -25,7 +25,7 @@ namespace KioskAPI.Controllers
     public async Task<IActionResult> GetUserProfile(int userId)
     {
       var user = await this._context.Users
-          .Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId).ConfigureAwait(true);
+          .FirstOrDefaultAsync(u => u.UserId == userId).ConfigureAwait(true);
 
       if (user == null)
       {
@@ -37,7 +37,6 @@ namespace KioskAPI.Controllers
         user.UserId,
         user.Name,
         user.Email,
-        Role = user.Role?.RoleName,
         user.CreatedAt
       });
     }

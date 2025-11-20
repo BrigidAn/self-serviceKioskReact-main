@@ -5,22 +5,26 @@ namespace KioskAPI.Controllers
   using KioskAPI.Services;
   using System.Threading.Tasks;
   using System.Linq;
+  using KioskAPI.interfaces;
+  using Microsoft.AspNetCore.Identity;
+  using KioskAPI.Models;
 
   [ApiController]
   [Route("api/[controller]")]
   public class AuthController : ControllerBase
   {
-    private readonly AuthService _authService;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
 
-    public AuthController(AuthService authService)
+    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
     {
-      this._authService = authService;
+      this._userManager = userManager;
+      this._signInManager = signInManager;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-      // 1. Required fields check
       if (string.IsNullOrWhiteSpace(dto.Name) ||
           string.IsNullOrWhiteSpace(dto.Email) ||
           string.IsNullOrWhiteSpace(dto.Password))
@@ -28,68 +32,117 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "All fields are required." });
       }
 
-      // 2. Email format validation
       if (!this.IsValidEmail(dto.Email))
       {
         return this.BadRequest(new { message = "Invalid email format." });
       }
 
-      // 3. Password rule validation
       if (!this.IsValidPassword(dto.Password))
       {
-        return this.BadRequest(new
-        {
-          message = "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character."
-        });
+        return this.BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character." });
       }
 
-      // 4. Register user through AuthService (AuthService should handle duplicate email check)
-      var result = await this._authService.RegisterAsync(dto.Name, dto.Email, dto.Password).ConfigureAwait(true);
-
-      if (result == "EmailExists")
+      var existingUser = await this._userManager.FindByEmailAsync(dto.Email).ConfigureAwait(true);
+      if (existingUser != null)
       {
         return this.BadRequest(new { message = "Email is already registered." });
       }
 
-      return this.Ok(new { message = "Registration successful" });
+      var user = new User { UserName = dto.Email, Email = dto.Email, Name = dto.Name };
+      var result = await this._userManager.CreateAsync(user, dto.Password).ConfigureAwait(true);
+
+      if (!result.Succeeded)
+      {
+        return this.BadRequest(result.Errors);
+      }
+
+      // Default role is "User"
+      await this._userManager.AddToRoleAsync(user, "User").ConfigureAwait(true);
+
+      return this.Ok(new { message = "Registered successfully", role = "User" });
     }
 
+    // LOGIN
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-      if (string.IsNullOrWhiteSpace(dto.Email) ||
-          string.IsNullOrWhiteSpace(dto.Password))
+      if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
       {
         return this.BadRequest(new { message = "Email and password are required." });
       }
 
-      if (!this.IsValidEmail(dto.Email))
-      {
-        return this.BadRequest(new { message = "Invalid email format." });
-      }
-
-      var user = await this._authService.LoginAsync(dto.Email, dto.Password).ConfigureAwait(true);
-
+      var user = await this._userManager.FindByEmailAsync(dto.Email).ConfigureAwait(true);
       if (user == null)
       {
         return this.Unauthorized(new { message = "Invalid email or password." });
       }
 
-      this.HttpContext.Session.SetInt32("UserId", user.UserId);
+      var result = await this._signInManager.CheckPasswordSignInAsync(user, dto.Password, false).ConfigureAwait(true);
+      if (!result.Succeeded)
+      {
+        return this.Unauthorized(new { message = "Invalid email or password." });
+      }
+
+      // Sign in user
+      await this._signInManager.SignInAsync(user, true).ConfigureAwait(true);
+
+      // Store UserId in session
+      this.HttpContext.Session.SetString("UserId", user.Id.ToString());
 
       return this.Ok(new
       {
         message = "Login successful",
         user = new
         {
-          user.UserId,
+          user.Id,
           user.Name,
           user.Email,
-          Role = user.Role?.RoleName
+          Roles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true)
         }
       });
     }
 
+    // LOGOUT
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+      await this._signInManager.SignOutAsync().ConfigureAwait(true);
+      this.HttpContext.Session.Remove("UserId");
+      return this.Ok(new { message = "Logged out successfully." });
+    }
+
+    [HttpPost("assign-role")]
+    public async Task<IActionResult> AssignRole([FromQuery] string userId, [FromQuery] string role)
+    {
+      var adminId = this.HttpContext.Session.GetString("UserId");
+      if (adminId == null)
+      {
+        return this.Unauthorized();
+      }
+
+      var currentUser = await this._userManager.FindByIdAsync(adminId).ConfigureAwait(true);
+      if (!await this._userManager.IsInRoleAsync(currentUser, "Admin").ConfigureAwait(true))
+      {
+        return this.Unauthorized(new { message = "Only admins can assign roles." });
+      }
+
+      var user = await this._userManager.FindByIdAsync(userId).ConfigureAwait(true);
+      if (user == null)
+      {
+        return this.NotFound(new { message = "User not found." });
+      }
+
+      // Remove old roles
+      var oldRoles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
+      await this._userManager.RemoveFromRolesAsync(user, oldRoles).ConfigureAwait(true);
+
+      // Assign new role
+      await this._userManager.AddToRoleAsync(user, role).ConfigureAwait(true);
+
+      return this.Ok(new { message = $"Role '{role}' assigned to {user.Name}" });
+    }
+
+    // Helper: Validate Email
     private bool IsValidEmail(string email)
     {
       try
@@ -103,6 +156,7 @@ namespace KioskAPI.Controllers
       }
     }
 
+    // Helper: Validate Password
     private bool IsValidPassword(string password)
     {
       if (password.Length < 8)
@@ -110,10 +164,27 @@ namespace KioskAPI.Controllers
         return false;
       }
 
-      bool hasUpper = password.Any(char.IsUpper);
-      bool hasLower = password.Any(char.IsLower);
-      bool hasDigit = password.Any(char.IsDigit);
-      bool hasSpecial = password.Any(ch => !char.IsLetterOrDigit(ch));
+      bool hasUpper = false, hasLower = false, hasDigit = false, hasSpecial = false;
+
+      foreach (var c in password)
+      {
+        if (char.IsUpper(c))
+        {
+          hasUpper = true;
+        }
+        else if (char.IsLower(c))
+        {
+          hasLower = true;
+        }
+        else if (char.IsDigit(c))
+        {
+          hasDigit = true;
+        }
+        else
+        {
+          hasSpecial = true;
+        }
+      }
 
       return hasUpper && hasLower && hasDigit && hasSpecial;
     }

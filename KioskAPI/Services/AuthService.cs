@@ -16,54 +16,46 @@ namespace KioskAPI.Services
 
     public async Task<string> RegisterAsync(string name, string email, string password)
     {
-
+      // Check if user already exists
       if (await this._context.Users.AnyAsync(u => u.Email == email).ConfigureAwait(true))
       {
         return "User already exists";
       }
 
+      // Hash password
       var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
-      string roleName = email.EndsWith("@admin.co.za", System.StringComparison.OrdinalIgnoreCase) ? "Admin" : "User";
-
-      var role = await this._context.Roles.FirstOrDefaultAsync(r => r.RoleName == roleName).ConfigureAwait(true);
-      if (role == null)
-      {
-        role = new Role { RoleName = roleName, Description = roleName == "Admin" ? "Administrator" : "Standard user" };
-        this._context.Roles.Add(role);
-        await this._context.SaveChangesAsync().ConfigureAwait(true);
-      }
-
+      // Create user (no RoleId anymore)
       var user = new User
       {
         Name = name,
         Email = email,
         PasswordHash = passwordHash,
-        RoleId = role.RoleId,
-        CreatedAt = System.DateTime.UtcNow,
-        UpdatedAt = System.DateTime.UtcNow
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
       };
 
       this._context.Users.Add(user);
 
+      // Create zero-balance account
       var account = new Account
       {
         User = user,
         Balance = 0m,
-        LastUpdated = System.DateTime.UtcNow
+        LastUpdated = DateTime.UtcNow
       };
 
       this._context.Accounts.Add(account);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      return $"Registered successfully as {roleName}.";
+      return "Registered successfully.";
     }
 
     public async Task<User?> LoginAsync(string email, string password)
     {
+      // No more role include
       var user = await this._context.Users
-          .Include(u => u.Role)
           .FirstOrDefaultAsync(u => u.Email == email).ConfigureAwait(true);
 
       if (user == null)
@@ -71,13 +63,9 @@ namespace KioskAPI.Services
         return null;
       }
 
-      bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-      if (!isValid)
-      {
-        return null;
-      }
+      bool valid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
 
-      return user;
+      return valid ? user : null;
     }
   }
 }

@@ -1,7 +1,9 @@
 using KioskAPI.Data;
 using KioskAPI.interfaces;
+using KioskAPI.Models;
 using KioskAPI.Repository;
 using KioskAPI.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,26 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 // ✅ Database context
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddIdentity<User, Role>(options =>
+{
+  options.Password.RequireDigit = true;
+  options.Password.RequiredLength = 8;
+  options.Password.RequireNonAlphanumeric = true;
+  options.Password.RequireUppercase = true;
+  options.Password.RequireLowercase = true;
+  options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+  options.LoginPath = "/api/Auth/login";
+  options.Cookie.HttpOnly = true;
+  options.ExpireTimeSpan = TimeSpan.FromDays(30);
+  options.SlidingExpiration = true;
+});
 
 builder.Services.AddCors(options =>
 {

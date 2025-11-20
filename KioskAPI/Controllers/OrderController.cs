@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using KioskAPI.Data;
 using KioskAPI.Models;
 using KioskAPI.Dtos;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -31,6 +32,7 @@ public class OrderController : ControllerBase
   }
 
   // GET orders for a user
+  [Authorize(Roles = "Admin")]
   [HttpGet("user/{userId}")]
   public async Task<IActionResult> GetOrdersByUser(int userId)
   {
