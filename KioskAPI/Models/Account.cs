@@ -11,7 +11,7 @@ namespace KioskAPI.Models
     public int AccountId { get; set; }
 
     [ForeignKey(nameof(User))]
-    public int UserId { get; set; }
+    public int UserId { get; set; } // might change to identity user.id
     public User? User { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]

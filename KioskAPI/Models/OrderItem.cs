@@ -20,5 +20,9 @@ namespace KioskAPI.Models
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal PriceAtPurchase { get; set; }
+    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+
+    // Optional: auto-expire in 10 minutes
+    public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddHours(10);
   }
 }

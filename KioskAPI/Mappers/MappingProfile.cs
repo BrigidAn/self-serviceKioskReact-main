@@ -80,6 +80,8 @@ namespace KioskAPI.Mappers
 
       this.CreateMap<Account, AccountDto>();
       this.CreateMap<Transaction, TransactionDto>();
+      this.CreateMap<OrderItem, OrderItemDto>();
+
     }
   }
 }

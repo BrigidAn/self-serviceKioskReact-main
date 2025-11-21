@@ -4,7 +4,6 @@ namespace KioskAPI.Dtos
 
   public class AccountDto
   {
-    public int UserId { get; set; }
     public User? User { get; set; }
     public decimal Balance { get; set; } = 0m;
     public string? TransactionsSummary { get; set; }

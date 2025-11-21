@@ -6,6 +6,7 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
@@ -20,8 +21,9 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // Get all transactions (admin view)
+    // ADMIN: Get ALL transactions
     [HttpGet]
+    //[Authorize("Admin")]
     public async Task<IActionResult> GetAllTransactions()
     {
       var transactions = await this._context.Transactions
@@ -42,21 +44,26 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
-    // Get transactions belonging to a specific user
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserTransactions(int userId)
+    // USER: Get transactions for specific Identity User Id
+    [HttpGet("user/{id}")]
+    public async Task<IActionResult> GetUserTransactions(int id)
     {
       var user = await this._context.Users
           .Include(u => u.Account)
           .ThenInclude(a => a.Transactions)
-          .FirstOrDefaultAsync(u => u.UserId == userId).ConfigureAwait(true);
+          .FirstOrDefaultAsync(u => u.Id == id).ConfigureAwait(true); // ✅ Identity primary key
 
       if (user == null)
       {
         return this.NotFound(new { message = "User not found." });
       }
 
-      var transactions = user.Account?.Transactions
+      if (user.Account == null)
+      {
+        return this.NotFound(new { message = "User has no account." });
+      }
+
+      var transactions = user.Account.Transactions
           .Select(t => new
           {
             t.TransactionId,
@@ -70,7 +77,7 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
-    // Create a new transaction (credit or debit)
+    // Create (credit or debit)
     [HttpPost]
     public async Task<IActionResult> CreateTransaction([FromBody] TransactionDto dto)
     {
@@ -87,7 +94,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Account not found." });
       }
 
-      // Create real transaction
       var transaction = new Transaction
       {
         AccountId = dto.AccountId,
@@ -97,11 +103,12 @@ namespace KioskAPI.Controllers
         CreatedAt = DateTime.UtcNow
       };
 
-      // Apply credit/debit
+      // 🟩 APPLY CREDIT
       if (dto.Type.ToLower() == "credit")
       {
         account.Balance += dto.TotalAmount;
       }
+      // APPLY DEBIT
       else if (dto.Type.ToLower() == "debit")
       {
         if (account.Balance < dto.TotalAmount)
@@ -129,18 +136,19 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // Delete a transaction (admin use)
+    //Delete Transaction (and reverse balance)
     [HttpDelete("{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(int transactionId)
     {
       var transaction = await this._context.Transactions.FindAsync(transactionId).ConfigureAwait(true);
+
       if (transaction == null)
       {
         return this.NotFound(new { message = "Transaction not found." });
       }
 
-      // Optionally reverse balance changes
       var account = await this._context.Accounts.FindAsync(transaction.AccountId).ConfigureAwait(true);
+
       if (account != null)
       {
         if (transaction.Type.ToLower() == "credit")

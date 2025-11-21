@@ -14,6 +14,7 @@ namespace KioskAPI.Controllers
   {
     private readonly AppDbContext _context;
     private readonly IMapper _mapper;
+    private const int CART_TIMEOUT_HOURS = 10;
 
     public OrderItemController(AppDbContext context, IMapper mapper)
     {
@@ -21,7 +22,48 @@ namespace KioskAPI.Controllers
       this._mapper = mapper;
     }
 
-    // GET all order items (mainly admin/debug)
+    // 🔥 Helper: Remove expired items AND restore stock
+    private async Task RemoveExpiredItems(int orderId)
+    {
+      var expiredItems = await this._context.OrderItems
+          .Where(i => i.OrderId == orderId && i.ExpiresAt < DateTime.UtcNow)
+          .ToListAsync().ConfigureAwait(true);
+
+      if (!expiredItems.Any())
+      {
+        return;
+      }
+
+      foreach (var item in expiredItems)
+      {
+        var product = await this._context.Products.FindAsync(item.ProductId).ConfigureAwait(true);
+
+        if (product != null)
+        {
+          // Restore stock
+          product.Quantity += item.Quantity;
+        }
+      }
+
+      // Remove expired items
+      this._context.OrderItems.RemoveRange(expiredItems);
+
+      // Update order total
+      var order = await this._context.Orders
+          .Include(o => o.OrderItems)
+          .FirstOrDefaultAsync(o => o.OrderId == orderId).ConfigureAwait(true);
+
+      if (order != null)
+      {
+        order.TotalAmount = order.OrderItems
+            .Where(i => i.ExpiresAt > DateTime.UtcNow)
+            .Sum(i => i.Quantity * i.PriceAtPurchase);
+      }
+
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+    }
+
+    // GET all order items (admin)
     [HttpGet]
     public async Task<IActionResult> GetAllOrderItems()
     {
@@ -29,14 +71,16 @@ namespace KioskAPI.Controllers
           .Include(oi => oi.Product)
           .ToListAsync().ConfigureAwait(true);
 
-      var itemsDto = this._mapper.Map<List<OrderItemDto>>(items);
-      return this.Ok(itemsDto);
+      return this.Ok(this._mapper.Map<List<OrderItemDto>>(items));
     }
 
     // GET items for a specific order
     [HttpGet("order/{orderId}")]
     public async Task<IActionResult> GetItemsByOrder(int orderId)
     {
+      // Auto-delete expired items
+      await this.RemoveExpiredItems(orderId).ConfigureAwait(true);
+
       var items = await this._context.OrderItems
           .Include(oi => oi.Product)
           .Where(oi => oi.OrderId == orderId)
@@ -57,7 +101,7 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // POST add item to an order
+    // POST add item to order
     [HttpPost("{orderId}")]
     public async Task<IActionResult> AddOrderItem(int orderId, [FromBody] CreateOrderItemDto newItemDto)
     {
@@ -76,6 +120,7 @@ namespace KioskAPI.Controllers
       }
 
       var product = await this._context.Products.FindAsync(newItemDto.ProductId).ConfigureAwait(true);
+
       if (product == null)
       {
         return this.NotFound(new { message = "Product not found." });
@@ -86,18 +131,20 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = $"Not enough stock for {product.Name}." });
       }
 
-      // update inventory
+      // Reduce inventory
       product.Quantity -= newItemDto.Quantity;
 
       var orderItem = this._mapper.Map<OrderItem>(newItemDto);
       orderItem.OrderId = orderId;
       orderItem.PriceAtPurchase = product.Price;
+      orderItem.AddedAt = DateTime.UtcNow;
+      orderItem.ExpiresAt = DateTime.UtcNow.AddMinutes(CART_TIMEOUT_HOURS);
 
       this._context.OrderItems.Add(orderItem);
 
-      // recalc total
+      // Update order total
       order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.PriceAtPurchase)
-                           + (newItemDto.Quantity * product.Price);
+                         + (newItemDto.Quantity * product.Price);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
@@ -109,7 +156,7 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // DELETE order item
+    // DELETE order item (admin)
     [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrderItem(int id)
@@ -118,6 +165,13 @@ namespace KioskAPI.Controllers
       if (orderItem == null)
       {
         return this.NotFound(new { message = "Order item not found." });
+      }
+
+      // Restore stock
+      var product = await this._context.Products.FindAsync(orderItem.ProductId).ConfigureAwait(true);
+      if (product != null)
+      {
+        product.Quantity += orderItem.Quantity;
       }
 
       var order = await this._context.Orders
@@ -135,7 +189,7 @@ namespace KioskAPI.Controllers
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      return this.Ok(new { message = "Order item deleted and order total updated." });
+      return this.Ok(new { message = "Order item deleted, stock restored, and total updated." });
     }
   }
 }

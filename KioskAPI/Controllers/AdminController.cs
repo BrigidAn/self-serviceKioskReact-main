@@ -127,10 +127,14 @@ namespace KioskAPI.Controllers
           .AsQueryable();
 
       if (!string.IsNullOrEmpty(search))
+      {
         query = query.Where(o => o.User.Name.Contains(search));
+      }
 
       if (!string.IsNullOrEmpty(status))
+      {
         query = query.Where(o => o.Status.Contains(status));
+      }
 
       var total = await query.CountAsync().ConfigureAwait(true);
       var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);
@@ -172,7 +176,9 @@ namespace KioskAPI.Controllers
           .AsQueryable();
 
       if (!string.IsNullOrEmpty(type))
+      {
         query = query.Where(t => t.Type == type);
+      }
 
       var total = await query.CountAsync().ConfigureAwait(true);
       var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);

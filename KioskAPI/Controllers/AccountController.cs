@@ -20,34 +20,38 @@ namespace KioskAPI.Controllers
       this._mapper = mapper;
     }
 
-    // GET BALANCE (SESSION-BASED)
+    private int GetUserIdFromSession()
+    {
+      return this.HttpContext.Session.GetInt32("UserId") ?? 0;
+    }
+
+    // GET BALANCE
     [HttpGet("balance")]
     public async Task<IActionResult> GetBalance()
     {
-      var userId = this.HttpContext.Session.GetInt32("UserId");
-      if (userId == null)
+      int userId = this.GetUserIdFromSession();
+      if (userId == 0)
       {
-        return this.Unauthorized();
+        return this.Unauthorized(new { message = "You have not logged in" });
       }
 
-      var account = await this._accountRepo.GetAccountByUserIdAsync(userId.Value).ConfigureAwait(true);
+      var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
       if (account == null)
       {
-        return this.NotFound();
+        return this.NotFound(new { message = "Account not found" });
       }
 
-      var dto = this._mapper.Map<AccountDto>(account);
-      return this.Ok(dto);
+      return this.Ok(this._mapper.Map<AccountDto>(account));
     }
 
     // TOP-UP onto ACCOUNT session-based
     [HttpPost("topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
     {
-      var userId = this.HttpContext.Session.GetInt32("UserId");
-      if (userId == null)
+      int userId = this.GetUserIdFromSession();
+      if (userId == 0)
       {
-        return this.Unauthorized();
+        return this.Unauthorized(new { message = "You are not logged in" });
       }
 
       if (request.Amount <= 0)
@@ -55,9 +59,9 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Amount must be positive" });
       }
 
-      await this._accountRepo.UpdateBalanceAsync(userId.Value, request.Amount).ConfigureAwait(true);
+      await this._accountRepo.UpdateBalanceAsync(userId, request.Amount).ConfigureAwait(true);
 
-      var account = await this._accountRepo.GetAccountByUserIdAsync(userId.Value).ConfigureAwait(true);
+      var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
 
       return this.Ok(this._mapper.Map<AccountDto>(account));
     }
@@ -66,22 +70,15 @@ namespace KioskAPI.Controllers
     [HttpGet("transactions")]
     public async Task<IActionResult> GetTransactions()
     {
-      var userId = this.HttpContext.Session.GetInt32("UserId");
-      if (userId == null)
+      int userId = this.GetUserIdFromSession();
+      if (userId == 0)
       {
         return this.Unauthorized();
       }
 
-      var transactions = await this._accountRepo.GetTransactionsAsync(userId.Value).ConfigureAwait(true);
+      var transactions = await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(true);
 
-      var dtos = this._mapper.Map<IEnumerable<TransactionDto>>(transactions);
-
-      return this.Ok(dtos);
-    }
-
-    private int GetUserId()
-    {
-      return this.HttpContext.Session.GetInt32("UserId") ?? 0;
+      return this.Ok(this._mapper.Map<IEnumerable<TransactionDto>>(transactions));
     }
   }
 }

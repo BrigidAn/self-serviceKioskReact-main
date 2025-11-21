@@ -20,12 +20,13 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // 🧍‍♂️ Get user profile
-    [HttpGet("profile/{userId}")]
-    public async Task<IActionResult> GetUserProfile(int userId)
+    // Get user profile by Identity Id
+    [HttpGet("profile/{id}")]
+    public async Task<IActionResult> GetUserProfile(int id)
     {
       var user = await this._context.Users
-          .FirstOrDefaultAsync(u => u.UserId == userId).ConfigureAwait(true);
+          .FirstOrDefaultAsync(u => u.Id == id)
+          .ConfigureAwait(true);
 
       if (user == null)
       {
@@ -34,20 +35,22 @@ namespace KioskAPI.Controllers
 
       return this.Ok(new
       {
-        user.UserId,
+        user.Id,
         user.Name,
         user.Email,
         user.CreatedAt
       });
     }
 
-    // 💰 Get account details
-    [HttpGet("account/{userId}")]
-    public async Task<IActionResult> GetAccountDetails(int userId)
+    // Get account details by Identity Id
+    [HttpGet("account/{id}")]
+    public async Task<IActionResult> GetAccountDetails(int id)
     {
       var account = await this._context.Accounts
           .Include(a => a.Transactions)
-          .FirstOrDefaultAsync(a => a.UserId == userId).ConfigureAwait(true);
+          .Include(a => a.User)
+          .FirstOrDefaultAsync(a => a.User.Id == id)
+          .ConfigureAwait(true);
 
       if (account == null)
       {
@@ -59,7 +62,7 @@ namespace KioskAPI.Controllers
         account.AccountId,
         account.Balance,
         account.LastUpdated,
-        Transactions = account.Transactions?.Select(t => new
+        Transactions = account.Transactions.Select(t => new
         {
           t.TransactionId,
           t.Type,
@@ -70,32 +73,30 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // Add funds to account
+    // Top-up balance using Identity Id
     [HttpPost("account/topup")]
     public async Task<IActionResult> TopUpBalance([FromBody] TopUpDto data)
     {
-      // 1. Basic validation
       if (data.Amount <= 0)
       {
         return this.BadRequest(new { message = "Amount must be greater than zero." });
       }
 
       var account = await this._context.Accounts
-          .FirstOrDefaultAsync(a => a.UserId == data.UserId).ConfigureAwait(true);
+          .Include(a => a.User)
+          .FirstOrDefaultAsync(a => a.User.Id == data.Id)
+          .ConfigureAwait(true);
 
-      // 2. Account not found
       if (account == null)
       {
         return this.NotFound(new { message = "Account not found." });
       }
 
-      // 4. Optional: Maximum balance (example: R100,000)
       if (account.Balance + data.Amount > 100000)
       {
         return this.BadRequest(new { message = "Balance cannot exceed R100,000." });
       }
 
-      // Apply the top-up
       account.Balance += data.Amount;
       account.LastUpdated = DateTime.UtcNow;
 
@@ -109,7 +110,6 @@ namespace KioskAPI.Controllers
       };
 
       this._context.Transactions.Add(transaction);
-
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
       return this.Ok(new
@@ -119,13 +119,14 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // 🧾 Get user orders
-    [HttpGet("orders/{userId}")]
-    public async Task<IActionResult> GetUserOrders(int userId)
+    // Get orders by Identity Id
+    [HttpGet("orders/{id}")]
+    public async Task<IActionResult> GetUserOrders(int id)
     {
       var orders = await this._context.Orders
           .Include(o => o.OrderItems)
-          .Where(o => o.UserId == userId)
+          .Include(o => o.User)
+          .Where(o => o.User.Id == id)
           .Select(o => new
           {
             o.OrderId,
@@ -140,7 +141,8 @@ namespace KioskAPI.Controllers
               i.PriceAtPurchase
             })
           })
-          .ToListAsync().ConfigureAwait(true);
+          .ToListAsync()
+          .ConfigureAwait(true);
 
       if (!orders.Any())
       {
@@ -150,11 +152,14 @@ namespace KioskAPI.Controllers
       return this.Ok(orders);
     }
 
-    [HttpGet("account/{userId}/transactions")]
-    public async Task<IActionResult> GetTransactionHistory(int userId)
+    // Get transaction history by Identity Id
+    [HttpGet("account/{id}/transactions")]
+    public async Task<IActionResult> GetTransactionHistory(int id)
     {
       var account = await this._context.Accounts
-          .FirstOrDefaultAsync(a => a.UserId == userId).ConfigureAwait(true);
+          .Include(a => a.User)
+          .FirstOrDefaultAsync(a => a.User.Id == id)
+          .ConfigureAwait(true);
 
       if (account == null)
       {
@@ -164,7 +169,8 @@ namespace KioskAPI.Controllers
       var transactions = await this._context.Transactions
           .Where(t => t.AccountId == account.AccountId)
           .OrderByDescending(t => t.CreatedAt)
-          .ToListAsync().ConfigureAwait(true);
+          .ToListAsync()
+          .ConfigureAwait(true);
 
       return this.Ok(transactions);
     }
