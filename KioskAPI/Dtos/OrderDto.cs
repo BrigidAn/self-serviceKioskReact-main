@@ -9,6 +9,7 @@ namespace KioskAPI.Dtos
     public int OrderId { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalAmount { get; set; }
+    public string? DeliveryMethod { get; set; }
     public string? Status { get; set; } // e.g., "Pending", "Completed"
     public string? PaymentStatus { get; set; } // e.g., "Paid", "Unpaid"
     public List<OrderItemDto>? Items { get; set; }
@@ -20,5 +21,6 @@ namespace KioskAPI.Dtos
     [Required]
     [MinLength(1, ErrorMessage = "Order must contain at least one item.")]
     public List<CreateOrderItemDto> Items { get; set; } = new();
+    public string? DeliveryMethod { get; set; }
   }
 }

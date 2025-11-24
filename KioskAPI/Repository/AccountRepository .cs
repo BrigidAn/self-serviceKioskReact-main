@@ -48,5 +48,20 @@ namespace KioskAPI.Repository
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
     }
+
+    public async Task<Account> CreateAccountForUserAsync(int userId)
+    {
+      var account = new Account
+      {
+        UserId = userId,
+        Balance = 0,
+        LastUpdated = DateTime.UtcNow
+      };
+
+      this._context.Accounts.Add(account);
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      return account;
+    }
+
   }
 }

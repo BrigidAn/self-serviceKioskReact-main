@@ -7,6 +7,7 @@ namespace KioskAPI.Controllers
   using System;
   using System.Linq;
   using System.Threading.Tasks;
+  using KioskAPI.Dtos;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -199,5 +200,25 @@ namespace KioskAPI.Controllers
         })
       });
     }
+
+    // [HttpPost("topup")]
+    // public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
+    // {
+    //   if (!this.ModelState.IsValid)
+    //     return this.BadRequest(this.ModelState);
+
+    //   var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
+    //   if (user == null)
+    //     return this.NotFound("User not found.");
+
+    //   user.Balance += dto.Amount;
+
+    //   await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+    //   return this.Ok(new
+    //   {
+    //     message = "Top-up successful.",
+    //     newBalance = user.Balance
+    //   });
   }
 }

@@ -8,26 +8,31 @@ export function AuthProvider({ children }) {
   const [balance, setBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(false);
 
-  const refreshBalance = async () => {
-    try {
-      setLoadingBalance(true);
-      const res = await api.get("/Account/balance");
-      setBalance(res.data.balance ?? 0);
-    } catch (err) {
-      // console.warn("refreshBalance", err);
-      setBalance(0);
-    } finally {
-      setLoadingBalance(false);
-    }
-  };
+ const refreshBalance = async () => {
+  if (!user) return;
+  try {
+    const res = await api.get("/Account/balance");
+    setBalance(res.data.balance ?? 0);
+  } catch {
+    setBalance(0);
+  }
+};
 
   useEffect(() => {
-    // try to fetch balance on app start in case session exists
     refreshBalance();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, balance, setBalance, refreshBalance, loadingBalance }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        balance,
+        setBalance,
+        refreshBalance,
+        loadingBalance,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

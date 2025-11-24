@@ -37,7 +37,7 @@ const { balance, setBalance, refreshBalance } = useAuth();
     }
     setLoading(true);
     try {
-      const res = await api.post("/Account/topup", val);
+      const res = await api.post("/Account/topup");
       setBalance(res.data.balance ?? 0);
       setAmount("");
       setMessage("Balance topped up successfully!");
@@ -71,7 +71,7 @@ const { balance, setBalance, refreshBalance } = useAuth();
 
         {message && <p className="account-message">{message}</p>}
 
-    
+
 
         <h3 className="transactions-title">Transaction History</h3>  {/* shows the transaction history from db */}
         <div className="transaction-list">

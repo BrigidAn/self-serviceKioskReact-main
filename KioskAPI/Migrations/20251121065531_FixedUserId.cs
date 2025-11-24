@@ -1,12 +1,12 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-
-#nullable disable
+﻿#nullable disable
 
 namespace KioskAPI.Migrations
 {
-    /// <inheritdoc />
-    public partial class FixedUserId : Migration
+  using System;
+  using Microsoft.EntityFrameworkCore.Migrations;
+
+  /// <inheritdoc />
+  public partial class FixedUserId : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

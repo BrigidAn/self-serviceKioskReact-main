@@ -7,6 +7,8 @@ namespace KioskAPI.Dtos
   public class OrderItemDto
   {
     public int ProductId { get; set; }
+    public int OrderItemId { get; set; }
+
     public string Name { get; set; } = string.Empty; // expose product name only
     public Product? Product { get; set; }
     public int Quantity { get; set; }

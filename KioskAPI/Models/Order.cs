@@ -19,7 +19,7 @@ namespace KioskAPI.Models
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalAmount { get; set; }
     public string? Status { get; set; } // e.g., "Pending", "Completed"
-    public string? DeliveryMethod { get; set; }
+    public string DeliveryMethod { get; set; } = string.Empty;
     public string? PaymentStatus { get; set; } // e.g., "Paid", "Unpaid"
 
     public ICollection<OrderItem>? OrderItems { get; set; }

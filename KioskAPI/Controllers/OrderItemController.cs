@@ -22,7 +22,7 @@ namespace KioskAPI.Controllers
       this._mapper = mapper;
     }
 
-    // 🔥 Helper: Remove expired items AND restore stock
+    // Helper: Remove expired items AND restore stock
     private async Task RemoveExpiredItems(int orderId)
     {
       var expiredItems = await this._context.OrderItems

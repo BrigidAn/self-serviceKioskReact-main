@@ -6,7 +6,7 @@ function Home({ addToCart }) {
 
   // Fetch products from ASP.NET backend on load
   useEffect(() => {
-    fetch("https://localhost:5016/api/Product") // <-- your API endpoint
+    fetch("https://localhost:5016/api/Product") // <--  API endpoint
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
