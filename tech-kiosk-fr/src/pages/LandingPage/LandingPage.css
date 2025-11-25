@@ -1,6 +1,3 @@
-/* ==============================================
-   GENERAL RESET
-============================================== */
 * {
   margin: 0;
   padding: 0;
@@ -11,13 +8,11 @@ body, html {
   font-family: 'Arial', sans-serif;
 }
 
-/* ==============================================
-   NAVIGATION BAR
-============================================== */
+/*NAVIGATION BAR */
 .navbar {
   width: 100%;
   height: 60px;
-  background: #D9D9D9;
+  background: #AECFB8;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,11 +24,11 @@ body, html {
   z-index: 10;
 }
 
-.logo {
-  font-size: 24px;
-  font-weight: 900;
-  color: black;
-  letter-spacing: 1px;
+.logo-img {
+height: 400px;
+width: auto;
+object-fit: contain;
+display: block;
 }
 
 .nav-links {
@@ -71,9 +66,7 @@ body, html {
   transform: translateY(-2px);
 }
 
-/* ==============================================
-   LANDING PAGE MAIN
-============================================== */
+/* LANDING PAGE MAIN */
 .landing-page {
   background: #13361F;
   width: 100%;
@@ -82,29 +75,50 @@ body, html {
 }
 
 .landing-container {
-  width: 100%;
   height: calc(100vh - 60px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 60px;
-  position: relative;
 }
 
 /* LEFT SECTION */
 .left-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  flex: 0.5;
 }
 
 .title {
   font-size: 64px;  /* exact mockup */
   font-weight: 900;
   color: white;
-  text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
-  margin-bottom: 20px;
+  text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+  margin-bottom: 90px;
+
+  /*hover animation*/
+  transition: all 0.4s ease;
+  background: none;
+}
+
+.title:hover{
+  background: linear-gradient(90deg, #7dffb2, #d7ff8f, #8affd9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientPulse 3s ease-in-out infinite;;
+  cursor: pointer;
+  transform: scale(1.03);
+}
+
+/* pulse animation */
+@keyframes gradientPulse{
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .subtitle {
@@ -123,25 +137,53 @@ body, html {
   margin-bottom: 25px;
   box-shadow: 1px 2px 8px rgba(0,0,0,0.4);
   display: inline-block;
+  color: white;
+
+  opacity: 0;
+  transform: translate(20px);
 }
 
-.tag1 { margin-left: 40px; }
-.tag2 { margin-left: 0; margin-top: 180px; }
+/*Delay steps for animaton*/
+.order1 { animation-delay: 0.3s;}
+.order2 { animation-delay: 0.5s;}
+.order3 { animation-delay: 0.7s;}
+
+@keyframes tagFade{
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* fade plus slide animation */
+.fade-in {
+  animation: tagFade 0.8s ease forwards;
+}
+
+.tag1{
+  margin-left: 40px;
+}
+.tag2 {
+  margin-left: 0;
+  margin-top: 180px;
+}
 
 /* CENTER IMAGE */
 .center-image {
   flex: 1;
   display: flex;
   justify-content: center;
-  align-items: center;
 }
 
 /* ROBOT IMAGE */
 .robot-img {
-  width: 400px;
+  width: 850px;
   height: auto;
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: none;
+  justify-content: center;
+  margin-left: 200px;
+  margin-top: 90px;
   transform: translateY(50px); /* initial offscreen */
   opacity: 0; /* hide before animation */
   transition: transform 1s ease-out, opacity 1s ease-out;
@@ -161,19 +203,17 @@ body, html {
   align-items: flex-end;
 }
 
-.t-right1 { margin-top: 0; }
 .t-right2 { margin-top: 140px; }
 .t-right3 { margin-top: 170px; }
 
-/* ==============================================
+/*
    RESPONSIVE DESIGN
-   Adjust layout and scaling for smaller screens
-============================================== */
+   Adjust layout and scaling for smaller screens */
+
 @media (max-width: 1200px) {
   .landing-container {
     flex-direction: column;
     align-items: center;
-    padding: 0 40px;
   }
 
   .left-section, .right-section {
@@ -212,4 +252,215 @@ body, html {
   .robot-img {
     width: 250px;
   }
+}
+
+/*SIGN IN / REGISTER FORM */
+.form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(19, 54, 31, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+
+  /* fade-in overlay */
+  animation: overlayFade 0.5s ease forwards;
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.auth-form {
+  background: #0f2b12;
+  padding: 50px 35px;
+  border-radius: 25px;
+  width: 360px;
+  max-width: 90%;
+  position: relative;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+
+  /* slide + fade in */
+  transform: translateY(-50px);
+  opacity: 0;
+  animation: formSlideIn 0.5s ease forwards;
+}
+
+@keyframes formSlideIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Tabs */
+.form-tabs {
+  display: flex;
+  margin-bottom: 30px;
+  justify-content: space-between;
+}
+
+.form-tabs button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #d1d1d1;
+  cursor: pointer;
+  transition: color 0.3s, border-bottom 0.3s;
+  border-bottom: 2px solid transparent;
+}
+
+.form-tabs button.active-tab {
+  color: #7dffb2;
+  border-bottom: 2px solid #7dffb2;
+}
+
+/* ===========================
+   Floating Labels Inputs
+=========================== */
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: relative;
+}
+
+.form-body input {
+  width: 100%;
+  padding: 14px 15px 14px 15px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.form-body input::placeholder {
+  color: transparent; /* hide placeholder to use floating label */
+}
+
+.form-body input:focus {
+  border-image-slice: 1;
+  border-image-source: linear-gradient(90deg, #7dffb2, #d7ff8f, #8affd9);
+  box-shadow: 0 0 8px rgba(125,255,178,0.5);
+}
+
+/* Floating labels */
+.form-body input:focus + label,
+.form-body input:not(:placeholder-shown) + label {
+  transform: translateY(-28px);
+  font-size: 12px;
+  color: #7dffb2;
+}
+
+.form-body label {
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  color: #d1d1d1;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+/* Submit button */
+.submit-btn {
+  padding: 14px 0;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, #7dffb2, #d7ff8f, #8affd9);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #d1d1d1;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+/*RESPONSIVE */
+@media (max-width: 768px) {
+  .auth-form {
+    padding: 35px 25px;
+  }
+}
+
+.input-group {
+  position: relative;  /* Make label position relative to input */
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: white;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.input-group input::placeholder {
+  color: transparent; /* hide placeholder text */
+}
+
+.input-group input:focus {
+  border-image-slice: 1;
+  border-image-source: linear-gradient(90deg, #7dffb2, #d7ff8f, #8affd9);
+  box-shadow: 0 0 8px rgba(125,255,178,0.5);
+}
+
+.input-group label {
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  color: #d1d1d1;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+  transform: translateY(-28px);
+  font-size: 12px;
+  color: #7dffb2;
+}
+
+.auth-message {
+  color: #ff8a8a; /* red for error */
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
 }

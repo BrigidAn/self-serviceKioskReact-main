@@ -1,9 +1,28 @@
-import React from 'react';
-import LandingPage from './pages/LandingPage/LandingPage';
-import './App.css';
+import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage/LandingPage";
+import ProductsPage from "./pages/Products/ProductsPage";
 
 function App() {
-  return <LandingPage />;
+  // Track logged-in user
+  const [user, setUser] = useState(null);
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage setUser={setUser} />} />
+        <Route
+          path="/products"
+          element={
+            <ProductsPage
+              user={user}
+              setUser={setUser}
+            />
+          }
+        />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

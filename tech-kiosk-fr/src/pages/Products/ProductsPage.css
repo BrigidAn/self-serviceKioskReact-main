@@ -1,0 +1,275 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  font-family: 'Arial', sans-serif;
+  background: #13361F;
+  color: white;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* NAVBAR*/
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 60px;
+  background: #AECFB8;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 900;
+  color: black;
+}
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+
+.nav-links li {
+  font-weight: 600;
+  font-size: 16px;
+  color: #000;
+  transition: color 0.2s;
+}
+
+.nav-links li:hover {
+  color: olivedrab;
+}
+
+/* Hamburger Menu */
+.hamburger-menu {
+  position: relative;
+}
+
+.hamburger-btn {
+  background: transparent;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+}
+
+.hamburger-dropdown {
+  position: absolute;
+  right: 20px;
+  top: 55px;
+  background: white;
+  color: black;
+  padding: 10px;
+  list-style: none;
+  border-radius: 10px;
+}
+
+.hamburger-dropdown li {
+  padding: 10px 20px;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.hamburger-dropdown li:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ============================
+   PRODUCTS
+============================ */
+.products {
+  display: flex;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  padding: 20px;
+}
+
+.product-card {
+  background: rgba(174, 207, 184, 0.51);
+  border-radius: 12px;
+  width: 220px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.product-card h3 {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.product-card p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.product-card button {
+  background: #1a5a3a;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.product-card button:hover {
+  background: #2b7b52;
+}
+
+/* ============================
+   CART
+============================ */
+.cart {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 280px;
+  max-height: 80vh;
+  background: rgba(0,0,0,0.7);
+  padding: 15px;
+  border-radius: 12px;
+  overflow-y: auto;
+  z-index: 5;
+}
+
+.cart h2 {
+  margin-bottom: 10px;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.cart-icon{
+  position: relative;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.cart-item button {
+  background: #29ca67;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.cart-count{
+  position:absolute;
+  top: -6px;
+  right: -10px;
+  background: #29ca67;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 50%;
+  font-size: 12px;
+}
+
+.checkout-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px;
+  background: olivedrab;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+}
+
+/* ============================
+   POPUPS
+============================ */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+
+.popup {
+  background: #1a5a3a;
+  padding: 30px 40px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.popup h3 {
+  margin-bottom: 20px;
+}
+
+.popup p {
+  margin-bottom: 20px;
+}
+
+.popup button {
+  background: olivedrab;
+  color: white;
+  font-weight: 600;
+  padding: 8px 16px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.popup button:hover {
+  background: #3cb371;
+}
+
+
+@media (max-width: 1024px) {
+  .products {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cart {
+    position: static;
+    width: 90%;
+    margin: 20px auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 20px;
+  }
+}

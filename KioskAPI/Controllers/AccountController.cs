@@ -71,10 +71,7 @@ namespace KioskAPI.Controllers
       var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
 
       // If no account exists, create a new one
-      if (account == null)
-      {
-        account = await this._accountRepo.CreateAccountForUserAsync(userId).ConfigureAwait(true);
-      }
+      account ??= await this._accountRepo.CreateAccountForUserAsync(userId).ConfigureAwait(true);
 
       // Update the balance
       await this._accountRepo.UpdateBalanceAsync(userId, request.Amount).ConfigureAwait(true);
@@ -97,6 +94,50 @@ namespace KioskAPI.Controllers
 
       var transactions = await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(true);
       return this.Ok(this._mapper.Map<IEnumerable<TransactionDto>>(transactions));
+    }
+
+    // GET /api/Account/me
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+      int userId = this.GetIdentityUserId();
+      if (userId == 0)
+      {
+        return this.Unauthorized(new { message = "You are not logged in" });
+      }
+
+      // Get account (create if it doesn't exist)
+      var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(false);
+      account ??= await this._accountRepo.CreateAccountForUserAsync(userId).ConfigureAwait(false);
+
+      // Get transactions
+      var transactions = await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(false);
+
+      // Compose response
+      var response = new
+      {
+        user = new
+        {
+          Id = userId,
+          Name = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value,
+          Email = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+        },
+        account = new
+        {
+          account.AccountId,
+          account.Balance
+        },
+        transactions = transactions.Select(t => new
+        {
+          t.TransactionId,
+          t.Description,
+          t.TotalAmount,
+          t.Type,
+          t.CreatedAt
+        })
+      };
+
+      return this.Ok(response);
     }
   }
 }
