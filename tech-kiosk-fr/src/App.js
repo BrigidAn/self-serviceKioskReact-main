@@ -4,7 +4,6 @@ import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 
 function App() {
-  // Track logged-in user
   const [user, setUser] = useState(null);
 
   return (
@@ -13,12 +12,7 @@ function App() {
         <Route path="/" element={<LandingPage setUser={setUser} />} />
         <Route
           path="/products"
-          element={
-            <ProductsPage
-              user={user}
-              setUser={setUser}
-            />
-          }
+          element={<ProductsPage user={user} setUser={setUser} />}
         />
       </Routes>
     </Router>

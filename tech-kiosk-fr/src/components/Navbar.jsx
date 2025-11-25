@@ -1,22 +1,47 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import "./Navbar.css";
+import React, { useState } from "react";
 
-function Navbar({ onSignIn }) {
+export default function Navbar({
+  setShowLogin,
+  setShowRegister,
+  setPage,
+  cartCount,
+  isLoggedIn,
+}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <nav className="nav">
-      <div className="nav-left">
-        <Link to="/" className="brand">Tech Shack</Link>
+    <nav className="navbar">
+      <h2 className="logo">RoboStore</h2>
+
+      <ul className="nav-links">
+        <li onClick={() => setPage("home")}>Home</li>
+        <li onClick={() => setPage("products")}>Products</li>
+      </ul>
+
+      <div className="cart-icon">
+        🛒
+        {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
       </div>
 
-      <div className="nav-right">
-        <Link to="/">Home</Link>
-        <Link to="/home">About</Link>
-        <Link to="/home">Services</Link>
-        <button className="signin-btn" onClick={onSignIn}>SignIn</button>
-      </div>
+      {!isLoggedIn ? (
+        <>
+          <button onClick={() => setShowLogin(true)}>Login</button>
+          <button onClick={() => setShowRegister(true)}>Register</button>
+        </>
+      ) : (
+        <span className="logged-in-msg">Welcome!</span>
+      )}
+
+      <button className="hamburger-btn" onClick={() => setMenuOpen(!menuOpen)}>
+        ☰
+      </button>
+
+      {menuOpen && (
+        <ul className="hamburger-dropdown">
+          <li onClick={() => setPage("home")}>Home</li>
+          <li onClick={() => setPage("products")}>Products</li>
+        </ul>
+      )}
     </nav>
   );
 }
-
-export default Navbar;
