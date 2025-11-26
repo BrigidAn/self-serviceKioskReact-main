@@ -7,5 +7,6 @@ namespace KioskAPI.Dtos
     public User? User { get; set; }
     public decimal Balance { get; set; } = 0m;
     public string? TransactionsSummary { get; set; }
+    public int CurrentOrderId { get; set; }
   }
 }

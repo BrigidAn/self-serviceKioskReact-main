@@ -8,7 +8,7 @@ namespace KioskAPI.interfaces
   {
     Task<Account?> GetAccountByUserIdAsync(int userId);
     Task<IEnumerable<Transaction>> GetTransactionsAsync(int userId);
-    Task<Account> CreateAccountForUserAsync(int userId); 
+    Task<Account> CreateAccountForUserAsync(int userId);
     Task UpdateBalanceAsync(int userId, decimal amount);
   }
 }

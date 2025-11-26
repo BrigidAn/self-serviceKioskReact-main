@@ -5,14 +5,35 @@ import { useNavigate } from "react-router-dom";
 function ProductsPage() {
   const navigate = useNavigate();
 
-  const PRODUCTS_API = "https://localhost:5016/api/products";
+  const PRODUCTS_API = "https://localhost:5016/api/product";
   const USER_API = "https://localhost:5016/api/auth/me";
 
   const [products, setProducts] = useState([]);
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cart, setCart] = useState([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
+
+  const triggerToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  }
+
+  // --- Load reserved items & auto-expire ---
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const now = Date.now();
+
+    const validCart = savedCart.filter((item) => now - item.timestamp < 18 * 60 * 60 * 1000);
+
+    if (validCart.length !== savedCart.length) {
+      localStorage.setItem("cart", JSON.stringify(validCart));
+    }
+
+    setCart(validCart);
+  }, []);
 
   // Fetch products
   useEffect(() => {
@@ -22,7 +43,7 @@ function ProductsPage() {
       .catch(() => console.log("Failed to load products"));
   }, []);
 
-  // Fetch user info
+  // Fetch user balance
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -35,104 +56,105 @@ function ProductsPage() {
       .catch(() => console.log("Failed to load user details"));
   }, []);
 
-  // Logout
+  // Add to cart & reduce quantity
+  const handleAdd = (product) => {
+    if (product.quantity === 0) return;
+
+    const updatedProducts = products.map((p) =>
+      p.id === product.id ? { ...p, quantity: p.quantity - 1 } : p
+    );
+
+    setProducts(updatedProducts);
+
+    const newCartItem = {
+      ...product,
+      timestamp: Date.now(),
+    };
+
+    const updatedCart = [...cart, newCartItem];
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+
+    triggerToast(`${product.name} added to cart`);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
   };
-
-  // Add to cart
-  const handleAddToCart = (product) => {
-    setCart([...cart, product]);
-  };
-
-  // Remove from cart
-  const handleRemoveFromCart = (index) => {
-    const newCart = [...cart];
-    newCart.splice(index, 1);
-    setCart(newCart);
-  };
-
-  const cartTotal = cart.reduce((total, item) => total + item.price, 0);
 
   return (
     <div className="product-page">
 
       {/* NAVBAR */}
       <nav className="navbar">
-        {/* Hamburger left */}
-        <div
-          className={`hamburger ${menuOpen ? "open" : ""}`}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
+        {/* HAMBURGER ICON */}
+        <div className="hamburger" onClick={() => setMenuOpen(true)}>
           <span></span>
           <span></span>
           <span></span>
         </div>
 
-        {/* Center links */}
+        {/* CENTER NAV LINKS */}
         <ul className="nav-links">
           <li onClick={() => navigate("/about")}>About</li>
           <li className="active" onClick={() => navigate("/products")}>Products</li>
           <li onClick={() => navigate("/contact")}>Contact</li>
         </ul>
 
-        {/* Cart icon right */}
-        <div className="cart-icon" onClick={() => setCartOpen(!cartOpen)}>
-          🛒
-          {cart.length > 0 && <span className="cart-count">{cart.length}</span>}
+        {/* CART ICON */}
+        <div className="cart-icon" onClick={() => navigate("/cart")}>
+          🛒 <span className="cart-count">{cart.length}</span>
         </div>
       </nav>
 
-      {/* Slide-in Hamburger Menu */}
+      {/* SIDE MENU */}
       <div className={`side-menu ${menuOpen ? "open" : ""}`}>
+        <div className="close-btn" onClick={() => setMenuOpen(false)}>✕</div>
+
         <ul>
           <li onClick={() => { navigate("/account"); setMenuOpen(false); }}>Account</li>
           <li onClick={() => { navigate("/categories"); setMenuOpen(false); }}>Categories</li>
           <li onClick={() => { navigate("/transactions"); setMenuOpen(false); }}>Transactions</li>
-          <li>Balance: R {user?.balance || 0}</li>
+          <li className="side-balance">Balance: R {user?.balance || 0}</li>
           <li onClick={handleLogout}>Logout</li>
         </ul>
       </div>
-
-      {/* Cart Dropdown */}
-      {cartOpen && (
-        <div className="cart-dropdown">
-          {cart.length === 0 ? (
-            <p className="empty-cart">Your cart is empty</p>
-          ) : (
-            <>
-              <ul>
-                {cart.map((item, index) => (
-                  <li key={index} className="cart-item">
-                    <img src={item.imageUrl} alt={item.name} className="cart-item-img" />
-                    <div className="cart-item-info">
-                      <p>{item.name}</p>
-                      <span>R {item.price}</span>
-                    </div>
-                    <button className="remove-btn" onClick={() => handleRemoveFromCart(index)}>✕</button>
-                  </li>
-                ))}
-              </ul>
-              <div className="cart-total">
-                Total: R {cartTotal.toFixed(2)}
-              </div>
-            </>
-          )}
-        </div>
-      )}
 
       {/* PRODUCT GRID */}
       <div className="product-grid">
         {products.length > 0 ? (
           products.map((item) => (
             <div className="product-card" key={item.id}>
-              <img src={item.imageUrl} alt={item.name} className="product-img" />
-              <h3 className="product-name">{item.name}</h3>
-              <p className="product-description">{item.description}</p>
-              <div className="product-footer">
-                <span className="product-price">R {item.price}</span>
-                <button className="add-btn" onClick={() => handleAddToCart(item)}>Add</button>
+
+              {/* FLIP CARD INNER */}
+              <div className="card-inner">
+
+                {/* FRONT SIDE */}
+                <div className="card-front">
+                  <img src={item.imageUrl} alt={item.name} className="product-img" />
+                  <h3>{item.name}</h3>
+
+                  <div className="product-footer">
+                    <span className="product-price">R {item.price}</span>
+                    <span className="qty">Qty: {item.quantity}</span>
+                  </div>
+                </div>
+
+                {/* BACK SIDE */}
+                <div className="card-back">
+                  <p className="product-description">{item.description}</p>
+                  <button className="add-btn" onClick={() => handleAdd(item)}>
+                    Add
+                  </button>
+                  {showToast && (
+                  <div className="toast">
+                    {toastMessage}
+                  </div>
+                )}
+
+                </div>
               </div>
             </div>
           ))
@@ -140,6 +162,7 @@ function ProductsPage() {
           <p className="loading-msg">Loading products...</p>
         )}
       </div>
+
     </div>
   );
 }
