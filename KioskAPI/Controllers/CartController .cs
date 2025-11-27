@@ -94,5 +94,40 @@ namespace KioskAPI.Controllers
 
       return this.Ok(new { message = "Item added to cart" });
     }
+
+    [HttpGet("Item/{ItemId}")]
+    public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] int quantity)
+    {
+      if (quantity < 1)
+      {
+        return this.BadRequest(new { message = "Quantity must be at least 1." });
+      }
+
+      var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
+      if (item == null)
+      {
+        return this.NotFound(new { message = "Item not found." });
+      }
+
+      item.Quantity = quantity;
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { message = "Quantity updated." });
+    }
+
+    [HttpDelete("Item/{itemId}")]
+    public async Task<IActionResult> RemoveItem(int itemId)
+    {
+      var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
+      if (item == null)
+      {
+        return this.NotFound(new { message = "Item not found." });
+      }
+
+      this._context.CartItems.Remove(item);
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { message = "Item removed." });
+    }
   }
 }

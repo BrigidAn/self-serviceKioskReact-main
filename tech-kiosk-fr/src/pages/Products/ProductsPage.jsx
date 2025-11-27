@@ -6,7 +6,7 @@ function ProductsPage() {
   const navigate = useNavigate();
 
   const PRODUCTS_API = "https://localhost:5016/api/product";
-  const USER_API = "https://localhost:5016/api/auth/me";
+  const USER_API = "https://localhost:5016/api/account/me";
 
   const [products, setProducts] = useState([]);
   const [user, setUser] = useState(null);

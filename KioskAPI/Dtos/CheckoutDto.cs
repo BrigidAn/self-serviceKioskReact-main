@@ -2,6 +2,7 @@ namespace KioskAPI.Dtos
 {
   using System;
   using System.Collections.Generic;
+  using System.ComponentModel.DataAnnotations;
   using System.Linq;
   using System.Threading.Tasks;
   using KioskAPI.Models;
@@ -23,8 +24,8 @@ namespace KioskAPI.Dtos
 
   public class CheckoutRequestDto
   {
-    public int CartId { get; set; }
     public int UserId { get; set; }
+    [Required]
     public string DeliveryMethod { get; set; }  // "Collection" or "Delivery"
   }
 

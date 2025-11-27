@@ -20,6 +20,7 @@ namespace KioskAPI.Models
     public IdentityUser User { get; set; }
 
     public decimal TotalAmount { get; set; }
+
     public string DeliveryMethod { get; set; } // "Collection" | "Delivery"
     public DateTime CheckoutDate { get; set; } = DateTime.UtcNow;
 

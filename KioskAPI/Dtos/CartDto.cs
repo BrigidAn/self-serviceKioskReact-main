@@ -10,6 +10,7 @@ namespace KioskAPI.Dtos
     public int CartId { get; set; }
     public int UserId { get; set; } // Identity User ID
     public List<CartItemDto> Items { get; set; } = new();
+    public string Product { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
   }
   public class AddToCartDto

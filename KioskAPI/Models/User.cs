@@ -15,6 +15,8 @@ namespace KioskAPI.Models
 
     // Navigation
     public Account? Account { get; set; }
+    [Column(TypeName = "decimal(18,2)")]
+
     public ICollection<Order>? Orders { get; set; }
   } //depends on if this is a user or an admin
 }
