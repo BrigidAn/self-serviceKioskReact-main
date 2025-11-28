@@ -9,6 +9,7 @@ namespace KioskAPI.api.Tests
   using KioskAPI.Controllers;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
+  using KioskAPI.Mappers;
   using KioskAPI.Models;
   using KioskAPI.Tests.Fixtures;
   using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,7 @@ namespace KioskAPI.api.Tests
 
   public class ProductControllerTests
   {
-    private AppDbContext CreateSeeded(out IMapper mapper)
+    private AppDbContext CreateSeeded(out ProductMapper mapper)
     {
       var ctx = TestContextFactory.CreateContext();
       mapper = TestContextFactory.CreateMapper();

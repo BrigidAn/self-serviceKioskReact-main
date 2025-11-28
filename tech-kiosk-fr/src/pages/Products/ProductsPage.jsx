@@ -57,24 +57,15 @@ function ProductsPage() {
   }, []);
 
   // Add to cart & reduce quantity
-  const handleAdd = (product) => {
-    if (product.quantity === 0) return;
+ try {
+    await api.post(`/Cart/Add/${id}`);
+    setToastMessage(`${name} added to cart`);
+    setOpenToast(true);
 
-    const updatedProducts = products.map((p) =>
-      p.id === product.id ? { ...p, quantity: p.quantity - 1 } : p
-    );
-
-    setProducts(updatedProducts);
-
-    const newCartItem = {
-      ...product,
-      timestamp: Date.now(),
-    };
-
-    const updatedCart = [...cart, newCartItem];
-
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    setTimeout(() => setOpenToast(false), 2000);
+  } catch (err) {
+    console.error(err);
+  }
 
     triggerToast(`${product.name} added to cart`);
   };
@@ -124,6 +115,13 @@ function ProductsPage() {
 
       {/* PRODUCT GRID */}
       <div className="product-grid">
+
+                {showToast && (
+                  <div className="toast">
+                    {toastMessage}
+                  </div>
+                )}
+
         {products.length > 0 ? (
           products.map((item) => (
             <div className="product-card" key={item.id}>
@@ -145,15 +143,9 @@ function ProductsPage() {
                 {/* BACK SIDE */}
                 <div className="card-back">
                   <p className="product-description">{item.description}</p>
-                  <button className="add-btn" onClick={() => handleAdd(item)}>
+                  <button className="add-btn" onClick={() => handleAddToCart (item)}>
                     Add
                   </button>
-                  {showToast && (
-                  <div className="toast">
-                    {toastMessage}
-                  </div>
-                )}
-
                 </div>
               </div>
             </div>
@@ -166,5 +158,4 @@ function ProductsPage() {
     </div>
   );
 }
-
 export default ProductsPage;
