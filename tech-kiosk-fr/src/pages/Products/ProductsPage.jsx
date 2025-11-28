@@ -49,42 +49,54 @@ function ProductsPage() {
   }, []);
 
   // Add product to backend cart
-  const handleAddToCart = async (product) => {
+    const handleAddToCart = async (product) => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
-  if (!token || !userId) {
-    triggerToast("You must be logged in to add items to cart");
-    return;
-  }
-
-  try {
-    const res = await fetch(CART_ADD_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        userId: parseInt(userId),
-        productId: product.productId ?? product.id ?? product.ProductId,
-        quantity: 1, // always add 1 item at a time
-      }),
-    });
-
-    if (!res.ok) {
-      triggerToast(`${product.name} added to cart`);
-      setCartCount((prev) => prev + 1);
-    } else {
-      const data = await res.json().catch(() => null);
-      console.log("Backend add-to-cart failed:", data.message);
-      triggerToast("Failed to add item to cart");
+    if (!token || !userId) {
+      triggerToast("You must be logged in to add items to cart");
+      return;
     }
-  } catch (err) {
-    console.log("Error contacting backend:", err);
-    triggerToast("Error adding item to cart");
-  }
-};
+
+    const finalProductId =
+      product.productId ||
+      product.ProductId ||
+      product.id;
+
+    if (!finalProductId) {
+      console.log("❌ PRODUCT ID IS MISSING:", product);
+      triggerToast("Product ID missing — cannot add to cart");
+      return;
+    }
+
+    try {
+      const res = await fetch(CART_ADD_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: parseInt(userId),
+          productId: finalProductId,
+          quantity: 1,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (res.ok) {
+        triggerToast(`${product.name} added to cart`);
+        setCartCount((prev) => prev + 1);
+      } else {
+        console.log("Backend add-to-cart failed:", data?.message);
+        triggerToast(data?.message || "Failed to add item to cart");
+      }
+    } catch (err) {
+      console.log("❌ ERROR contacting backend:", err);
+      triggerToast("Error adding item to cart");
+    }
+  };
 
 
   const handleLogout = () => {

@@ -9,15 +9,20 @@ function CartPage() {
 
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+
   const CART_API = "https://localhost:5016/api/cart";
 
-  // Move fetchCart outside so it can be called anywhere
+  // Fetch cart
   const fetchCart = async () => {
     if (!token || !userId) return;
 
     try {
       const res = await fetch(`${CART_API}/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!res.ok) {
@@ -37,18 +42,18 @@ function CartPage() {
     }
   };
 
-  // Fetch cart on page load
+  // Load cart on page mount
   useEffect(() => {
     fetchCart();
-  }, [token, userId]);
+  }, []);
 
   // Update quantity
   const handleQuantityChange = async (cartItemId, quantity) => {
     if (quantity < 1) return;
 
     try {
-      const res = await fetch(`${CART_API}/item/${cartItemId}`, {
-        method: "PUT",
+      const res = await fetch(`${CART_API}/Item/${cartItemId}`, {
+        method: "POST", // ❗ backend uses POST not PUT
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -56,36 +61,39 @@ function CartPage() {
         body: JSON.stringify({ quantity }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         alert(data.message || "Failed to update quantity");
       } else {
         fetchCart();
       }
     } catch (err) {
-      console.log(err);
+      console.log("Error updating quantity:", err);
     }
   };
 
   // Remove item
   const handleRemove = async (cartItemId) => {
     try {
-      const res = await fetch(`${CART_API}/item/${cartItemId}`, {
+      const res = await fetch(`${CART_API}/Item/${cartItemId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const data = await res.json();
       alert(data.message || "Item removed");
       fetchCart();
     } catch (err) {
-      console.log(err);
+      console.log("Error removing item:", err);
     }
   };
 
-  // Cart total
+  // Total
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.unitPrice * item.quantity,
+    (sum, item) => sum + item.unitPrice * item.quantity,
     0
   );
 
@@ -131,7 +139,9 @@ function CartPage() {
                   </td>
                   <td>R {(item.unitPrice * item.quantity).toFixed(2)}</td>
                   <td>
-                    <button onClick={() => handleRemove(item.cartItemId)}>Remove</button>
+                    <button onClick={() => handleRemove(item.cartItemId)}>
+                      Remove
+                    </button>
                   </td>
                 </tr>
               ))}

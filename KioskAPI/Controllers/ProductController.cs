@@ -27,7 +27,7 @@ namespace KioskAPI.Controllers
           .Include(p => p.Supplier)
           .ToListAsync().ConfigureAwait(true);
 
-      var productDtos = products. Select(ProductMapper.ToDto).ToList();
+      var productDtos = products.Select(ProductMapper.ToDto).ToList();
       return this.Ok(productDtos);
     }
 
