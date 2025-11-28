@@ -1,9 +1,5 @@
 namespace KioskAPI.Mappers
 {
-  using System;
-  using System.Collections.Generic;
-  using System.Linq;
-  using System.Threading.Tasks;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
 
@@ -18,6 +14,8 @@ namespace KioskAPI.Mappers
         Description = product.Description,
         Price = product.Price,
         Quantity = product.Quantity,
+        ImageUrl = product.ImageUrl,
+        SupplierId = (int)product.SupplierId,
         SupplierName = product.Supplier != null ? product.Supplier.Name : "Unknown",
         IsAvailable = product.Quantity > 0
       };
@@ -31,7 +29,9 @@ namespace KioskAPI.Mappers
         Description = dto.Description,
         Price = dto.Price,
         Quantity = dto.Quantity,
-        SupplierId = dto.SupplierId
+        SupplierId = dto.SupplierId,
+        Category = dto.Category,
+        ImageUrl = dto.ImageUrl,
       };
     }
 
@@ -60,6 +60,21 @@ namespace KioskAPI.Mappers
       if (dto.SupplierId.HasValue)
       {
         product.SupplierId = dto.SupplierId.Value;
+      }
+
+      if (dto.SupplierId.HasValue)
+      {
+        product.SupplierId = dto.SupplierId.Value;
+      }
+
+      if (dto.Category != null)
+      {
+        product.Category = dto.Category;
+      }
+
+      if (dto.ImageUrl != null)
+      {
+        product.ImageUrl = dto.ImageUrl;
       }
     }
   }

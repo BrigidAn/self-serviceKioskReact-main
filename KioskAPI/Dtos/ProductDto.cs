@@ -18,6 +18,7 @@ namespace KioskAPI.Dtos
     public string? ImageUrl { get; set; }
 
     public int Quantity { get; set; }
+    public int SupplierId { get; set; }
 
     public string? SupplierName { get; set; }
 

@@ -4,7 +4,6 @@ namespace KioskAPI.Controllers
   using Microsoft.EntityFrameworkCore;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
-  using KioskAPI.Models;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -23,7 +22,7 @@ namespace KioskAPI.Controllers
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
-          .FirstOrDefaultAsync(c => c.CartId == dto.CartId && c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
 
       if (cart == null || !cart.CartItems.Any())
       {

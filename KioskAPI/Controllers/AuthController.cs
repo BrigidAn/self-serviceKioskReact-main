@@ -2,10 +2,7 @@ namespace KioskAPI.Controllers
 {
   using Microsoft.AspNetCore.Mvc;
   using KioskAPI.Dtos;
-  using KioskAPI.Services;
   using System.Threading.Tasks;
-  using System.Linq;
-  using KioskAPI.interfaces;
   using Microsoft.AspNetCore.Identity;
   using KioskAPI.Models;
 

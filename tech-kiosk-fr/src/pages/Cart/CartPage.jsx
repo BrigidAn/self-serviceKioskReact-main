@@ -4,78 +4,43 @@ import "./CartPage.css";
 function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [cartId, setCartId] = useState(null);
-  const [user, setUser] = useState(null);
   const [deliveryMethod, setDeliveryMethod] = useState("Collection");
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
-
-  const USER_API = "https://localhost:5016/api/account/me";
+  const userId = localStorage.getItem("userId");
   const CART_API = "https://localhost:5016/api/cart";
 
-  // Fetch logged-in user
-  useEffect(() => {
-    if (!token) return;
-
-    fetch(USER_API, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const finalUser = data.user || data; // handle both shapes
-        setUser(finalUser);
-      })
-      .catch(console.log);
-  }, [token]);
-
-  // Fetch cart when user is loaded
-  useEffect(() => {
-    if (user) fetchCart();
-  }, [user]);
-
+  // Move fetchCart outside so it can be called anywhere
   const fetchCart = async () => {
+    if (!token || !userId) return;
+
     try {
-      const userId = user.id || user.Id;
       const res = await fetch(`${CART_API}/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
 
       if (!res.ok) {
-        console.log("Failed to load cart:", data.message);
+        console.log("Failed to load cart");
         setCartItems([]);
+        setLoading(false);
         return;
       }
 
-      // Map cart items according to your backend
-      setCartItems(
-        (data.items || []).map((item) => ({
-          cartItemId: item.cartItemId,
-          product: { name: item.productName },
-          priceAtPurchase: item.unitPrice,
-          quantity: item.quantity,
-        }))
-      );
-
-      setCartId(data.cartId);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  // Remove item
-  const handleRemove = async (cartItemId) => {
-    try {
-      const res = await fetch(`${CART_API}/item/${cartItemId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
       const data = await res.json();
-      alert(data.message || "Item removed");
-      fetchCart();
+      setCartItems(data.items || []);
+      setCartId(data.cartId || null);
+      setLoading(false);
     } catch (err) {
-      console.log(err);
+      console.log("Error fetching cart:", err);
+      setLoading(false);
     }
   };
+
+  // Fetch cart on page load
+  useEffect(() => {
+    fetchCart();
+  }, [token, userId]);
 
   // Update quantity
   const handleQuantityChange = async (cartItemId, quantity) => {
@@ -88,28 +53,54 @@ function CartPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ quantity }), // backend expects object
+        body: JSON.stringify({ quantity }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || "Failed to update quantity");
+      } else {
+        fetchCart();
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // Remove item
+  const handleRemove = async (cartItemId) => {
+    try {
+      const res = await fetch(`${CART_API}/item/${cartItemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
-
-      if (!res.ok) alert(data.message || "Failed to update quantity");
+      alert(data.message || "Item removed");
       fetchCart();
     } catch (err) {
       console.log(err);
     }
   };
 
+  // Cart total
   const cartTotal = cartItems.reduce(
-    (total, item) => total + item.priceAtPurchase * item.quantity,
+    (total, item) => total + item.unitPrice * item.quantity,
     0
   );
+
+  // Redirect if not logged in
+  if (!token || !userId) {
+    return <p>Please log in to view your cart.</p>;
+  }
 
   return (
     <div className="cart-page">
       <h2>My Cart</h2>
 
-      {cartItems.length === 0 ? (
+      {loading ? (
+        <p>Loading cart...</p>
+      ) : cartItems.length === 0 ? (
         <p>Your cart is empty</p>
       ) : (
         <>
@@ -118,41 +109,38 @@ function CartPage() {
               <tr>
                 <th>Product</th>
                 <th>Price</th>
-                <th>Quantity</th>
+                <th>Qty</th>
                 <th>Total</th>
-                <th>Action</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {cartItems.map((item) => (
                 <tr key={item.cartItemId}>
-                  <td>{item.product?.name}</td>
-                  <td>R {item.priceAtPurchase.toFixed(2)}</td>
+                  <td>{item.productName}</td>
+                  <td>R {item.unitPrice.toFixed(2)}</td>
                   <td>
                     <input
                       type="number"
                       min="1"
                       value={item.quantity}
                       onChange={(e) =>
-                        handleQuantityChange(
-                          item.cartItemId,
-                          parseInt(e.target.value)
-                        )
+                        handleQuantityChange(item.cartItemId, parseInt(e.target.value))
                       }
                     />
                   </td>
-                  <td>R {(item.priceAtPurchase * item.quantity).toFixed(2)}</td>
+                  <td>R {(item.unitPrice * item.quantity).toFixed(2)}</td>
                   <td>
-                    <button onClick={() => handleRemove(item.cartItemId)}>
-                      Remove
-                    </button>
+                    <button onClick={() => handleRemove(item.cartItemId)}>Remove</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <div className="cart-total">Total: R {cartTotal.toFixed(2)}</div>
+          <div className="cart-total">
+            Total: <strong>R {cartTotal.toFixed(2)}</strong>
+          </div>
 
           <div className="delivery-method">
             <label>

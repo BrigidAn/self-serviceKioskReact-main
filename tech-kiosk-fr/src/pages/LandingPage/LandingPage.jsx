@@ -53,6 +53,9 @@ const handleSignIn = async (e) => {
     const data = await res.json();
 
     if (res.ok) {
+      const token = data.token;
+      localStorage.setItem("token", token); //save token
+      localStorage.setItem("userId", data.user.userId); //saving userid
       setAuthMessage("Sign In successful!");
       setShowForm(false); // close popup
 

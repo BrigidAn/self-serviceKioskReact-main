@@ -7,7 +7,6 @@ namespace KioskAPI.Controllers
   using AutoMapper;
   using KioskAPI.Dtos;
   using KioskAPI.interfaces;
-  using KioskAPI.Models;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
 

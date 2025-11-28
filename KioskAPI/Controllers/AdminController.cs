@@ -4,10 +4,8 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
   using KioskAPI.Data;
-  using System;
   using System.Linq;
   using System.Threading.Tasks;
-  using KioskAPI.Dtos;
 
   [ApiController]
   [Route("api/[controller]")]

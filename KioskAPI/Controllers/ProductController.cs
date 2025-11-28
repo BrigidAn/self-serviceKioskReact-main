@@ -2,9 +2,9 @@ namespace KioskAPI.Controllers
 {
   using System.Linq;
   using System.Threading.Tasks;
-  using AutoMapper;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
+  using KioskAPI.Mappers;
   using KioskAPI.Models;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
@@ -14,12 +14,9 @@ namespace KioskAPI.Controllers
   public class ProductController : ControllerBase
   {
     private readonly AppDbContext _context;
-    private readonly IMapper _mapper;
-
-    public ProductController(AppDbContext context, IMapper mapper)
+    public ProductController(AppDbContext context)
     {
       this._context = context;
-      this._mapper = mapper;
     }
 
     // GET ALL PRODUCTS
@@ -30,7 +27,7 @@ namespace KioskAPI.Controllers
           .Include(p => p.Supplier)
           .ToListAsync().ConfigureAwait(true);
 
-      var productDtos = this._mapper.Map<List<ProductDto>>(products);
+      var productDtos = products. Select(ProductMapper.ToDto).ToList();
       return this.Ok(productDtos);
     }
 
@@ -52,7 +49,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Product not found" });
       }
 
-      var dto = this._mapper.Map<ProductDto>(product);
+      var dto = ProductMapper.ToDto(product);
       return this.Ok(dto);
     }
 
@@ -65,7 +62,7 @@ namespace KioskAPI.Controllers
         return this.BadRequest(this.ModelState);
       }
 
-      var product = this._mapper.Map<Product>(dto);
+      var product = ProductMapper.ToEntity(dto);
       this._context.Products.Add(product);
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
@@ -98,7 +95,7 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Quantity cannot be negative" });
       }
 
-      this._mapper.Map(dto, product);  // Only updates non-null fields
+      ProductMapper.UpdateEntity(product, dto);  // Only updates non-null fields
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product updated successfully" });
@@ -139,16 +136,16 @@ namespace KioskAPI.Controllers
       {
         string s = search.ToLower();
         query = query.Where(p =>
-            p.Name.ToLower().Contains(s) ||
-            p.Description.ToLower().Contains(s) ||
-            p.Category.ToLower().Contains(s)
+            (p.Name ?? "").ToLower().Contains(s) ||
+            (p.Description ?? "").ToLower().Contains(s) ||
+            (p.Category ?? "").ToLower().Contains(s)
         );
       }
 
       // CATEGORY FILTER
       if (!string.IsNullOrWhiteSpace(category))
       {
-        query = query.Where(p => p.Category.ToLower() == category.ToLower());
+        query = query.Where(p => (p.Category ?? "").ToLower() == category.ToLower());
       }
 
       // AVAILABILITY
@@ -183,7 +180,7 @@ namespace KioskAPI.Controllers
 
       // Fetch products
       var products = await query.ToListAsync().ConfigureAwait(true);
-      var productDtos = this._mapper.Map<List<ProductDto>>(products);
+      var productDtos = products.Select(ProductMapper.ToDto).ToList();
 
       // Fetch distinct categories
       var categories = await this._context.Products

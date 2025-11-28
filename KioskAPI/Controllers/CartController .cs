@@ -95,10 +95,10 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Item added to cart" });
     }
 
-    [HttpGet("Item/{ItemId}")]
-    public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] int quantity)
+    [HttpPost("Item/{ItemId}")]
+    public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
     {
-      if (quantity < 1)
+      if (dto.Quantity < 1)
       {
         return this.BadRequest(new { message = "Quantity must be at least 1." });
       }
@@ -109,7 +109,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Item not found." });
       }
 
-      item.Quantity = quantity;
+      item.Quantity = dto.Quantity;
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
       return this.Ok(new { message = "Quantity updated." });

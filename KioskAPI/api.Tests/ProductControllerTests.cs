@@ -4,7 +4,6 @@ namespace KioskAPI.api.Tests
   using System.Collections.Generic;
   using System.Linq;
   using System.Threading.Tasks;
-  using AutoMapper;
   using FluentAssertions;
   using KioskAPI.Controllers;
   using KioskAPI.Data;
@@ -17,10 +16,9 @@ namespace KioskAPI.api.Tests
 
   public class ProductControllerTests
   {
-    private AppDbContext CreateSeeded(out ProductMapper mapper)
+    private AppDbContext CreateSeeded()
     {
       var ctx = TestContextFactory.CreateContext();
-      mapper = TestContextFactory.CreateMapper();
 
       // Seed suppliers
       var supplier1 = new Supplier { SupplierId = 1, Name = "Acme Supplies" };
@@ -42,8 +40,8 @@ namespace KioskAPI.api.Tests
     [Fact] // returns all products from seeded data
     public async Task GetProducts_ReturnsAllProducts()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var result = await controller.GetProducts().ConfigureAwait(true);
 
@@ -57,8 +55,8 @@ namespace KioskAPI.api.Tests
     [Fact] // returns specifc product by their id
     public async Task GetProduct_ExistingId_ReturnsProduct()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var result = await controller.GetProduct(1).ConfigureAwait(true);
 
@@ -71,8 +69,8 @@ namespace KioskAPI.api.Tests
     [Fact] // returns products that do not exist
     public async Task GetProduct_NonExistingId_ReturnsNotFound()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var result = await controller.GetProduct(999).ConfigureAwait(true);
 
@@ -82,8 +80,8 @@ namespace KioskAPI.api.Tests
     [Fact] // create/adds a new product
     public async Task AddProduct_NegativeQuantity_ReturnsBadRequest()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var dto = new CreateProductDto
       {
@@ -102,8 +100,8 @@ namespace KioskAPI.api.Tests
     [Fact]
     public async Task UpdateProduct_ExistingId_UpdatesProduct() //update exsiting products
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var dto = new UpdateProductDto
       {
@@ -124,8 +122,8 @@ namespace KioskAPI.api.Tests
     [Fact]
     public async Task UpdateProduct_NonExistingId_ReturnsNotFound()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var dto = new UpdateProductDto { Name = "DoesNotExist" };
       var result = await controller.UpdateProduct(999, dto).ConfigureAwait(true);
@@ -136,8 +134,8 @@ namespace KioskAPI.api.Tests
     [Fact]
     public async Task DeleteProduct_ExistingId_RemovesProduct()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var result = await controller.DeleteProduct(1).ConfigureAwait(true);
 
@@ -149,8 +147,8 @@ namespace KioskAPI.api.Tests
     [Fact]
     public async Task DeleteProduct_NonExistingId_ReturnsNotFound()
     {
-      var ctx = this.CreateSeeded(out var mapper);
-      var controller = new ProductController(ctx, mapper);
+      var ctx = this.CreateSeeded();
+      var controller = new ProductController(ctx);
 
       var result = await controller.DeleteProduct(999).ConfigureAwait(true);
 

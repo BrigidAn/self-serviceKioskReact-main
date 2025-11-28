@@ -7,33 +7,38 @@ function ProductsPage() {
 
   const PRODUCTS_API = "https://localhost:5016/api/product";
   const USER_API = "https://localhost:5016/api/account/me";
+  const CART_ADD_API = "https://localhost:5016/api/Cart/add";
 
   const [products, setProducts] = useState([]);
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cart, setCart] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+
+  const token = localStorage.getItem("token");
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
-  }
+  };
 
-  // --- Load reserved items & auto-expire ---
+  // Fetch user balance
   useEffect(() => {
-    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const now = Date.now();
+    if (!token) return;
 
-    const validCart = savedCart.filter((item) => now - item.timestamp < 18 * 60 * 60 * 1000);
-
-    if (validCart.length !== savedCart.length) {
-      localStorage.setItem("cart", JSON.stringify(validCart));
-    }
-
-    setCart(validCart);
-  }, []);
+    fetch(USER_API, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const finalUser = data.user || data;
+        setUser(finalUser);
+        if (finalUser.cartCount !== undefined) setCartCount(finalUser.cartCount);
+      })
+      .catch(() => console.log("Failed to load user details"));
+  }, [token]);
 
   // Fetch products
   useEffect(() => {
@@ -43,32 +48,44 @@ function ProductsPage() {
       .catch(() => console.log("Failed to load products"));
   }, []);
 
-  // Fetch user balance
-  useEffect(() => {
+  // Add product to backend cart
+  const handleAddToCart = async (product) => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    const userId = localStorage.getItem("userId");
 
-    fetch(USER_API, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => setUser(data))
-      .catch(() => console.log("Failed to load user details"));
-  }, []);
-
-  // Add to cart & reduce quantity
- try {
-    await api.post(`/Cart/Add/${id}`);
-    setToastMessage(`${name} added to cart`);
-    setOpenToast(true);
-
-    setTimeout(() => setOpenToast(false), 2000);
-  } catch (err) {
-    console.error(err);
+  if (!token || !userId) {
+    triggerToast("You must be logged in to add items to cart");
+    return;
   }
 
-    triggerToast(`${product.name} added to cart`);
-  };
+  try {
+    const res = await fetch(CART_ADD_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId: parseInt(userId),
+        productId: product.productId ?? product.id ?? product.ProductId,
+        quantity: 1, // always add 1 item at a time
+      }),
+    });
+
+    if (!res.ok) {
+      triggerToast(`${product.name} added to cart`);
+      setCartCount((prev) => prev + 1);
+    } else {
+      const data = await res.json().catch(() => null);
+      console.log("Backend add-to-cart failed:", data.message);
+      triggerToast("Failed to add item to cart");
+    }
+  } catch (err) {
+    console.log("Error contacting backend:", err);
+    triggerToast("Error adding item to cart");
+  }
+};
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -77,33 +94,28 @@ function ProductsPage() {
 
   return (
     <div className="product-page">
-
       {/* NAVBAR */}
       <nav className="navbar">
-        {/* HAMBURGER ICON */}
         <div className="hamburger" onClick={() => setMenuOpen(true)}>
           <span></span>
           <span></span>
           <span></span>
         </div>
 
-        {/* CENTER NAV LINKS */}
         <ul className="nav-links">
           <li onClick={() => navigate("/about")}>About</li>
           <li className="active" onClick={() => navigate("/products")}>Products</li>
           <li onClick={() => navigate("/contact")}>Contact</li>
         </ul>
 
-        {/* CART ICON */}
         <div className="cart-icon" onClick={() => navigate("/cart")}>
-          🛒 <span className="cart-count">{cart.length}</span>
+          🛒 <span className="cart-count">{cartCount}</span>
         </div>
       </nav>
 
       {/* SIDE MENU */}
       <div className={`side-menu ${menuOpen ? "open" : ""}`}>
         <div className="close-btn" onClick={() => setMenuOpen(false)}>✕</div>
-
         <ul>
           <li onClick={() => { navigate("/account"); setMenuOpen(false); }}>Account</li>
           <li onClick={() => { navigate("/categories"); setMenuOpen(false); }}>Categories</li>
@@ -115,35 +127,24 @@ function ProductsPage() {
 
       {/* PRODUCT GRID */}
       <div className="product-grid">
-
-                {showToast && (
-                  <div className="toast">
-                    {toastMessage}
-                  </div>
-                )}
+        {showToast && <div className="toast">{toastMessage}</div>}
 
         {products.length > 0 ? (
           products.map((item) => (
             <div className="product-card" key={item.id}>
-
-              {/* FLIP CARD INNER */}
               <div className="card-inner">
-
-                {/* FRONT SIDE */}
                 <div className="card-front">
                   <img src={item.imageUrl} alt={item.name} className="product-img" />
                   <h3>{item.name}</h3>
-
                   <div className="product-footer">
                     <span className="product-price">R {item.price}</span>
                     <span className="qty">Qty: {item.quantity}</span>
                   </div>
                 </div>
 
-                {/* BACK SIDE */}
                 <div className="card-back">
                   <p className="product-description">{item.description}</p>
-                  <button className="add-btn" onClick={() => handleAddToCart (item)}>
+                  <button className="add-btn" onClick={() => handleAddToCart(item)}>
                     Add
                   </button>
                 </div>
@@ -154,8 +155,8 @@ function ProductsPage() {
           <p className="loading-msg">Loading products...</p>
         )}
       </div>
-
     </div>
   );
 }
+
 export default ProductsPage;
