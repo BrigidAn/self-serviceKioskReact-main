@@ -1,8 +1,8 @@
 namespace KioskAPI.Controllers
 {
-  using AutoMapper;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
+  using KioskAPI.Mappers;
   using KioskAPI.Models;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,11 @@ namespace KioskAPI.Controllers
   public class OrderItemController : ControllerBase
   {
     private readonly AppDbContext _context;
-    private readonly IMapper _mapper;
     private const int CART_TIMEOUT_HOURS = 10;
 
-    public OrderItemController(AppDbContext context, IMapper mapper)
+    public OrderItemController(AppDbContext context)
     {
       this._context = context;
-      this._mapper = mapper;
     }
 
     // Helper: Remove expired items AND restore stock
@@ -71,7 +69,7 @@ namespace KioskAPI.Controllers
           .Include(oi => oi.Product)
           .ToListAsync().ConfigureAwait(true);
 
-      return this.Ok(this._mapper.Map<List<OrderItemDto>>(items));
+      return this.Ok(items.Select(OrderItemMapper.ToDto).ToList());
     }
 
     // GET items for a specific order
@@ -91,7 +89,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "No items found for this order." });
       }
 
-      var itemsDto = this._mapper.Map<List<OrderItemDto>>(items);
+      var itemsDto = items.Select(OrderItemMapper.ToDto).ToList();
 
       return this.Ok(new
       {
@@ -134,7 +132,8 @@ namespace KioskAPI.Controllers
       // Reduce inventory
       product.Quantity -= newItemDto.Quantity;
 
-      var orderItem = this._mapper.Map<OrderItem>(newItemDto);
+      var orderItem = OrderItemMapper.ToEntity(newItemDto);
+
       orderItem.OrderId = orderId;
       orderItem.PriceAtPurchase = product.Price;
       orderItem.AddedAt = DateTime.UtcNow;
@@ -151,7 +150,7 @@ namespace KioskAPI.Controllers
       return this.Ok(new
       {
         message = "Item added successfully.",
-        item = this._mapper.Map<OrderItemDto>(orderItem),
+        item = OrderItemMapper.ToDto(orderItem),
         order.TotalAmount
       });
     }

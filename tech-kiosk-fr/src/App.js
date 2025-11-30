@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import Cart from "./pages/Cart/CartPage";
+import AdminAddProduct from "./Admin/AdminAddProduct";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -18,6 +19,9 @@ function App() {
          <Route
           path="/cart"
           element={<Cart user={user} setUser={setUser} />}
+        />
+        <Route path="/addProduct"
+        element={<AdminAddProduct/>}
         />
       </Routes>
     </Router>

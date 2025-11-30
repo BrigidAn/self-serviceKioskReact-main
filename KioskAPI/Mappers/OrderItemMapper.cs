@@ -5,14 +5,21 @@ namespace KioskAPI.Mappers
 
   public class OrderItemMapper
   {
-    public static OrderItemDto ToDto(OrderItem item)
+    public static OrderItemDto? ToDto(OrderItem item)
     {
+      if (item == null)
+      {
+        return null;
+      }
+
       return new OrderItemDto
       {
         ProductId = item.ProductId,
         Name = item.Product != null ? item.Product.Name : "Unknown",
         Quantity = item.Quantity,
-        PriceAtPurchase = item.PriceAtPurchase
+        PriceAtPurchase = item.PriceAtPurchase,
+        AddedAt = item.AddedAt,
+        ExpiresAt = item.ExpiresAt
       };
     }
 

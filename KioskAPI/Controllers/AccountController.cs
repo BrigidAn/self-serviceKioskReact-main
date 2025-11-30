@@ -4,11 +4,12 @@ namespace KioskAPI.Controllers
   using System.Linq;
   using System.Security.Claims;
   using System.Threading.Tasks;
-  using AutoMapper;
+  using KioskAPI.Mappers;
   using KioskAPI.Dtos;
   using KioskAPI.interfaces;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
+  using KioskAPI.Models;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -16,12 +17,10 @@ namespace KioskAPI.Controllers
   public class AccountController : ControllerBase
   {
     private readonly IAccountRepository _accountRepo;
-    private readonly IMapper _mapper;
 
-    public AccountController(IAccountRepository accountRepo, IMapper mapper)
+    public AccountController(IAccountRepository accountRepo)
     {
       this._accountRepo = accountRepo;
-      this._mapper = mapper;
     }
 
     // Helper: Get the logged-in user's Identity Id
@@ -48,7 +47,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Account not found" });
       }
 
-      return this.Ok(this._mapper.Map<AccountDto>(account));
+      return this.Ok(AccountMapper.ToDto(account));
     }
 
     // TOP-UP onto ACCOUNT
@@ -78,7 +77,7 @@ namespace KioskAPI.Controllers
       // Reload the account to return updated balance
       account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
 
-      return this.Ok(this._mapper.Map<AccountDto>(account));
+      return this.Ok(AccountMapper.ToDto(account));
     }
 
     // GET USER TRANSACTIONS
@@ -92,7 +91,7 @@ namespace KioskAPI.Controllers
       }
 
       var transactions = await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(true);
-      return this.Ok(this._mapper.Map<IEnumerable<TransactionDto>>(transactions));
+      return this.Ok(transactions.Select(TransactionMapper.ToDto));
     }
 
     // GET /api/Account/me

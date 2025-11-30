@@ -1,24 +1,22 @@
 namespace KioskAPI.Controllers
 {
-  using AutoMapper;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
   using KioskAPI.Data;
   using KioskAPI.Models;
   using KioskAPI.Dtos;
   using Microsoft.AspNetCore.Authorization;
+  using KioskAPI.Mappers;
 
   [ApiController]
   [Route("api/[controller]")]
   public class OrderController : ControllerBase
   {
     private readonly AppDbContext _context;
-    private readonly IMapper _mapper;
 
-    public OrderController(AppDbContext context, IMapper mapper)
+    public OrderController(AppDbContext context)
     {
       this._context = context;
-      this._mapper = mapper;
     }
 
     // GET all orders
@@ -30,7 +28,7 @@ namespace KioskAPI.Controllers
           .Include(o => o.OrderItems).ThenInclude(i => i.Product)
           .ToListAsync().ConfigureAwait(true);
 
-      return this.Ok(this._mapper.Map<List<OrderDto>>(orders));
+      return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
     // GET orders for a user
@@ -48,7 +46,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "No orders found for this user." });
       }
 
-      return this.Ok(this._mapper.Map<List<OrderDto>>(orders));
+      return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
     // POST create new order
@@ -106,7 +104,7 @@ namespace KioskAPI.Controllers
       return this.Ok(new
       {
         message = "Order created successfully",
-        order = this._mapper.Map<OrderDto>(order)
+        order = OrderMapper.ToDto(order)
       });
     }
   }
