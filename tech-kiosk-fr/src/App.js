@@ -20,9 +20,9 @@ function App() {
           path="/cart"
           element={<Cart user={user} setUser={setUser} />}
         />
-        <Route path="/addProduct"
-        element={<AdminAddProduct/>}
-        />
+       <Route path="/admin" element={<PrivateRoute adminOnly={true}><AdminPage /></PrivateRoute>} />
+<Route path="/products" element={<PrivateRoute><ProductPage /></PrivateRoute>} />
+
       </Routes>
     </Router>
   );

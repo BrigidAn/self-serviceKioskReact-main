@@ -5,129 +5,70 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
+  using System.Security.Claims;
+  using KioskAPI.interfaces;
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize] // 🔐 Require JWT
   public class CartController : ControllerBase
   {
-    private readonly AppDbContext _context;
+    private readonly ICartRepository _cartRepo;
 
-    public CartController(AppDbContext context)
+    public CartController(ICartRepository cartRepo)
     {
-      this._context = context;
+      this._cartRepo = cartRepo;
+    }
+    // 🔹 Get logged-in user's ID
+    private int GetUserId()
+    {
+      var userIdString = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      return int.Parse(userIdString);
     }
 
-    // GET current cart
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetCart(int userId)
+    [HttpGet]
+    public async Task<IActionResult> GetCart()
     {
-      var cart = await this._context.Carts
-          .Include(c => c.CartItems)
-          .ThenInclude(ci => ci.Product)
-          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
-
-      if (cart == null)
-      {
-        return this.NotFound(new { message = "Cart not found" });
-      }
-
-      var cartDto = new CartDto
-      {
-        CartId = cart.CartId,
-        UserId = cart.UserId,
-        Items = cart.CartItems.Select(ci => new CartItemDto
-        {
-          CartItemId = ci.CartItemId,
-          ProductId = ci.ProductId,
-          ProductName = ci.Product?.Name ?? "Unknown",
-          UnitPrice = ci.UnitPrice,
-          Quantity = ci.Quantity
-        }).ToList(),
-        TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity)
-      };
-
-      return this.Ok(cartDto);
+      int userId = this.GetUserId();
+      var cart = await this._cartRepo.GetUserCart(userId).ConfigureAwait(true);
+      return this.Ok(cart);
     }
 
-    // POST add to cart
     [HttpPost("add")]
-    public async Task<IActionResult> AddToCart([FromBody] AddToCartDto dto)
+    public async Task<IActionResult> AddItem([FromBody] AddToCartDto dto)
     {
-      var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
-      if (product == null)
-      {
-        return this.BadRequest(new { message = "Product not found" });
-      }
-
-      if (product.Quantity < dto.Quantity)
-      {
-        return this.BadRequest(new { message = "Not enough stock" });
-      }
-
-      var cart = await this._context.Carts
-          .Include(c => c.CartItems)
-          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
-
-      if (cart == null)
-      {
-        cart = new Cart { UserId = dto.UserId };
-        this._context.Carts.Add(cart);
-        await this._context.SaveChangesAsync().ConfigureAwait(true);
-      }
-
-      var cartItem = new CartItem
-      {
-        CartId = cart.CartId,
-        Cart = cart,
-        ProductId = product.ProductId,
-        Product = product,
-        Quantity = dto.Quantity,
-        UnitPrice = product.Price
-      };
-
-      this._context.CartItems.Add(cartItem);
-
-      // Reduce stock
-      product.Quantity -= dto.Quantity;
-
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
-
-      return this.Ok(new { message = "Item added to cart" });
+      int userId = this.GetUserId();
+      var item = await this._cartRepo.AddToCart(userId, dto.ProductId, dto.Quantity).ConfigureAwait(true);
+      return Ok(item);
     }
 
-    [HttpPost("Item/{ItemId}")]
-    public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
+    [HttpPut("update/{cartItemId}")]
+    public async Task<IActionResult> UpdateItem(int cartItemId, [FromBody] UpdateQuantityDto dto)
     {
-      if (dto.Quantity < 1)
+      int userId = this.GetUserId();
+      bool updated = await this._cartRepo.UpdateQuantity(userId, cartItemId, dto.Quantity).ConfigureAwait(true);
+
+      if (!updated)
       {
-        return this.BadRequest(new { message = "Quantity must be at least 1." });
+        return this.NotFound();
       }
 
-      var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
-      if (item == null)
-      {
-        return this.NotFound(new { message = "Item not found." });
-      }
-
-      item.Quantity = dto.Quantity;
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
-
-      return this.Ok(new { message = "Quantity updated." });
+      return this.Ok(new { message = "Updated successfully" });
     }
 
-    [HttpDelete("Item/{itemId}")]
-    public async Task<IActionResult> RemoveItem(int itemId)
+    [HttpDelete("remove/{cartItemId}")]
+    public async Task<IActionResult> RemoveItem(int cartItemId)
     {
-      var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
-      if (item == null)
+      int userId = this.GetUserId();
+      bool removed = await this._cartRepo.RemoveCartItem(userId, cartItemId).ConfigureAwait(true);
+
+      if (!removed)
       {
-        return this.NotFound(new { message = "Item not found." });
+        return this.NotFound();
       }
 
-      this._context.CartItems.Remove(item);
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
-
-      return this.Ok(new { message = "Item removed." });
+      return this.Ok(new { message = "Item removed" });
     }
   }
 }
