@@ -1,7 +1,6 @@
 namespace KioskAPI.Tests.Fixtures
 {
   using System;
-  using AutoMapper;
   using Microsoft.EntityFrameworkCore;
   using KioskAPI.Data;
   using KioskAPI.Mappers;
@@ -20,15 +19,15 @@ namespace KioskAPI.Tests.Fixtures
       return ctx;
     }
 
-    public static IMapper CreateMapper()
-    {
-      var config = new MapperConfiguration(cfg =>
-      {
-        cfg.AddProfile(new MappingProfile());
-      });
+    // public static IMapper CreateMapper()
+    // {
+    //   var config = new MapperConfiguration(cfg =>
+    //   {
+    //     cfg.AddProfile(new MappingProfile());
+    //   });
 
-      config.AssertConfigurationIsValid();
-      return config.CreateMapper();
-    }
+    //   config.AssertConfigurationIsValid();
+    //   return config.CreateMapper();
+    // }
   }
 }

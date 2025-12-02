@@ -5,7 +5,6 @@ namespace KioskAPI.Controllers
   using System.Threading.Tasks;
   using Microsoft.AspNetCore.Identity;
   using KioskAPI.Models;
-  using KioskAPI.Services;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -13,69 +12,51 @@ namespace KioskAPI.Controllers
   {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
-    private readonly RoleManager<Role> _roleManager;
-    private readonly JwtService _jwtService;
 
-    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager,
-          RoleManager<Role> roleManager, JwtService jwtService)
+    public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
     {
       this._userManager = userManager;
       this._signInManager = signInManager;
-      this._roleManager = roleManager;
-      this._jwtService = jwtService;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-      if (!this.ModelState.IsValid)
+      if (string.IsNullOrWhiteSpace(dto.Name) ||
+          string.IsNullOrWhiteSpace(dto.Email) ||
+          string.IsNullOrWhiteSpace(dto.Password))
       {
-        return this.BadRequest(this.ModelState);
+        return this.BadRequest(new { message = "All fields are required." });
+      }
+
+      if (!this.IsValidEmail(dto.Email))
+      {
+        return this.BadRequest(new { message = "Invalid email format." });
+      }
+
+      if (!this.IsValidPassword(dto.Password))
+      {
+        return this.BadRequest(new { message = "Password must be at least 8 characters and include uppercase, lowercase, digit, and special character." });
       }
 
       var existingUser = await this._userManager.FindByEmailAsync(dto.Email).ConfigureAwait(true);
       if (existingUser != null)
       {
-        return this.BadRequest(new { message = "A user with this email already exists." });
+        return this.BadRequest(new { message = "Email is already registered." });
       }
 
-      var newUser = new User
-      {
-        Name = dto.Name,
-        Email = dto.Email,
-        UserName = dto.Email,
-      };
+      var user = new User { UserName = dto.Email, Email = dto.Email, Name = dto.Name };
+      var result = await this._userManager.CreateAsync(user, dto.Password).ConfigureAwait(true);
 
-      var createResult = await this._userManager.CreateAsync(newUser, dto.Password).ConfigureAwait(true);
-      if (!createResult.Succeeded)
+      if (!result.Succeeded)
       {
-        return this.BadRequest(new { message = "User registration failed.", errors = createResult.Errors });
+        return this.BadRequest(result.Errors);
       }
 
-      // Assign default role: User
-      if (!await this._roleManager.RoleExistsAsync("User").ConfigureAwait(true))
-      {
-        await this._roleManager.CreateAsync(new Role { Name = "User" }).ConfigureAwait(true);
-      }
+      // Default role is "User"
+      await this._userManager.AddToRoleAsync(user, "User").ConfigureAwait(true);
 
-      await this._userManager.AddToRoleAsync(newUser, "User").ConfigureAwait(true);
-
-      // Generate JWT token
-      var token = await this._jwtService.GenerateTokenAsync(newUser).ConfigureAwait(true);
-      var roles = await this._userManager.GetRolesAsync(newUser).ConfigureAwait(true);
-
-      return this.Ok(new
-      {
-        message = "Registration successful",
-        token,
-        user = new
-        {
-          newUser.Id,
-          newUser.Name,
-          newUser.Email,
-          Roles = roles
-        }
-      });
+      return this.Ok(new { message = "Registered successfully", role = "User" });
     }
 
     // LOGIN
@@ -99,20 +80,21 @@ namespace KioskAPI.Controllers
         return this.Unauthorized(new { message = "Invalid email or password." });
       }
 
-      // Generate JWT
-      var token = await this._jwtService.GenerateTokenAsync(user).ConfigureAwait(true);
-      var roles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
+      // Sign in user
+      await this._signInManager.SignInAsync(user, true).ConfigureAwait(true);
+
+      // Store UserId in session
+      this.HttpContext.Session.SetString("UserId", user.Id.ToString());
 
       return this.Ok(new
       {
         message = "Login successful",
-        token,
         user = new
         {
           user.Id,
           user.Name,
           user.Email,
-          Roles = roles
+          Roles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true)
         }
       });
     }

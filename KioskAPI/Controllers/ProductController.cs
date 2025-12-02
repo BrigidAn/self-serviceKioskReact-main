@@ -62,6 +62,16 @@ namespace KioskAPI.Controllers
         return this.BadRequest(this.ModelState);
       }
 
+      //this is to view existing products dontforget
+      var existingProduct = await this._context.Products
+      .FirstOrDefaultAsync(p => p.Name.ToLower() == dto.Name.ToLower()
+      && p.Category.ToLower() == dto.Category.ToLower()).ConfigureAwait(true);
+
+      if (existingProduct != null)
+      {
+        return this.BadRequest(new { message = "Product already exists" });
+      }
+
       var product = ProductMapper.ToEntity(dto);
       this._context.Products.Add(product);
       await this._context.SaveChangesAsync().ConfigureAwait(true);

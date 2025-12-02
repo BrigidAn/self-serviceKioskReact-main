@@ -1,4 +1,3 @@
-using System.Text;
 using KioskAPI.Data;
 using KioskAPI.interfaces;
 using KioskAPI.Models;
@@ -6,19 +5,17 @@ using KioskAPI.Repository;
 using KioskAPI.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers / Swagger
+// ✅ Controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-builder.Services.AddScoped<ICartRepository, CartRepository>();
 
+// ✅ Database context
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -34,42 +31,23 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// --- JWT Setup ---
-var jwtSettings = builder.Configuration.GetSection("Jwt");
-var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-
-builder.Services.AddAuthentication(options =>
+builder.Services.ConfigureApplicationCookie(options =>
 {
-  options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-  options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-  options.RequireHttpsMetadata = false; // set true in prod
-  options.SaveToken = true;
-  options.TokenValidationParameters = new TokenValidationParameters
-  {
-    ValidateIssuer = true,
-    ValidateAudience = true,
-    ValidateLifetime = true,
-    ValidateIssuerSigningKey = true,
-    ValidIssuer = jwtSettings["Issuer"],
-    ValidAudience = jwtSettings["Audience"],
-    IssuerSigningKey = new SymmetricSecurityKey(key),
-    ClockSkew = TimeSpan.Zero
-  };
+  options.LoginPath = "/api/Auth/login";
+  options.Cookie.HttpOnly = true;
+  options.ExpireTimeSpan = TimeSpan.FromDays(30);
+  options.SlidingExpiration = true;
 });
 
-// CORS (allow credentials not needed for JWT, but keep as needed)
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowReactApp", policy =>
       policy.WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials());
 });
 
-// Session optional
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -78,10 +56,15 @@ builder.Services.AddSession(options =>
   options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddAuthorization();
+// ✅ Add Authentication (cookie-based for now)
+builder.Services.AddAuthentication("MyCookieAuth")
+    .AddCookie("MyCookieAuth", options =>
+    {
+      options.Cookie.Name = "MyCookieAuth";
+      options.LoginPath = "/api/Auth/login";
+    });
 
-// JwtService to generate tokens
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<AuthService>();
 
@@ -93,9 +76,9 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-// Middleware
+// ✅ Enable HTTPS
 app.UseHttpsRedirection();
-app.UseSession(); // optional
+app.UseSession();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
