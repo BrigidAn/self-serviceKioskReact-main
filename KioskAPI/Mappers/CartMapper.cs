@@ -8,6 +8,7 @@ public static class CartMapper
     return new CartDto
     {
       CartId = cart.CartId,
+      UserId = cart.UserId,
       Items = cart.CartItems.Select(i => new CartItemDto
       {
         CartItemId = i.CartItemId,

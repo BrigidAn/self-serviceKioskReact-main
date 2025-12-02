@@ -5,9 +5,11 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize]
   public class CartController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -95,8 +97,9 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Item added to cart" });
     }
 
-    [HttpPost("Item/{ItemId}")]
+    [HttpPost("item/{itemId}")]
     public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
+
     {
       if (dto.Quantity < 1)
       {
@@ -115,7 +118,7 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Quantity updated." });
     }
 
-    [HttpDelete("Item/{itemId}")]
+    [HttpDelete("item/{itemId}")]
     public async Task<IActionResult> RemoveItem(int itemId)
     {
       var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
