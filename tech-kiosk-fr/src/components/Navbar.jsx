@@ -1,47 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
+import { Link } from "react-router-dom";
+import { FiShoppingCart } from "react-icons/fi";
+import "./Navbar.css";
 
-export default function Navbar({
-  setShowLogin,
-  setShowRegister,
-  setPage,
-  cartCount,
-  isLoggedIn,
-}) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
+export default function NavBar({ cartCount = 0 }) {
   return (
-    <nav className="navbar">
-      <h2 className="logo">RoboStore</h2>
+    <nav className="velvety-nav">
+      <div className="nav-inner">
 
-      <ul className="nav-links">
-        <li onClick={() => setPage("home")}>Home</li>
-        <li onClick={() => setPage("products")}>Products</li>
-      </ul>
+        {/* LOGO */}
+        <Link to="/" className="nav-logo">
+          <span>Tech Shack</span>
+        </Link>
 
-      <div className="cart-icon">
-        🛒
-        {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+        {/* LINKS */}
+        <div className="nav-links">
+          <Link to="/products">Products</Link>
+          <Link to="/about">About</Link>
+          <Link to="/support">Support</Link>
+        </div>
+
+        {/* CART */}
+        <Link to="/cart" className="nav-cart">
+          <FiShoppingCart size={22} />
+          {cartCount > 0 && <span className="nav-cart-count">{cartCount}</span>}
+        </Link>
       </div>
-
-      {!isLoggedIn ? (
-        <>
-          <button onClick={() => setShowLogin(true)}>Login</button>
-          <button onClick={() => setShowRegister(true)}>Register</button>
-        </>
-      ) : (
-        <span className="logged-in-msg">Welcome!</span>
-      )}
-
-      <button className="hamburger-btn" onClick={() => setMenuOpen(!menuOpen)}>
-        ☰
-      </button>
-
-      {menuOpen && (
-        <ul className="hamburger-dropdown">
-          <li onClick={() => setPage("home")}>Home</li>
-          <li onClick={() => setPage("products")}>Products</li>
-        </ul>
-      )}
     </nav>
   );
 }

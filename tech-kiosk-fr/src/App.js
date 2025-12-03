@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import Cart from "./pages/Cart/CartPage";
-import AdminAddProduct from "./Admin/AdminAddProduct";
 
 function App() {
   const [user, setUser] = useState(null);

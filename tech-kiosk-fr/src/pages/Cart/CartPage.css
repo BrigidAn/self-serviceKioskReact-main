@@ -1,95 +1,42 @@
-.cart-page {
-  background: #13361F;
-  color: #AECFB8;
-  min-height: 100vh;
-  padding: 30px 40px;
-  font-family: sans-serif;
+.velvety-cart-page {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
 }
 
-.cart-page h2 {
+.velvety-cart-page h2 {
+  font-size: 28px;
+  font-weight: 800;
   margin-bottom: 20px;
+  color: #113c2a;
 }
 
-/* Cart Table */
-.cart-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0 10px;
-  margin-bottom: 20px;
-}
-
-.cart-table th, .cart-table td {
-  padding: 12px 15px;
+.empty-cart {
   text-align: center;
-  color: #13361F;
-  background: rgba(174, 207, 184, 0.2);
-  border-radius: 8px;
+  color: var(--muted);
+  padding: 40px 0;
 }
 
-.cart-table th {
-  font-weight: bold;
+.cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.cart-table img {
+.cart-item {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+
+.cart-item img {
   width: 80px;
   height: 80px;
+  border-radius: 12px;
   object-fit: cover;
-  border-radius: 6px;
-}
-
-/* Quantity Input */
-.cart-table input[type="number"] {
-  width: 60px;
-  text-align: center;
-  border-radius: 6px;
-  border: none;
-  padding: 4px;
-}
-
-/* Buttons */
-.cart-table button {
-  padding: 6px 12px;
-  background: #AECFB8;
-  color: #13361F;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.cart-total {
-  text-align: right;
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.checkout-btn {
-  padding: 12px 25px;
-  background: #AECFB8;
-  color: #13361F;
-  font-weight: bold;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-/* Delivery Method */
-.delivery-method select {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  font-weight: bold;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .cart-table img {
-    width: 60px;
-    height: 60px;
-  }
-
-  .checkout-btn {
-    width: 100%;
-  }
 }
