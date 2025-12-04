@@ -7,13 +7,12 @@ namespace KioskAPI.Dtos
   {
     public int ProductId { get; set; }
 
-    public string Name { get; set; } = null!;
-
-    public string? Description { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     public decimal Price { get; set; }
 
-    public string? Category { get; set; }
+    public string Category { get; set; } = string.Empty;
 
     public string? ImageUrl { get; set; }
 
@@ -40,15 +39,17 @@ namespace KioskAPI.Dtos
 
     [Required]
     [MaxLength(50)]
-    public string Category { get; set; } = null!;
+    public string Category { get; set; } = string.Empty;
 
-    public string? ImageUrl { get; set; }
+    [Required(ErrorMessage = "ImageUrl is Required")]
+    public string? ImageUrl { get; set; } // will use iformfile cloudinary
 
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative.")]
     public int Quantity { get; set; }
 
     public int? SupplierId { get; set; }
+
   }
 
   public class UpdateProductDto
@@ -67,10 +68,13 @@ namespace KioskAPI.Dtos
     [Required]
     [MaxLength(50)]
     public string? Category { get; set; }
-    public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; } //use iformfile for cloudinary
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "Quantity can not be negative")]
     public int? Quantity { get; set; }
     public int? SupplierId { get; set; }
+
+    [Required]
+    public IFormFile Image { get; set; }
   }
 }

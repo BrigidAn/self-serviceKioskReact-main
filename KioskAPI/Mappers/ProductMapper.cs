@@ -14,6 +14,7 @@ namespace KioskAPI.Mappers
         Description = product.Description,
         Price = product.Price,
         Quantity = product.Quantity,
+        Category = product.Category,
         ImageUrl = product.ImageUrl,
         SupplierId = product.SupplierId ?? 0,
         SupplierName = product.Supplier?.Name ?? "Unknown",

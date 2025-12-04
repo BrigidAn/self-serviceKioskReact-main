@@ -14,6 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddSingleton<CloudinaryService>();
 
 // ✅ Database context
 builder.Services.AddDbContext<AppDbContext>(options =>

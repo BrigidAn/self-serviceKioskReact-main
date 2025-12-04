@@ -6,6 +6,7 @@ namespace KioskAPI.Controllers
   using KioskAPI.Dtos;
   using KioskAPI.Mappers;
   using KioskAPI.Models;
+  using KioskAPI.Services;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +15,11 @@ namespace KioskAPI.Controllers
   public class ProductController : ControllerBase
   {
     private readonly AppDbContext _context;
-    public ProductController(AppDbContext context)
+    private readonly CloudinaryService _cloudinary;
+    public ProductController(AppDbContext context, CloudinaryService cloudinary)
     {
       this._context = context;
+      this._cloudinary = cloudinary;
     }
 
     // GET ALL PRODUCTS
@@ -65,11 +68,16 @@ namespace KioskAPI.Controllers
       //this is to view existing products dontforget
       var existingProduct = await this._context.Products
       .FirstOrDefaultAsync(p => p.Name.ToLower() == dto.Name.ToLower()
-      && p.Category.ToLower() == dto.Category.ToLower()).ConfigureAwait(true);
+      && p.Category.ToLower() == dto.Category.ToLower() && p.ImageUrl.ToLower() == dto.ImageUrl.ToLower()).ConfigureAwait(true);
 
       if (existingProduct != null)
       {
         return this.BadRequest(new { message = "Product already exists" });
+      }
+
+      if (string.IsNullOrWhiteSpace(dto.ImageUrl))
+      {
+        return this.BadRequest("Image URL is required for a product.");
       }
 
       var product = ProductMapper.ToEntity(dto);
