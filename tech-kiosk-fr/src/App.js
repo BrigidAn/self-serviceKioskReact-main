@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import Cart from "./pages/Cart/CartPage";
+import SupportPage from "./pages/Support/SupportPage";
+import AboutPage from "./pages/About/AboutPage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -10,7 +12,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LandingPage setUser={setUser} />} />
+        <Route path="/" element={<LandingPage  />} />
         <Route
           path="/products"
           element={<ProductsPage user={user} setUser={setUser} />}
@@ -21,6 +23,16 @@ function App() {
         />
        {/* <Route path="/admin" element={<PrivateRoute adminOnly={true}><AdminPage /></PrivateRoute>} />
 <Route path="/products" element={<PrivateRoute><ProductPage /></PrivateRoute>} /> */}
+
+        <Route
+          path="/support"
+          element={<SupportPage />}
+        />
+
+        {/* <Route
+          path="/about"
+          element={<AboutPage />}
+        /> */} 
 
       </Routes>
     </Router>
