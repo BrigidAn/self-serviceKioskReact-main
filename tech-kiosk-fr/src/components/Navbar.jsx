@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { FiShoppingCart } from "react-icons/fi";
 import "./Navbar.css";
+import HamburgerMenu from "../components/HamburgerMenu";
 
 export default function NavBar({ cartCount = 0 }) {
   return (
@@ -25,6 +26,9 @@ export default function NavBar({ cartCount = 0 }) {
           <FiShoppingCart size={22} />
           {cartCount > 0 && <span className="nav-cart-count">{cartCount}</span>}
         </Link>
+
+        <HamburgerMenu/>
+        
       </div>
     </nav>
   );

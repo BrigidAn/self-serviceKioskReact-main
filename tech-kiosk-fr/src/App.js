@@ -4,7 +4,6 @@ import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
 import Cart from "./pages/Cart/CartPage";
 import SupportPage from "./pages/Support/SupportPage";
-import AboutPage from "./pages/About/AboutPage";
 
 function App() {
   const [user, setUser] = useState(null);

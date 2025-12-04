@@ -15,11 +15,10 @@ export default function ProductsPage({ onAddToCart }) {
   const [category, setCategory] = useState("All");
   const [priceMax, setPriceMax] = useState("");
   const [sortBy, setSortBy] = useState("featured");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 6;
 
   // Fetch products
   useEffect(() => {
@@ -115,80 +114,6 @@ export default function ProductsPage({ onAddToCart }) {
       <div className="velvety-products-page">
         <div className="vp-container">
 
-          {/* SIDEBAR */}
-          <aside className={`vp-sidebar ${sidebarOpen ? "open" : "closed"}`}>
-            <div className="vp-sidebar-header">
-              <h3>Filters</h3>
-              <button
-                aria-label="Close filters"
-                className="vp-sidebar-close"
-                onClick={() => setSidebarOpen(false)}
-              >
-                x
-              </button>
-            </div>
-
-            <div className="vp-filter-block">
-              <label className="vp-label">Category</label>
-              <div className="vp-category-list">
-                {categories.map((c) => (
-                  <button
-                    key={c}
-                    className={`vp-chip ${c === category ? "active" : ""}`}
-                    onClick={() => {
-                      setCategory(c);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    {c}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="vp-filter-block">
-              <label className="vp-label">Max Price (R)</label>
-              <input
-                type="number"
-                min="0"
-                placeholder="No limit"
-                value={priceMax}
-                onChange={(e) => {
-                  setPriceMax(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="vp-input"
-              />
-            </div>
-
-            <div className="vp-filter-block">
-              <label className="vp-label">Sort</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="vp-select"
-              >
-                <option value="featured">Featured</option>
-                <option value="price-asc">Price: Low → High</option>
-                <option value="price-desc">Price: High → Low</option>
-              </select>
-            </div>
-
-            <div className="vp-filter-block vp-reset">
-              <button
-                className="vp-reset-btn"
-                onClick={() => {
-                  setCategory("All");
-                  setPriceMax("");
-                  setSortBy("featured");
-                  setSearchText("");
-                  setCurrentPage(1);
-                }}
-              >
-                Reset filters
-              </button>
-            </div>
-          </aside>
 
           {/* MAIN */}
           <main className="vp-main">
@@ -196,12 +121,7 @@ export default function ProductsPage({ onAddToCart }) {
             {/* Top bar */}
             <div className="vp-topbar">
               <div className="vp-top-left">
-                <button
-                  className="vp-sidebar-toggle"
-                  onClick={() => setSidebarOpen((s) => !s)}
-                >
-                  ☰ Filters
-                </button>
+            
 
                 <div className="vp-search-wrap">
                   <input
@@ -221,6 +141,22 @@ export default function ProductsPage({ onAddToCart }) {
                   {loading ? "Loading…" : `${filtered.length} products`}
                 </div>
               </div>
+            </div>
+
+            {/* CATEGORY STRIP */}
+            <div className="vp-category-strip">
+              {categories.map((c) => (
+                <button
+                  key={c}
+                  className={`vp-chip ${category === c ? "active" : ""}`}
+                  onClick={() => {
+                    setCategory(c);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
             </div>
 
             {/* GRID */}
@@ -255,10 +191,14 @@ export default function ProductsPage({ onAddToCart }) {
 
                       <h4 className="vp-title">{p.name}</h4>
 
+                      <p className="vp-desc">
+                        {p.description?.slice(0, 60) || "No description"}...
+                      </p>
+
+                      <div className="vp-qty">In stock: {p.quantity}</div>
+
                       <div className="vp-card-footer">
-                        <div className="vp-price">
-                          R {Number(p.price).toFixed(2)}
-                        </div>
+                        <div className="vp-price">R {Number(p.price).toFixed(2)}</div>
 
                         <button
                           className="vp-add-btn"
@@ -268,6 +208,7 @@ export default function ProductsPage({ onAddToCart }) {
                           {p.quantity > 0 ? "Add" : "Sold out"}
                         </button>
                       </div>
+
                     </div>
                   </article>
                 ))

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./HamburgerMenu.css";
 
-export default function HamburgerMenu() {
+function HamburgerMenu() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -52,3 +52,5 @@ export default function HamburgerMenu() {
     </>
   );
 }
+
+export default HamburgerMenu;
