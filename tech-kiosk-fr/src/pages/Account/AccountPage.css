@@ -1,153 +1,107 @@
-.velvety-account-page {
-display: flex;
-flex-direction: column;
-width: 100%;
-box-sizing: content-box;
-font-family: monospace;
+/* Page layout */
+.acc-container {
+  min-height: 100vh;
+  padding: 40px;
+  background: radial-gradient(circle at top, #0d1b2a, #000814);
+  color: #d6e8ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.velvety-account-page h2 {
-  font-size: 32px;
-  color: #020202c4;
-  text-shadow: 0 0 10px #0b171a44;
-  margin-bottom: 30px;
-  font-weight: 32px;
-}
-
-/* Balance Card */
-.account-balance-card {
-  background: #657f8b;
-  padding: 2px 3px;
-  border-radius: 16px;
-  margin-bottom: 30px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.336);
-  text-align: center;
-  width: 500px;
-  position: relative;
-  left: 800px;
-}
-
-.account-balance-card h3 {
-  font-size: 22px;
+/* Title */
+.acc-title {
+  font-size: 48px;
+  letter-spacing: 2px;
   margin-bottom: 10px;
-}
-
-.account-balance-card p {
-  font-size: 28px;
-  font-weight: 700;
   color: #00eaff;
-  text-shadow: 0 0 12px #00eaff;
+  text-shadow: 0 0 20px #00eaff77;
 }
 
-/* Top-up Card */
-.topup-card {
-  background: #657f8b;
-  padding: 25px 30px;
-  border-radius: 16px;
-  margin-bottom: 30px;
-  box-shadow: 0 8px 20px rgba(0, 200, 255, 0.25);
-  position: relative;
-  left: 500px;
-  width: 1000px;
+.acc-sub {
+  font-size: 18px;
+  margin-bottom: 40px;
+  opacity: 0.7;
 }
 
-.topup-input-group {
+/* Cards */
+.acc-card {
+  width: 90%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 247, 0.2);
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 25px;
+  backdrop-filter: blur(7px);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.08);
+  transition: 0.3s ease;
+}
+
+.acc-card:hover {
+  transform: translateY(-3px);
+  border-color: #00eaff;
+  box-shadow: 0 0 25px #00eaff55;
+}
+
+.acc-card h2 {
+  font-size: 24px;
+  margin-bottom: 15px;
+  color: #e3f8ff;
+}
+
+/* Balance style */
+.acc-balance {
+  font-size: 38px;
+  font-weight: bold;
+  color: #00eaff;
+  text-shadow: 0 0 15px #00eaff88;
+}
+
+/* Top-up section */
+.topup-input-wrap {
   display: flex;
   gap: 12px;
-  margin-top: 15px;
 }
 
-.topup-input-group input {
+.topup-input {
   flex: 1;
-  padding: 12px 15px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e3faff;
+  padding: 12px 16px;
   font-size: 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  color: #d6e8ff;
+  transition: 0.2s;
 }
 
-.topup-input-group input::placeholder {
-  color: #b0e0ff;
+.topup-input:focus {
+  border-color: #00eaff;
+  box-shadow: 0 0 12px #00eaff55;
+  outline: none;
 }
 
-.topup-input-group button {
-  background: #00eaff;
+.topup-btn {
+  background: linear-gradient(135deg, #00eaff, #008cff);
   border: none;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #002031;
   cursor: pointer;
-  color: #121314;
-  font-size: 16px;
-  transition: 0.3s ease;
+  transition: 0.25s ease;
 }
 
-.topup-input-group button:hover {
-  box-shadow: 0 0 12px #00eaff;
-  transform: scale(1.05);
+.topup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px #00eaff;
 }
 
-/* Transactions Table */
-.transactions-card {
-  background: #657f8b;
-  padding: 25px 30px;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 200, 255, 0.25);
-  width: 1600px;
-  position: relative;
-  left: 200px;
+/* History */
+.acc-coming-soon {
+  text-align: center;
+  opacity: 0.5;
+  font-style: italic;
+  margin-top: 10px;
 }
-
-.transactions-card table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-.transactions-card th,
-.transactions-card td {
-  padding: 12px 15px;
-  text-align: left;
-}
-
-.transactions-card th {
-  color: #00eaff;
-  font-size: 16px;
-  border-bottom: 1px solid rgba(0, 230, 255, 0.4);
-}
-
-.transactions-card td {
-  font-size: 15px;
-}
-
-.transactions-card td.deposit {
-  color: #00ff99;
-  font-weight: 600;
-}
-
-.transactions-card td.purchase {
-  color: #ff4f4f;
-  font-weight: 600;
-}
-
-/* Back Button */
-.back-btn {
-  background: transparent;
-  color: #444649;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 20px;
-  transition: 0.3s ease;
-  position: relative;
-  top: 25px;
-}
-
-.back-btn:hover {
-  box-shadow: 0 0 12px #00d0ff;
-  transform: scale(1.05);
-}
-

@@ -1,67 +1,81 @@
 import React from "react";
-import NavBar from "../../components/Navbar";
 import "./AboutPage.css";
 
 function AboutPage() {
   return (
-    <div className="about-page">
-      <NavBar />
+    <div className="about-container">
 
-      <section className="about-hero">
-        <div className="hero-content">
-          <h1>Welcome to Tech Shack</h1>
-          <p>
-            Your one-stop shop for the latest tech gadgets and smart accessories.
-            From high-quality earbuds and headsets to cutting-edge robots and VR headsets,
-            we bring innovation right to your doorstep.
-          </p>
-        </div>
-        <div className="hero-image">
-          <img
-            src="https://via.placeholder.com/500x400?text=Tech+Shack"
-            alt="Tech Shack"
-          />
-        </div>
-      </section>
+      {/* Floating Background Shapes */}
+      <div className="about-floating c1"></div>
+      <div className="about-floating c2"></div>
+      <div className="about-floating c3"></div>
+      <div className="about-floating c4"></div>
 
-      <section className="about-products">
-        <h2>Our Products</h2>
-        <div className="product-grid">
-          <div className="product-card">
-            <img src="https://via.placeholder.com/250?text=Earbuds" alt="Earbuds" />
-            <h3>Earbuds</h3>
-            <p>High-quality wireless earbuds for music and calls with crystal-clear sound.</p>
-          </div>
-
-          <div className="product-card">
-            <img src="https://via.placeholder.com/250?text=Robots" alt="Robots" />
-            <h3>Robots</h3>
-            <p>Smart robots for restaurants, delivery, and more, bringing automation to life.</p>
-          </div>
-
-          <div className="product-card">
-            <img src="https://via.placeholder.com/250?text=Headsets" alt="Headsets" />
-            <h3>Headsets</h3>
-            <p>Comfortable gaming and professional headsets for immersive audio experiences.</p>
-          </div>
-
-          <div className="product-card">
-            <img src="https://via.placeholder.com/250?text=VR+Headsets" alt="VR Headsets" />
-            <h3>VR Headsets</h3>
-            <p>Step into virtual worlds with our latest VR headsets for gaming and simulations.</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="about-mission">
-        <h2>Our Mission</h2>
-        <p>
-          At Tech Shack, we aim to make advanced technology accessible and exciting for everyone.
-          We are committed to providing quality products, excellent customer service, and innovation that keeps you ahead of the curve.
+      <div className="about-inner">
+        {/* Header */}
+        <h1 className="about-title">About Us</h1>
+        <p className="about-subtitle">
+          Empowering seamless, futuristic self-service experiences.
         </p>
-      </section>
+
+        {/* Mission Section */}
+        <section className="about-section">
+          <h2 className="section-title">Our Mission</h2>
+          <p className="section-text">
+            We aim to redefine the modern self-service experience by blending 
+            intuitive design, real-time processing, and immersive interfaces. 
+            Our kiosk ecosystem ensures effortless interaction, fast checkout, 
+            and a visually engaging environment that feels futuristic yet familiar.
+          </p>
+        </section>
+
+        {/* Story Section */}
+        <section className="about-section">
+          <h2 className="section-title">Our Story</h2>
+          <p className="section-text">
+            What started as a simple automated kiosk idea evolved into a full 
+            end-to-end digital ecosystem.
+          </p>
+        </section>
+
+        {/* Features Grid */}
+        <section className="about-section">
+          <h2 className="section-title">Why Choose Us?</h2>
+
+          <div className="features-grid">
+
+            <div className="feature-card">
+              <h3 className="feature-title">🔒 Secure System</h3>
+              <p className="feature-text">
+                Built on ASP.NET Identity + JWT roles for powerful authentication.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <h3 className="feature-title">⚡ Fast & Smooth</h3>
+              <p className="feature-text">
+                Optimized React frontend, instant product browsing & frictionless checkout.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <h3 className="feature-title">🎨 Futuristic UI</h3>
+              <p className="feature-text">
+                Neon gradients, floating shapes, ambient glow animations across all pages.
+              </p>
+            </div>
+
+            <div className="feature-card">
+              <h3 className="feature-title">📊 Transparent Tracking</h3>
+              <p className="feature-text">
+                Users can view balances, top-ups, transactions & activity in real-time.
+              </p>
+            </div>
+
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
-
 export default AboutPage;

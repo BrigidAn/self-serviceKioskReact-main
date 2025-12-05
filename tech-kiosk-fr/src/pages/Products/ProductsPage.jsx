@@ -118,6 +118,13 @@ export default function ProductsPage({ onAddToCart }) {
           {/* MAIN */}
           <main className="vp-main">
 
+          <div className="floating-bg">
+            <div className="circle c1"></div>
+            <div className="circle c2"></div>
+            <div className="circle c3"></div>
+            <div className="circle c4"></div>
+          </div>
+
             {/* FUTURISTIC HERO */}
             <section className="vp-hero">
               <div className="vp-hero-glow"></div>
@@ -158,7 +165,7 @@ export default function ProductsPage({ onAddToCart }) {
 
               <div className="vp-top-right">
                 <div className="vp-results">
-                  {loading ? "Loading…" : `${filtered.length} products`}
+                  {loading ? "Loading…" : `${filtered.length} `}
                 </div>
               </div>
             </div>

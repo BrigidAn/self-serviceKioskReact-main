@@ -1,131 +1,89 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaShoppingCart, FaUserCircle, FaBars } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { FiShoppingCart } from "react-icons/fi";
 import "./Navbar.css";
 
-function Navbar({ cartCount }) {
+export default function NavBar({ cartCount = 0 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
-  const { balance } = useAuth();
-
-  const [open, setOpen] = React.useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
+    localStorage.removeItem("token");
+    navigate("/login");
+    setMenuOpen(false);
   };
 
-  const handleAddAccount = () => {
-    navigate("/account");
-  };
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <>
-      {/* NAVBAR */}
-      <nav className="navbar-glass">
-        <div className="navbar-content">
+    <nav className="velvety-nav">
+      <div className="nav-inner">
+        {/* LOGO */}
+        <Link to="/" className="nav-logo">
+          <span>Tech Shack</span>
+        </Link>
 
-          {/* HAMBURGER MENU BUTTON */}
-          <button className="hamburger-btn" onClick={() => setOpen(true)}>
-            <FaBars size={22} />
-          </button>
-
-          {/*BRAND */}
-          <Link className="navbar-brand" to="/home">
-            Tech Shack
-          </Link>
-
-          {/* RIGHT SIDE SECTION */}
-          <div className="navbar-icons">
-
-            {/*BALANCE */}
-            {/* <span className="balance-display">
-              R{Number(balance).toFixed(2)}
-            </span> */}
-
-            {/*CART BUTTON */}
-            <Link className="btn-glass" to="/cart">
-              <FaShoppingCart size={18} />
-              {cartCount > 0 && (
-                <span className="cart-badge">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            {/* USER MENU */}
-            <div className="dropdown">
-              <button
-                className="btn-glass dropdown-toggle ms-3"
-                type="button"
-                id="userDropdown"
-                data-bs-toggle="dropdown"
-              >
-                <FaUserCircle size={20} className="me-2" />
-                Account
-              </button>
-
-              <ul className="dropdown-menu dropdown-menu-end">
-                <li>
-                  <button className="dropdown-item" onClick={handleAddAccount}>
-                    Add Account Balance
-                  </button>
-                </li>
-
-                <li><hr className="dropdown-divider" /></li>
-
-                <li>
-                  <button
-                    className="dropdown-item text-danger"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-          </div>
+        {/* LINKS */}
+        <div className="nav-links">
+          <Link to="/products">Products</Link>
+          <Link to="/about">About</Link>
+          <Link to="/support">Support</Link>
         </div>
-      </nav>
 
-      {/* 🟦 SIDE MENU OVERLAY */}
-      <div className={`side-overlay ${open ? "show" : ""}`} onClick={() => setOpen(false)}></div>
-
-      {/* 🟦 SIDE MENU */}
-      <div className={`side-menu ${open ? "open" : ""}`}>
-        <button className="close-btn" onClick={() => setOpen(false)}>
-          &times;
-        </button>
-
-        <h4 className="menu-title">Menu</h4>
-
-        <Link className="side-link" to="/home" onClick={() => setOpen(false)}>
-          Home
+        {/* CART */}
+        <Link to="/cart" className="nav-cart">
+          <FiShoppingCart size={22} />
+          {cartCount > 0 && <span className="nav-cart-count">{cartCount}</span>}
         </Link>
 
-        <Link className="side-link" to="/category/laptops" onClick={() => setOpen(false)}>
-          Laptops
-        </Link>
+        {/* HAMBURGER ICON */}
+        <div
+          className={`hamburger ${menuOpen ? "open" : ""}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
 
-        <Link className="side-link" to="/category/phones" onClick={() => setOpen(false)}>
-          Phones
-        </Link>
+        {/* SIDE MENU */}
+        <div ref={menuRef} className={`side-menu ${menuOpen ? "show" : ""}`}>
+          <h2 className="side-menu-title">Menu</h2>
+          <ul>
+            <li>
+              <Link to="/account" onClick={() => setMenuOpen(false)}>
+                My Account
+              </Link>
+            </li>
+            <li>
+              <Link to="/orders" onClick={() => setMenuOpen(false)}>
+                Order History
+              </Link>
+            </li>
+            <li>
+              <Link to="/transactions" onClick={() => setMenuOpen(false)}>
+                Transactions
+              </Link>
+            </li>
+            <li className="logout" onClick={handleLogout}>
+              Logout
+            </li>
+          </ul>
+        </div>
 
-        <Link className="side-link" to="/category/accessories" onClick={() => setOpen(false)}>
-          Accessories
-        </Link>
-
-        <Link className="side-link" to="/orders" onClick={() => setOpen(false)}>
-          Orders
-        </Link>
-
-        <Link className="side-link" to="/account" onClick={() => setOpen(false)}>
-          My Account
-        </Link>
+        {/* Overlay */}
+        {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
       </div>
-    </>
+    </nav>
   );
 }
-
-export default Navbar;
