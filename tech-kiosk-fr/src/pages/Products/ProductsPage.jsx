@@ -165,7 +165,7 @@ export default function ProductsPage({ onAddToCart }) {
 
               <div className="vp-top-right">
                 <div className="vp-results">
-                  {loading ? "Loading…" : `${filtered.length} `}
+                  {loading ? "Loading…" : `${filtered.length} Products `}
                 </div>
               </div>
             </div>

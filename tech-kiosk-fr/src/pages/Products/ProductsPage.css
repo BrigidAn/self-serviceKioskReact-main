@@ -272,7 +272,7 @@ html, body {
 }
 
 .vp-search {
-  width: 100%;
+  width: 300%;
   padding: 14px 18px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.18);
@@ -377,6 +377,11 @@ html, body {
   cursor: pointer;
   font-weight: 700;
   transition: 0.25s ease;
+}
+
+.vp-results {
+  position: relative;
+  left: 700%;
 }
 
 .vp-add-btn:hover {
