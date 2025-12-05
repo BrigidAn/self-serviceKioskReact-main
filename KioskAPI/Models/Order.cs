@@ -13,9 +13,8 @@ namespace KioskAPI.Models
     [ForeignKey(nameof(User))]
     public int UserId { get; set; }
     public User? User { get; set; }
-    public string Name { get; set; } = string.Empty;
     public DateTime OrderDate { get; set; } = DateTime.UtcNow;
-
+    public decimal DeliveryFee { get; set; }
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalAmount { get; set; }
     public string? Status { get; set; } // e.g., "Pending", "Completed"

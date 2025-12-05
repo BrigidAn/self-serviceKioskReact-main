@@ -9,6 +9,7 @@ namespace KioskAPI.Mappers
     {
       return new AccountDto
       {
+        User = account.User,
         Balance = account.Balance,
         TransactionsSummary = account.TransactionsSummary
       };

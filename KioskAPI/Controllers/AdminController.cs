@@ -6,16 +6,21 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using System.Linq;
   using System.Threading.Tasks;
+  using KioskAPI.Dtos;
+  using Microsoft.AspNetCore.Identity;
+  using KioskAPI.Models;
 
   [ApiController]
   [Route("api/[controller]")]
   [Authorize(Roles = "Admin")] // ALL routes protected
   public class AdminController : ControllerBase
   {
+    private readonly UserManager<User> _usermanager;
     private readonly AppDbContext _context;
 
-    public AdminController(AppDbContext context)
+    public AdminController(UserManager<User> userManager, AppDbContext context)
     {
+      this._usermanager = userManager;
       this._context = context;
     }
 
@@ -23,42 +28,57 @@ namespace KioskAPI.Controllers
 
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? search = null,
-        [FromQuery] string sortBy = "CreatedAt",
-        [FromQuery] string sortOrder = "desc")
+    [FromQuery] int page = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] string? search = null,
+    [FromQuery] string sortBy = "CreatedAt",
+    [FromQuery] string sortOrder = "desc")
     {
-      var query = this._context.Users.AsQueryable();
+      var query = _usermanager.Users.AsQueryable();
 
+      // SEARCH
       if (!string.IsNullOrEmpty(search))
       {
         query = query.Where(u =>
-            u.Name.Contains(search) ||
+            u.UserName.Contains(search) ||
             u.Email.Contains(search));
       }
 
+      // SORT
       query = sortBy.ToLower() switch
       {
-        "name" => sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name),
+        "name" => sortOrder == "asc" ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
         "email" => sortOrder == "asc" ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
         _ => sortOrder == "asc" ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
       };
 
       var total = await query.CountAsync().ConfigureAwait(true);
-      var users = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);
+      var users = await query.Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToListAsync()
+                             .ConfigureAwait(true);
+
+      // GET ROLES FOR EACH USER
+      var userRolesList = new List<object>();
+      foreach (var u in users)
+      {
+        var roles = await _usermanager.GetRolesAsync(u); // List<string>
+        userRolesList.Add(new
+        {
+          u.Id,
+          Name = u.UserName,
+          Email = u.Email,
+          CreatedAt = u.CreatedAt,
+          Roles = roles
+        });
+      }
 
       return this.Ok(new
       {
         total,
         page,
         pageSize,
-        data = users.Select(u => new
-        {
-          u.Name,
-          u.Email,
-          u.CreatedAt
-        })
+        data = userRolesList
       });
     }
 
@@ -199,24 +219,59 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // [HttpPost("topup")]
-    // public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
-    // {
-    //   if (!this.ModelState.IsValid)
-    //     return this.BadRequest(this.ModelState);
+    [HttpPost("topup")]
+    public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
+    {
+      if (!this.ModelState.IsValid)
+      {
+        return this.BadRequest(this.ModelState);
+      }
 
-    //   var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
-    //   if (user == null)
-    //     return this.NotFound("User not found.");
+      var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
+      if (user == null)
+      {
+        return this.NotFound(new { message = "User not found" });
+      }
 
-    //   user.Balance += dto.Amount;
+      // Find or create account
+      var account = await this._context.Accounts
+          .FirstOrDefaultAsync(a => a.UserId == dto.UserId).ConfigureAwait(true);
+      if (account == null)
+      {
+        account = new Account
+        {
+          UserId = dto.UserId,
+          Balance = 0
+        };
+        this._context.Accounts.Add(account);
+      }
 
-    //   await this._context.SaveChangesAsync().ConfigureAwait(true);
+      if (dto.Amount > 1500)
+      {
+        return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
+      }
 
-    //   return this.Ok(new
-    //   {
-    //     message = "Top-up successful.",
-    //     newBalance = user.Balance
-    //   });
+      // Top up
+      account.Balance += dto.Amount;
+
+      // Log transaction
+      var transaction = new Transaction
+      {
+        AccountId = account.AccountId,
+        Type = "TopUp",
+        TotalAmount = dto.Amount,
+        Description = dto.Description ?? "Admin Top-Up",
+        CreatedAt = DateTime.UtcNow
+      };
+      this._context.Transactions.Add(transaction);
+
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new
+      {
+        message = $"Successfully topped up {dto.Amount:C} for {user.UserName}",
+        newBalance = account.Balance
+      });
+    }
   }
 }

@@ -8,9 +8,7 @@ namespace KioskAPI.Dtos
     [Required]
     public int Id { get; set; }
 
-    [Required]
-    [Range(1, double.MaxValue, ErrorMessage = "Amount must be greater than zero.")]
+    [Range(0.01, 1500, ErrorMessage = "Maximum amount is 1500 per deposit")]
     public decimal Amount { get; set; }
   }
-
 }

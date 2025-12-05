@@ -24,6 +24,7 @@ namespace KioskAPI.Dtos
     public int UserId { get; set; }
     [Required]
     public string DeliveryMethod { get; set; }  // "Collection" or "Delivery"
+    public decimal DeliveryFee { get; set; }
   }
 
   public class CheckoutResponseDto
@@ -32,5 +33,6 @@ namespace KioskAPI.Dtos
     public decimal TotalAmount { get; set; }
     public string DeliveryMethod { get; set; }
     public string Message { get; set; } = string.Empty;
+    public decimal DeliveryFee { get; set; }
   }
 }

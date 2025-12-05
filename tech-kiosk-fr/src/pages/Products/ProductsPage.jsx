@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./ProductsPage.css";
 import NavBar from "../../components/Navbar";
 
-const PRODUCTS_API = "https://localhost:5016/api/product"; 
+const PRODUCTS_API = "https://localhost:5016/api/product";
 const PLACEHOLDER =
   "https://via.placeholder.com/600x600.png?text=No+Image";
 
@@ -118,10 +118,30 @@ export default function ProductsPage({ onAddToCart }) {
           {/* MAIN */}
           <main className="vp-main">
 
+            {/* FUTURISTIC HERO */}
+            <section className="vp-hero">
+              <div className="vp-hero-glow"></div>
+
+              <h1 className="vp-hero-title">
+                Explore the Future of Robotics
+              </h1>
+
+              <p className="vp-hero-subtitle">
+                Smart machines. Intelligent accessories. Designed to enhance your world.
+              </p>
+
+              <div className="vp-hero-floating">
+                <div className="float-shape fs1"></div>
+                <div className="float-shape fs2"></div>
+                <div className="float-shape fs3"></div>
+              </div>
+            </section>
+
+
             {/* Top bar */}
             <div className="vp-topbar">
               <div className="vp-top-left">
-            
+
 
                 <div className="vp-search-wrap">
                   <input

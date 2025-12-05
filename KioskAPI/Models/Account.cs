@@ -12,7 +12,7 @@ namespace KioskAPI.Models
 
     [ForeignKey(nameof(User))]
     public int UserId { get; set; } // might change to identity user.id
-    public User? User { get; set; }
+    public User User { get; set; }
 
     [Column(TypeName = "decimal(18,2)")]
     public decimal Balance { get; set; } = 0m;
