@@ -186,6 +186,31 @@ export default function ProductsPage({ onAddToCart }) {
               ))}
             </div>
 
+            {/* FILTER & SORT BAR */}
+<div className="vp-filter-sort">
+  <div className="vp-filter-group">
+    <label>Max Price:</label>
+    <input
+      type="number"
+      placeholder="R Max"
+      value={priceMax}
+      onChange={(e) => setPriceMax(e.target.value)}
+    />
+  </div>
+
+        <div className="vp-filter-group">
+          <label>Sort By:</label>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="featured">Featured</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+          </select>
+        </div>
+      </div>
+
             {/* GRID */}
             <section className="vp-grid">
               {loading ? (

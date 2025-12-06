@@ -1,114 +1,185 @@
+/* ============ MAIN PAGE CONTAINER ============ */
 .checkout-page {
   max-width: 900px;
-  margin: 40px auto;
-  background: rgba(255, 255, 255, 0.65);
-  padding: 30px;
-  border-radius: 22px;
-  box-shadow: 0 8px 30px rgba(10, 20, 20, 0.08);
-  backdrop-filter: blur(10px);
+  margin: 120px auto;
+  padding: 20px;
+  color: #dfffe9;
   font-family: "Poppins", sans-serif;
+  animation: fadeIn 0.5s ease;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ PAGE TITLE ============ */
 .checkout-page h2 {
-  font-size: 26px;
-  color: #0a2c19;
-  margin-bottom: 20px;
+  text-align: center;
+  font-size: 38px;
+  font-weight: 700;
+  margin-bottom: 40px;
+  background: linear-gradient(90deg, #00ffe7, #7dffa5, #d7ff8f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.checkout-page p {
+/* ============ BACK BUTTON ============ */
+.checkout-back-btn {
+  margin: 0 0 20px 0;
+  padding: 10px 22px;
   font-size: 16px;
-  margin-bottom: 6px;
-  color: #374b41;
+  background: transparent;
+  border: 1px solid rgba(0, 255, 200, 0.4);
+  color: #8dffd2;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  position: relative;
+  bottom: 200px;
 }
 
+.back-btn:hover {
+  background: rgba(0, 255, 200, 0.15);
+  transform: translateX(-5px);
+}
+
+/* ============ BASIC TEXT ============ */
+.checkout-page p {
+  font-size: 18px;
+  margin: 8px 0;
+  color: #bfffe0;
+}
+
+/* ============ ITEMS LIST TITLE ============ */
+.checkout-page h3 {
+  margin-top: 40px;
+  font-size: 26px;
+  font-weight: 600;
+  color: #89ffd0;
+}
+
+/* ============ INDIVIDUAL ITEM ROW ============ */
 .checkout-item {
   display: flex;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.85);
-  padding: 14px 18px;
-  border-radius: 14px;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 15px rgba(10, 20, 10, 0.05);
+  padding: 12px 5px;
+  border-bottom: 1px solid rgba(0, 255, 150, 0.15);
+  font-size: 18px;
+  color: #e8fff2;
 }
 
+.checkout-item:last-child {
+  border-bottom: none;
+}
+
+/* ============ CONFIRM CHECKOUT BUTTON ============ */
 .confirm-btn {
+  display: block;
   width: 100%;
-  margin-top: 25px;
-  padding: 14px;
-  background: linear-gradient(135deg, #1f6042, #0e3b26);
-  color: white;
+  margin: 35px 0 0 0;
+  padding: 16px;
+  background: linear-gradient(90deg, #00ffe7, #7dffa5);
   border: none;
-  border-radius: 16px;
+  border-radius: 12px;
   font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.2s ease;
+  color: #000;
 }
 
 .confirm-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(16, 32, 22, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.4);
 }
 
-/* ------ Top-Up Modal ------ */
-
+/* ============ TOPUP MODAL BACKDROP ============ */
 .topup-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(10, 20, 20, 0.45);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(4px);
-  z-index: 50;
 }
 
+/* ============ TOPUP BOX ============ */
 .topup-box {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 255, 170, 0.25);
+  box-shadow: 0 0 20px rgba(0, 255, 170, 0.2);
   padding: 30px;
-  width: 360px;
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(10, 20, 20, 0.15);
-  animation: fadeIn 0.3s ease;
+  border-radius: 16px;
+  text-align: center;
+  width: 350px;
+  animation: popIn 0.3s ease;
 }
 
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ============ TOPUP BOX TITLE ============ */
 .topup-box h3 {
-  margin-bottom: 12px;
-  color: #0a2c19;
+  color: #94ffd4;
+  margin-bottom: 20px;
+  font-size: 24px;
 }
 
+/* ============ INPUT FIELD ============ */
 .topup-box input {
   width: 100%;
   padding: 12px;
+  margin-bottom: 18px;
   border-radius: 10px;
-  border: 1px solid rgba(50, 75, 60, 0.25);
-  margin-bottom: 15px;
-  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 255, 150, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #dfffe9;
+  font-size: 16px;
+  outline: none;
+  transition: 0.2s ease;
 }
 
+.topup-box input:focus {
+  border-color: #00ffcc;
+  box-shadow: 0 0 10px rgba(0, 255, 150, 0.3);
+}
+
+/* ============ MODAL BUTTONS ============ */
 .topup-box button {
   width: 100%;
   padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s ease;
+}
+
+/* Add funds button */
+.topup-box button:first-of-type {
+  background: linear-gradient(90deg, #00ffe7, #7dffa5);
   font-weight: 600;
 }
 
-.topup-box button:first-of-type {
-  background: linear-gradient(135deg, #3fba6f, #277e49);
-  color: white;
+.topup-box button:first-of-type:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
 }
 
+/* Cancel button */
 .topup-box button:last-of-type {
-  background: #ececec;
-  color: #333;
+  background: rgba(255, 255, 255, 0.1);
+  color: #bafee0;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.topup-box button:last-of-type:hover {
+  background: rgba(255, 255, 255, 0.18);
 }

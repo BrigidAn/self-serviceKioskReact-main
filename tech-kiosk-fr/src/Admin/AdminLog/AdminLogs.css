@@ -1,0 +1,82 @@
+/* Page Title */
+h1 {
+  font-size: 32px;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #4ec9ff, #00bfff);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.filter-buttons button:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+/* Logs List */
+.logs-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Individual Log Cards */
+.log-item {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  padding: 20px;
+  border-radius: 16px;
+  transition: transform 0.25s, box-shadow 0.25s;
+  color: #fff;
+}
+
+.log-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.log-item p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+/* Highlighted text */
+.log-item strong {
+  color: #7dd3fc;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logs-list {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-buttons {
+    justify-content: flex-start;
+  }
+
+  .filter-buttons button {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .log-item p {
+    font-size: 13px;
+  }
+}

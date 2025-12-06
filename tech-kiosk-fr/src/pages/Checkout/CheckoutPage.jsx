@@ -39,7 +39,7 @@ export default function CheckoutPage() {
     localStorage.removeItem("cart");
 
     alert("✅ Purchase successful!");
-    navigate("/history");
+    navigate("/orders");
   };
 
   const handleTopup = () => {
@@ -68,7 +68,7 @@ export default function CheckoutPage() {
     <div className="checkout-page">
       <h2>Checkout</h2>
 
-           <button className="back-btn" onClick={() => navigate("/cart")}>
+           <button className="checkout-back-btn" onClick={() => navigate("/cart")}>
           ← Back
         </button>
 

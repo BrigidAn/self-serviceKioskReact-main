@@ -2,7 +2,7 @@
 .acc-container {
   min-height: 100vh;
   padding: 40px;
-  background: radial-gradient(circle at top, #0d1b2a, #000814);
+  background: radial-gradient(circle at top, #4c7182, #5a757f, #8cb2c3);
   color: #d6e8ff;
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
 .acc-card {
   width: 90%;
   max-width: 600px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(221, 212, 212, 0.05);
   border: 1px solid rgba(0, 255, 247, 0.2);
   padding: 25px;
   border-radius: 18px;

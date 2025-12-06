@@ -18,6 +18,10 @@ function TransactionsPage() {
 
   return (
     <div className="tx-container">
+       <button className="tx-back-btn" onClick={() => window.history.back()}>
+          ← Back
+        </button>
+
       <h1 className="tx-title">Transaction History</h1>
       <p className="tx-sub">View all your purchases & top-ups</p>
 

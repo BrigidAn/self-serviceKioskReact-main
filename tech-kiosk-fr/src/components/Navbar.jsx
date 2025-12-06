@@ -18,7 +18,7 @@ export default function NavBar({ cartCount = 0 }) {
       <div className="nav-shell">
 
         {/* LOGO */}
-        <Link to="/" className="nav-logo">
+        <Link to="/landing" className="nav-logo">
           Tech<span className="highlight">Shack</span>
         </Link>
 

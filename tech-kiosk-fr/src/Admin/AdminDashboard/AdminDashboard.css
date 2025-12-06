@@ -1,0 +1,62 @@
+/* Page Title */
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+
+/* Stats Container */
+.admin-stats {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+/* Stat Card */
+.stat-card {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 25px 30px;
+  width: 260px;
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  transition: 0.25s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+/* Hover effect */
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* Headings */
+.stat-card h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+/* Numbers */
+.stat-card p {
+  font-size: 32px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-stats {
+    flex-direction: column;
+  }
+
+  .stat-card {
+    width: 100%;
+  }
+}

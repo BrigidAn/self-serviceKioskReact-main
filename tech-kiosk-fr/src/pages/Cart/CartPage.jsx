@@ -1,13 +1,18 @@
 import React from "react";
 import NavBar from "../../components/Navbar";
 import "./CartPage.css";
+import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
   const items = JSON.parse(localStorage.getItem("cart") || "[]");
-
+const navigate = useNavigate();
   return (
     <div>
       <NavBar cartCount={items.length} />
+      
+ <button className="back-btn" onClick={() => navigate("/products")}>
+        ← Back
+      </button>
 
       <div className="velvety-cart-page">
         <h2>Shopping Cart</h2>

@@ -1,7 +1,6 @@
 import React from "react";
 import "./HistoryPage.css";
-import NavBar from "../../components/Navbar";
-import { useNavigate } from "react-router-dom"; // <-- useNavigate instead of useNavigation
+import { useNavigate } from "react-router-dom"; 
 
 function HistoryPage() {
   const orders = JSON.parse(localStorage.getItem("orders") || "[]");
@@ -9,7 +8,6 @@ function HistoryPage() {
 
   return (
     <div className="history-page">
-      <NavBar />
       <button className="back-btn" onClick={() => navigate("/products")}>
         ← Back
       </button>

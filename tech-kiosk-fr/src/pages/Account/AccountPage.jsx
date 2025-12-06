@@ -15,6 +15,9 @@ function AccountsPage() {
 
   return (
     <div className="acc-container">
+      <button className="back-btn" onClick={() => window.history.back()}>
+          ← Back
+        </button>
       {/* Header */}
       <h1 className="acc-title">My Account</h1>
       <p className="acc-sub">Manage your balance and account actions</p>
