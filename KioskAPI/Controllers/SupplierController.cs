@@ -3,11 +3,13 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
   [ApiController]
   [Route("api/[controller]")]
+  
   public class SupplierController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -57,6 +59,7 @@ namespace KioskAPI.Controllers
 
     // POST: api/supplier
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddSupplier([FromBody] SupplierCreateDto dto)
     {
       if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
@@ -78,6 +81,7 @@ namespace KioskAPI.Controllers
 
     // PUT: api/supplier/{id}
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateSupplier(int id, [FromBody] SupplierUpdateDto dto)
     {
       var supplier = await this._context.Suppliers.FindAsync(id).ConfigureAwait(true);
@@ -95,6 +99,7 @@ namespace KioskAPI.Controllers
 
     // DELETE: api/supplier/{id}
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteSupplier(int id)
     {
       var supplier = await this._context.Suppliers.FindAsync(id).ConfigureAwait(true);

@@ -34,7 +34,7 @@ namespace KioskAPI.Controllers
     [FromQuery] string sortBy = "CreatedAt",
     [FromQuery] string sortOrder = "desc")
     {
-      var query = _usermanager.Users.AsQueryable();
+      var query = this._usermanager.Users.AsQueryable();
 
       // SEARCH
       if (!string.IsNullOrEmpty(search))
@@ -62,7 +62,7 @@ namespace KioskAPI.Controllers
       var userRolesList = new List<object>();
       foreach (var u in users)
       {
-        var roles = await _usermanager.GetRolesAsync(u); // List<string>
+        var roles = await this._usermanager.GetRolesAsync(u); // List<string>
         userRolesList.Add(new
         {
           u.Id,

@@ -7,89 +7,64 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
+  using System.Security.Claims;
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize] // 🔐 All endpoints now require JWT
   public class OrderItemController : ControllerBase
   {
     private readonly AppDbContext _context;
-    private const int CART_TIMEOUT_HOURS = 10;
 
     public OrderItemController(AppDbContext context)
     {
       this._context = context;
     }
 
-    // Helper: Remove expired items AND restore stock
-    private async Task RemoveExpiredItems(int orderId)
+    // Helper: Get userId from JWT
+    private int GetUserIdFromToken()
     {
-      var expiredItems = await this._context.OrderItems
-          .Where(i => i.OrderId == orderId && i.ExpiresAt < DateTime.UtcNow)
-          .ToListAsync().ConfigureAwait(true);
-
-      if (!expiredItems.Any())
-      {
-        return;
-      }
-
-      foreach (var item in expiredItems)
-      {
-        var product = await this._context.Products.FindAsync(item.ProductId).ConfigureAwait(true);
-
-        if (product != null)
-        {
-          // Restore stock
-          product.Quantity += item.Quantity;
-        }
-      }
-
-      // Remove expired items
-      this._context.OrderItems.RemoveRange(expiredItems);
-
-      // Update order total
-      var order = await this._context.Orders
-          .Include(o => o.OrderItems)
-          .FirstOrDefaultAsync(o => o.OrderId == orderId).ConfigureAwait(true);
-
-      if (order != null)
-      {
-        order.TotalAmount = order.OrderItems
-            .Where(i => i.ExpiresAt > DateTime.UtcNow)
-            .Sum(i => i.Quantity * i.PriceAtPurchase);
-      }
-
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      var id = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+      return id != null ? int.Parse(id) : 0;
     }
 
-    // GET all order items (admin)
+    // GET ALL order items (ADMIN ONLY)
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllOrderItems()
     {
       var items = await this._context.OrderItems
           .Include(oi => oi.Product)
           .ToListAsync().ConfigureAwait(true);
 
-      return this.Ok(items.Select(OrderItemMapper.ToDto).ToList());
+      return this.Ok(items.Select(OrderItemMapper.ToDto));
     }
 
-    // GET items for a specific order
+    // GET items for a SPECIFIC ORDER
+    // Only Admin OR the owner of the order can access
     [HttpGet("order/{orderId}")]
     public async Task<IActionResult> GetItemsByOrder(int orderId)
     {
-      // Auto-delete expired items
-      await this.RemoveExpiredItems(orderId).ConfigureAwait(true);
+      var order = await this._context.Orders
+          .Include(o => o.OrderItems)
+          .ThenInclude(oi => oi.Product)
+          .FirstOrDefaultAsync(o => o.OrderId == orderId).ConfigureAwait(true);
 
-      var items = await this._context.OrderItems
-          .Include(oi => oi.Product)
-          .Where(oi => oi.OrderId == orderId)
-          .ToListAsync().ConfigureAwait(true);
-
-      if (!items.Any())
+      if (order == null)
       {
-        return this.NotFound(new { message = "No items found for this order." });
+        return this.NotFound(new { message = "Order not found." });
       }
 
-      var itemsDto = items.Select(OrderItemMapper.ToDto).ToList();
+      // 🔐 Ensure user owns the order OR is Admin
+      var currentUserId = this.GetUserIdFromToken();
+      var isAdmin = this.User.IsInRole("Admin");
+
+      if (order.UserId != currentUserId && !isAdmin)
+      {
+        return this.Unauthorized(new { message = "You do not have access to this order." });
+      }
+
+      var itemsDto = order.OrderItems.Select(OrderItemMapper.ToDto).ToList();
 
       return this.Ok(new
       {
@@ -99,9 +74,10 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // POST add item to order
+    // ADD order item to an existing order
+    // Only Admin OR Order Owner
     [HttpPost("{orderId}")]
-    public async Task<IActionResult> AddOrderItem(int orderId, [FromBody] CreateOrderItemDto newItemDto)
+    public async Task<IActionResult> AddOrderItem(int orderId, [FromBody] CreateOrderItemDto dto)
     {
       if (!this.ModelState.IsValid)
       {
@@ -117,47 +93,53 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Order not found." });
       }
 
-      var product = await this._context.Products.FindAsync(newItemDto.ProductId).ConfigureAwait(true);
+      // 🔐 Only order owner or Admin may modify
+      var currentUserId = this.GetUserIdFromToken();
+      var isAdmin = this.User.IsInRole("Admin");
 
+      if (order.UserId != currentUserId && !isAdmin)
+      {
+        return this.Unauthorized(new { message = "Not allowed to modify this order." });
+      }
+
+      var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
       if (product == null)
       {
         return this.NotFound(new { message = "Product not found." });
       }
 
-      if (product.Quantity < newItemDto.Quantity)
+      if (product.Quantity < dto.Quantity)
       {
         return this.BadRequest(new { message = $"Not enough stock for {product.Name}." });
       }
 
-      // Reduce inventory
-      product.Quantity -= newItemDto.Quantity;
+      // Deduct stock
+      product.Quantity -= dto.Quantity;
 
-      var orderItem = OrderItemMapper.ToEntity(newItemDto);
-
+      var orderItem = OrderItemMapper.ToEntity(dto);
       orderItem.OrderId = orderId;
       orderItem.PriceAtPurchase = product.Price;
-      orderItem.AddedAt = DateTime.UtcNow;
-      orderItem.ExpiresAt = DateTime.UtcNow.AddMinutes(CART_TIMEOUT_HOURS);
 
       this._context.OrderItems.Add(orderItem);
 
       // Update order total
-      order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.PriceAtPurchase)
-                         + (newItemDto.Quantity * product.Price);
+      order.TotalAmount = order.OrderItems
+          .Sum(i => i.Quantity * i.PriceAtPurchase)
+          + (dto.Quantity * product.Price);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
       return this.Ok(new
       {
-        message = "Item added successfully.",
+        message = "Item added to order.",
         item = OrderItemMapper.ToDto(orderItem),
         order.TotalAmount
       });
     }
 
-    // DELETE order item (admin)
-    [Authorize(Roles = "Admin")]
+    // DELETE item from order (Admin only)
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteOrderItem(int id)
     {
       var orderItem = await this._context.OrderItems.FindAsync(id).ConfigureAwait(true);
@@ -179,6 +161,7 @@ namespace KioskAPI.Controllers
 
       this._context.OrderItems.Remove(orderItem);
 
+      // Recalculate order total
       if (order != null)
       {
         order.TotalAmount = order.OrderItems
@@ -188,7 +171,7 @@ namespace KioskAPI.Controllers
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      return this.Ok(new { message = "Order item deleted, stock restored, and total updated." });
+      return this.Ok(new { message = "Order item deleted and stock restored." });
     }
   }
 }

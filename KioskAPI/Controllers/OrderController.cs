@@ -7,6 +7,8 @@ namespace KioskAPI.Controllers
   using KioskAPI.Dtos;
   using Microsoft.AspNetCore.Authorization;
   using KioskAPI.Mappers;
+  using Microsoft.Extensions.Configuration.UserSecrets;
+  using System.Security.Claims;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -20,6 +22,7 @@ namespace KioskAPI.Controllers
     }
 
     // GET all orders
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
     {
@@ -45,6 +48,22 @@ namespace KioskAPI.Controllers
       {
         return this.NotFound(new { message = "No orders found for this user." });
       }
+
+      return this.Ok(orders.Select(OrderMapper.ToDto));
+    }
+
+    //logged-in user's own orders
+    [Authorize]
+    [HttpGet("myOrders")]
+    public async Task<IActionResult> GetMyOrders()
+    {
+      var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+      var orders = await this._context.Orders
+          .Include(o => o.OrderItems)
+              .ThenInclude(i => i.Product)
+          .Where(o => o.UserId == userId)
+          .ToListAsync().ConfigureAwait(true);
 
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }

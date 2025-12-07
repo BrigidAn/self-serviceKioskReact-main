@@ -5,9 +5,12 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
+  using System.Security.Claims;
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize]
   public class CheckoutController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -17,9 +20,21 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
+    private int GetIdentityUserId()
+    {
+      var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+      return claim != null ? int.Parse(claim.Value) : 0;
+    }
+
     [HttpPost]
     public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
     {
+      int userId = this.GetIdentityUserId();
+      if (userId == 0)
+      {
+        return this.Unauthorized(new { message = "Invalid or expired tokens" });
+      }
+
       using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
 
       var cart = await this._context.Carts
@@ -30,6 +45,11 @@ namespace KioskAPI.Controllers
       if (cart == null || !cart.CartItems.Any())
       {
         return this.BadRequest(new { message = "Cart is empty or not found" });
+      }
+
+      if (cart.ExpiresAt < DateTime.UtcNow)
+      {
+        return this.BadRequest(new { message = "Cart expired. Please add items again." });
       }
 
       decimal itemsTotal = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity);

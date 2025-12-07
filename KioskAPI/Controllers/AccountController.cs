@@ -60,7 +60,7 @@ namespace KioskAPI.Controllers
         return this.Unauthorized(new { message = "You are not logged in" });
       }
 
-       if (request.Amount > 1500)
+      if (request.Amount > 1500)
       {
         return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
       }

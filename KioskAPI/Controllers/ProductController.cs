@@ -7,6 +7,7 @@ namespace KioskAPI.Controllers
   using KioskAPI.Mappers;
   using KioskAPI.Models;
   using KioskAPI.Services;
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
@@ -58,6 +59,7 @@ namespace KioskAPI.Controllers
 
     // ADD NEW PRODUCT (ADMIN)
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddProduct([FromBody] CreateProductDto dto)
     {
       if (!this.ModelState.IsValid)
@@ -93,6 +95,7 @@ namespace KioskAPI.Controllers
 
     // UPDATE PRODUCT (ADMIN)
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
     {
       if (!this.ModelState.IsValid)
@@ -121,6 +124,7 @@ namespace KioskAPI.Controllers
 
     // DELETE PRODUCT (ADMIN)
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
       var product = await this._context.Products.FindAsync(id).ConfigureAwait(true);

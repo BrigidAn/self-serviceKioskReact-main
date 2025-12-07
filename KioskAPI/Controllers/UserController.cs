@@ -6,11 +6,14 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
+  using System.Security.Claims;
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize] // All endpoints require authentication
   public class UserController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -20,17 +23,21 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // Get user profile by Identity Id
-    [HttpGet("profile/{id}")]
-    public async Task<IActionResult> GetUserProfile(int id)
+    // Helper: get current user's ID from JWT
+    private int GetJwtUserId()
     {
-      var user = await this._context.Users
-          .FirstOrDefaultAsync(u => u.Id == id)
-          .ConfigureAwait(true);
+      return int.Parse(this.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+    }
 
+    // GET: /api/user/profile
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+      int userId = this.GetJwtUserId();
+      var user = await this._context.Users.FindAsync(userId).ConfigureAwait(true);
       if (user == null)
       {
-        return this.NotFound(new { message = "User not found" });
+        return this.NotFound(new { message = "User not found." });
       }
 
       return this.Ok(new
@@ -42,19 +49,19 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // Get account details by Identity Id
-    [HttpGet("account/{id}")]
-    public async Task<IActionResult> GetAccountDetails(int id)
+    // GET: /api/user/account
+    [HttpGet("account")]
+    public async Task<IActionResult> GetAccount()
     {
+      int userId = this.GetJwtUserId();
       var account = await this._context.Accounts
           .Include(a => a.Transactions)
           .Include(a => a.User)
-          .FirstOrDefaultAsync(a => a.User.Id == id)
-          .ConfigureAwait(true);
+          .FirstOrDefaultAsync(a => a.User.Id == userId).ConfigureAwait(true);
 
       if (account == null)
       {
-        return this.NotFound(new { message = "Account not found" });
+        return this.NotFound(new { message = "Account not found." });
       }
 
       return this.Ok(new
@@ -73,19 +80,19 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // Top-up balance using Identity Id
+    // POST: /api/user/account/topup
     [HttpPost("account/topup")]
-    public async Task<IActionResult> TopUpBalance([FromBody] TopUpDto data)
+    public async Task<IActionResult> TopUp([FromBody] TopUpDto data)
     {
       if (data.Amount <= 0)
       {
         return this.BadRequest(new { message = "Amount must be greater than zero." });
       }
 
+      int userId = this.GetJwtUserId();
       var account = await this._context.Accounts
           .Include(a => a.User)
-          .FirstOrDefaultAsync(a => a.User.Id == data.Id)
-          .ConfigureAwait(true);
+          .FirstOrDefaultAsync(a => a.User.Id == userId).ConfigureAwait(true);
 
       if (account == null)
       {
@@ -112,67 +119,58 @@ namespace KioskAPI.Controllers
       this._context.Transactions.Add(transaction);
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
+      return this.Ok(new { message = "Balance topped up successfully", balance = account.Balance });
+    }
+
+    // ADMIN: Get any user's profile by userId
+    [HttpGet("profile/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetUserProfileAdmin(int id)
+    {
+      var user = await this._context.Users.FindAsync(id).ConfigureAwait(true);
+      if (user == null)
+      {
+        return this.NotFound(new { message = "User not found." });
+      }
+
       return this.Ok(new
       {
-        message = "Balance topped up successfully",
-        balance = account.Balance
+        user.Id,
+        user.Name,
+        user.Email,
+        user.CreatedAt
       });
     }
 
-    // Get orders by Identity Id
-    [HttpGet("orders/{id}")]
-    public async Task<IActionResult> GetUserOrders(int id)
-    {
-      var orders = await this._context.Orders
-          .Include(o => o.OrderItems)
-          .Include(o => o.User)
-          .Where(o => o.User.Id == id)
-          .Select(o => new
-          {
-            o.OrderId,
-            o.OrderDate,
-            o.TotalAmount,
-            o.Status,
-            o.PaymentStatus,
-            Items = o.OrderItems.Select(i => new
-            {
-              i.ProductId,
-              i.Quantity,
-              i.PriceAtPurchase
-            })
-          })
-          .ToListAsync()
-          .ConfigureAwait(true);
-
-      if (!orders.Any())
-      {
-        return this.NotFound(new { message = "No orders found for this user" });
-      }
-
-      return this.Ok(orders);
-    }
-
-    // Get transaction history by Identity Id
-    [HttpGet("account/{id}/transactions")]
-    public async Task<IActionResult> GetTransactionHistory(int id)
+    // ADMIN: Get any user's account by userId
+    [HttpGet("account/{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAccountAdmin(int id)
     {
       var account = await this._context.Accounts
+          .Include(a => a.Transactions)
           .Include(a => a.User)
-          .FirstOrDefaultAsync(a => a.User.Id == id)
-          .ConfigureAwait(true);
+          .FirstOrDefaultAsync(a => a.User.Id == id).ConfigureAwait(true);
 
       if (account == null)
       {
         return this.NotFound(new { message = "Account not found." });
       }
 
-      var transactions = await this._context.Transactions
-          .Where(t => t.AccountId == account.AccountId)
-          .OrderByDescending(t => t.CreatedAt)
-          .ToListAsync()
-          .ConfigureAwait(true);
-
-      return this.Ok(transactions);
+      return this.Ok(new
+      {
+        account.AccountId,
+        account.Balance,
+        account.LastUpdated,
+        Transactions = account.Transactions.Select(t => new
+        {
+          t.TransactionId,
+          t.Type,
+          t.TotalAmount,
+          t.Description,
+          t.CreatedAt
+        })
+      });
     }
   }
 }

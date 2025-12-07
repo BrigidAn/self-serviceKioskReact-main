@@ -11,6 +11,8 @@ namespace KioskAPI.Models
     public int UserId { get; set; }               // Identity User int ID
     public User? User { get; set; }   // Navigation property
     public bool IsCheckedOut { get; set; } = false;
+    public DateTime? ExpiresAt { get; set; }
+
     public ICollection<CartItem> CartItems { get; set; }
   }
 }

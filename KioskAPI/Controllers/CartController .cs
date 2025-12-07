@@ -6,6 +6,7 @@ namespace KioskAPI.Controllers
   using KioskAPI.Dtos;
   using KioskAPI.Models;
   using Microsoft.AspNetCore.Authorization;
+  using System.Security.Claims;
 
   [ApiController]
   [Route("api/[controller]")]
@@ -19,14 +20,36 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // GET current cart
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetCart(int userId)
+    //Get userId from the Jwt token
+    private int GetIdentityUserId()
     {
+      var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+      return claim != null ? int.Parse(claim.Value) : 0;
+    }
+    // GET current cart
+    [HttpGet]
+    public async Task<IActionResult> GetCart()
+    {
+      int userId = this.GetIdentityUserId();
+      if (userId == 0)
+      {
+        return this.Unauthorized();
+      }
+
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
           .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+
+      // ========== CART EXPIRED? ==========
+      if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
+      {
+        this._context.CartItems.RemoveRange(cart.CartItems);
+        this._context.Carts.Remove(cart);
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+        return this.NotFound(new { message = "Cart expired and was cleared" });
+      }
 
       if (cart == null)
       {
@@ -45,7 +68,8 @@ namespace KioskAPI.Controllers
           UnitPrice = ci.UnitPrice,
           Quantity = ci.Quantity
         }).ToList(),
-        TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity)
+        TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity),
+        ExpiresAt = cart.ExpiresAt
       };
 
       return this.Ok(cartDto);
@@ -55,6 +79,12 @@ namespace KioskAPI.Controllers
     [HttpPost("add")]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDto dto)
     {
+      int userId = this.GetIdentityUserId();
+      if (userId == 0)
+      {
+        return this.Unauthorized();
+      }
+
       var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
       if (product == null)
       {
@@ -77,6 +107,32 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
       }
 
+      // ========== CART EXPIRED? ==========
+      if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
+      {
+        this._context.CartItems.RemoveRange(cart.CartItems);
+        this._context.Carts.Remove(cart);
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+        cart = null; // recreate below
+      }
+
+      if (cart == null)
+      {
+        cart = new Cart
+        {
+          UserId = userId,
+          ExpiresAt = DateTime.UtcNow.AddMinutes(15) // NEW
+        };
+        this._context.Carts.Add(cart);
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
+      }
+      else
+      {
+        // Extend timer on every add
+        cart.ExpiresAt = DateTime.UtcNow.AddMinutes(15);
+      }
+
       var cartItem = new CartItem
       {
         CartId = cart.CartId,
@@ -97,6 +153,7 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Item added to cart" });
     }
 
+    //api/cart/item/{itemId}
     [HttpPost("item/{itemId}")]
     public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
 
@@ -118,6 +175,7 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Quantity updated." });
     }
 
+    //cart/item/{itemId}
     [HttpDelete("item/{itemId}")]
     public async Task<IActionResult> RemoveItem(int itemId)
     {

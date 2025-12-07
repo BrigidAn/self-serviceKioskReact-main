@@ -6,6 +6,7 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,7 @@ namespace KioskAPI.Controllers
 
     // ADMIN: Get ALL transactions
     [HttpGet]
-    //[Authorize("Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllTransactions()
     {
       var transactions = await this._context.Transactions
@@ -45,6 +46,7 @@ namespace KioskAPI.Controllers
 
     // USER: Get transactions for specific Identity User Id
     [HttpGet("user/{id}")]
+    [Authorize]
     public async Task<IActionResult> GetUserTransactions(int id)
     {
       var user = await this._context.Users
@@ -137,6 +139,7 @@ namespace KioskAPI.Controllers
 
     //Delete Transaction (and reverse balance)
     [HttpDelete("{transactionId}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteTransaction(int transactionId)
     {
       var transaction = await this._context.Transactions.FindAsync(transactionId).ConfigureAwait(true);
