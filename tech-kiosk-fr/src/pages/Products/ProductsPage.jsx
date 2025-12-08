@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./ProductsPage.css";
 import NavBar from "../../components/Navbar";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const PRODUCTS_API = "https://localhost:5016/api/product";
-const PLACEHOLDER =
-  "https://via.placeholder.com/600x600.png?text=No+Image";
+const PLACEHOLDER = "https://via.placeholder.com/600x600.png?text=No+Image";
+const CART_API = "https://localhost:5016/api/cart";
 
-export default function ProductsPage({ onAddToCart }) {
+export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cartCount, setCartCount] = useState(0);
 
   // UI state
   const [searchText, setSearchText] = useState("");
@@ -18,36 +21,54 @@ export default function ProductsPage({ onAddToCart }) {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 5;
 
+  const token = localStorage.getItem("token");
   // Fetch products
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
-    fetch(PRODUCTS_API)
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(PRODUCTS_API);
+        const data = await res.json();
+
         if (!mounted) return;
-        const normalized = (data || []).map((p, i) => ({
-          id: p.id ?? p._id ?? i,
-          name: p.name ?? "Unnamed product",
-          price: typeof p.price === "number" ? p.price : Number(p.price) || 0,
-          category: p.category ?? "Uncategorized",
-          imageUrl: p.imageUrl ?? p.image ?? "",
-          description: p.description ?? "",
-          quantity: typeof p.quantity === "number" ? p.quantity : p.qty ?? 1,
-        }));
-        setProducts(normalized);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch products:", err);
-        setProducts([]);
-      })
-      .finally(() => setLoading(false));
-    return () => {
-      mounted = false;
+
+      const availableProducts = (data || [])
+      .filter(p => (typeof p.quantity === "number" ? p.quantity : Number(p.qty)) > 0)
+      .map(p => ({
+        id: p.id ?? p._id ?? p.productId, // <--- make sure this matches backend
+        name: p.name ?? "Unnamed product",
+        price: Number(p.price) || 0,
+        category: p.category ?? "Uncategorized",
+        imageUrl: p.imageUrl ?? p.image ?? "",
+        description: p.description ?? "",
+        quantity: typeof p.quantity === "number" ? p.quantity : p.qty ?? 1,
+      }));
+
+
+      setProducts(availableProducts);
+
+        // Fetch cart to get count
+        const cartRes = await fetch(CART_API, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (cartRes.ok) {
+          const cartData = await cartRes.json();
+          setCartCount(cartData.items?.length || 0);
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to fetch products or cart");
+      } finally {
+        setLoading(false);
+      }
     };
-  }, []);
+
+    fetchProducts();
+    return () => { mounted = false; };
+  }, [token]);
 
   // Categories
   const categories = useMemo(() => {
@@ -97,10 +118,37 @@ export default function ProductsPage({ onAddToCart }) {
   const paginated = filtered.slice(start, start + itemsPerPage);
 
   // Add to cart
-  const handleAdd = (product) => {
-    if (onAddToCart) onAddToCart(product);
-    else alert(`${product.name} added to cart`);
+ const handleAdd = async (product) => {
+    try {
+      const res = await fetch(`${CART_API}/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ productId: product.id, quantity: 1 }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to add item to cart");
+      }
+
+      // Decrease quantity in frontend
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, quantity: p.quantity - 1 } : p
+        )
+      );
+
+      setCartCount((c) => c + 1);
+      toast.success(`${product.name} added to cart`);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    }
   };
+
 
   // Image fallback
   const handleImgError = (e) => {
@@ -109,7 +157,7 @@ export default function ProductsPage({ onAddToCart }) {
 
   return (
     <>
-      <NavBar />
+      <NavBar cartCount={cartCount} />
 
       <div className="velvety-products-page">
         <div className="vp-container">

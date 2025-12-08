@@ -11,8 +11,7 @@ namespace KioskAPI.Dtos
     public DateTime? ExpiresAt { get; set; }
   }
   public class AddToCartDto
-  {
-    public int UserId { get; set; }      // int ID
+  {// int ID
     public int ProductId { get; set; }
     public int Quantity { get; set; } = 1;
     public DateTime? ExpiresAt { get; set; }

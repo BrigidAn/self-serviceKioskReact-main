@@ -104,7 +104,7 @@
   cursor: pointer;
   transition: 0.3s ease;
   position: relative;
-  left: 20px;
+  left: 120px;
 }
 
 .auth-btn:hover {

@@ -9,7 +9,6 @@ namespace KioskAPI.Dtos
     public int CartId { get; set; }
     public Cart Cart { get; set; }
 
-    public int UserId { get; set; }
     public User User { get; set; }
     public decimal TotalAmount { get; set; }
     public string DeliveryMethod { get; set; } // "Collection" | "Delivery"
@@ -21,7 +20,6 @@ namespace KioskAPI.Dtos
 
   public class CheckoutRequestDto
   {
-    public int UserId { get; set; }
     [Required]
     public string DeliveryMethod { get; set; }  // "Collection" or "Delivery"
     public decimal DeliveryFee { get; set; }

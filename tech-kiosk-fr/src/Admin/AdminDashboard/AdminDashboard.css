@@ -1,62 +1,59 @@
-/* Page Title */
-
-h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 25px;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
-
-
-/* Stats Container */
-.admin-stats {
-  display: flex;
-  gap: 25px;
-  flex-wrap: wrap;
-}
-
-/* Stat Card */
-.stat-card {
-  background: rgba(255, 255, 255, 0.18);
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
-  border-radius: 18px;
-  padding: 25px 30px;
-  width: 260px;
-  color: #ffffff;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-  transition: 0.25s ease-in-out;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Hover effect */
-.stat-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* Headings */
-.stat-card h3 {
-  font-size: 18px;
-  margin-bottom: 10px;
-  font-weight: 500;
+/* Table styling */
+.dashboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #fff;
 }
 
-/* Numbers */
-.stat-card p {
-  font-size: 32px;
-  font-weight: 700;
-  margin-top: 5px;
+.dashboard-table th,
+.dashboard-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.dashboard-table th {
+  text-align: left;
+  font-weight: 600;
+  color: #f1f1f1;
+}
 
-/* Responsive */
-@media (max-width: 768px) {
-  .admin-stats {
-    flex-direction: column;
-  }
+.dashboard-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
 
-  .stat-card {
-    width: 100%;
-  }
+/* Buttons */
+.dashboard-btn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dashboard-btn:hover {
+  opacity: 0.85;
+}
+
+/* Scroll for tables if overflow */
+.table-container {
+  overflow-x: auto;
+}
+
+/* Toasts adjustments if needed */
+#react-hot-toast {
+  font-weight: 600;
+  font-size: 0.95rem;
 }

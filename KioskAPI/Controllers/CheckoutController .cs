@@ -40,7 +40,7 @@ namespace KioskAPI.Controllers
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
-          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
 
       if (cart == null || !cart.CartItems.Any())
       {
@@ -57,7 +57,7 @@ namespace KioskAPI.Controllers
       decimal grandTotal = itemsTotal + deliveryFee;
 
       var account = await this._context.Accounts
-          .FirstOrDefaultAsync(a => a.UserId == dto.UserId).ConfigureAwait(true);
+          .FirstOrDefaultAsync(a => a.UserId == userId).ConfigureAwait(true);
 
       if (account == null)
       {
@@ -86,7 +86,7 @@ namespace KioskAPI.Controllers
       // Create order
       var order = new Order
       {
-        UserId = dto.UserId,
+        UserId = userId,
         DeliveryFee = deliveryFee,
         TotalAmount = grandTotal,
         DeliveryMethod = dto.DeliveryMethod,

@@ -1,93 +1,52 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminLayout from "../AdminLayout";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./ManageProducts.css";
 
-export default function ManageProducts() {
-  const [products, setProducts] = useState(
-    JSON.parse(localStorage.getItem("products") || "[]")
-  );
+const API_URL = "https://localhost:5016/api/product";
 
+export default function ManageProducts() {
+  const [products, setProducts] = useState([]);
   const [form, setForm] = useState({
-    id: null,
     name: "",
     description: "",
     price: "",
     category: "",
-    image: null,
-    quantity: "",
-    supplierId: "",
+    quantity: 0,
+    imageFile: null,
+    imageUrl: "",
   });
-
   const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
+  const token = localStorage.getItem("token");
 
-  const updateLocal = (list) => {
-    localStorage.setItem("products", JSON.stringify(list));
-    setProducts(list);
-  };
-
-  const submitProduct = () => {
-    if (!form.name || !form.price || !form.category || !form.image) {
-      alert("Please fill all required fields!");
-      return;
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(API_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setProducts(data.sort((a, b) => a.productId - b.productId));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to fetch products");
     }
-
-    let updated;
-    const imageUrl = imagePreview; // store base64 preview as "image URL"
-
-    if (isEditing) {
-      updated = products.map((p) =>
-        p.id === form.id
-          ? { ...form, price: Number(form.price), quantity: Number(form.quantity), imageUrl }
-          : p
-      );
-      alert("Product updated!");
-    } else {
-      updated = [
-        ...products,
-        { ...form, id: Date.now(), price: Number(form.price), quantity: Number(form.quantity), imageUrl },
-      ];
-      alert("Product added!");
-    }
-
-    updateLocal(updated);
-    resetForm();
-    setShowForm(false);
   };
 
-  const deleteProduct = (id) => {
-    const confirmed = window.confirm("Delete this product?");
-    if (!confirmed) return;
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
-    const updated = products.filter((p) => p.id !== id);
-    updateLocal(updated);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
   };
 
-  const beginEdit = (p) => {
-    setForm(p);
-    setImagePreview(p.imageUrl || null);
-    setIsEditing(true);
-    setShowForm(true);
-  };
-
-  const resetForm = () => {
-    setForm({
-      id: null,
-      name: "",
-      description: "",
-      price: "",
-      category: "",
-      image: null,
-      quantity: "",
-      supplierId: "",
-    });
-    setImagePreview(null);
-    setIsEditing(false);
-  };
-
-  // Drag & drop handlers
+  // Handle image drag/drop
   const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -101,12 +60,97 @@ export default function ManageProducts() {
 
   const previewFile = (file) => {
     if (!file) return;
-    setForm({ ...form, image: file });
+    setForm({ ...form, imageFile: file });
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-    };
+    reader.onloadend = () => setImagePreview(reader.result);
     reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name || !form.price || !form.category) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("price", form.price);
+      formData.append("category", form.category);
+      formData.append("quantity", form.quantity);
+      if (form.imageFile) formData.append("image", form.imageFile);
+      else if (form.imageUrl) formData.append("imageUrl", form.imageUrl);
+
+      const url = isEditing ? `${API_URL}/${editId}` : API_URL;
+      const method = isEditing ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Error saving product");
+
+      toast.success(isEditing ? "Product updated!" : "Product added!");
+      fetchProducts();
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    }
+  };
+
+  const handleEdit = (p) => {
+    setForm({
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      category: p.category,
+      quantity: p.quantity,
+      imageFile: null,
+      imageUrl: p.imageUrl || "",
+    });
+    setImagePreview(p.imageUrl || null);
+    setEditId(p.productId);
+    setIsEditing(true);
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const res = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to delete");
+      toast.success("Product deleted!");
+      fetchProducts();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    }
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: "",
+      description: "",
+      price: "",
+      category: "",
+      quantity: 0,
+      imageFile: null,
+      imageUrl: "",
+    });
+    setImagePreview(null);
+    setIsEditing(false);
+    setEditId(null);
+    setShowForm(false);
   };
 
   return (
@@ -118,49 +162,47 @@ export default function ManageProducts() {
         </button>
       </div>
 
-      {/* Popup Form */}
+      {/* Modal */}
       {showForm && (
         <div className="product-modal">
           <div className="product-modal-content">
             <h2>{isEditing ? "Edit Product" : "Add Product"}</h2>
-
             <input
               type="text"
-              placeholder="Product Name"
+              name="name"
+              placeholder="Name"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={handleChange}
             />
             <textarea
+              name="description"
               placeholder="Description"
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={handleChange}
             />
             <input
               type="number"
+              name="price"
               placeholder="Price"
               value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              onChange={handleChange}
             />
             <input
               type="text"
+              name="category"
               placeholder="Category"
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              onChange={handleChange}
             />
             <input
               type="number"
+              name="quantity"
               placeholder="Quantity"
               value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Supplier ID"
-              value={form.supplierId}
-              onChange={(e) => setForm({ ...form, supplierId: e.target.value })}
+              onChange={handleChange}
             />
 
-            {/* Drag & Drop Image */}
+            {/* Drag & Drop */}
             <div
               className="image-drop-zone"
               onDrop={handleDrop}
@@ -182,16 +224,10 @@ export default function ManageProducts() {
             </div>
 
             <div className="modal-actions">
-              <button onClick={submitProduct}>
-                {isEditing ? "Update" : "Add"} Product
+              <button onClick={handleSubmit}>
+                {isEditing ? "Update Product" : "Add Product"}
               </button>
-              <button
-                className="cancel-btn"
-                onClick={() => {
-                  resetForm();
-                  setShowForm(false);
-                }}
-              >
+              <button className="cancel-btn" onClick={resetForm}>
                 Cancel
               </button>
             </div>
@@ -199,25 +235,49 @@ export default function ManageProducts() {
         </div>
       )}
 
-      {/* Product Grid */}
-      <div className="product-grid">
-        {products.map((p) => (
-          <div key={p.id} className="product-card">
-            <img src={p.imageUrl} alt={p.name} />
-            <h4>{p.name}</h4>
-            <p>R {p.price.toFixed(2)}</p>
-            <p>Qty: {p.quantity}</p>
-            <p>Category: {p.category}</p>
+      {/* Product Table */}
+      <table className="product-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price (R)</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((p, idx) => (
+            <tr key={p.productId}>
+              <td>{idx + 1}</td>
+              <td>
+                <img
+                  src={p.imageUrl || "https://via.placeholder.com/50"}
+                  alt={p.name}
+                  className="table-image"
+                />
+              </td>
+              <td>{p.name}</td>
+              <td>{p.category}</td>
+              <td>{p.price.toFixed(2)}</td>
+              <td>{p.quantity}</td>
+              <td>
+                <button onClick={() => handleEdit(p)}>Edit</button>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(p.productId)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-            <div className="product-actions">
-              <button onClick={() => beginEdit(p)}>Edit</button>
-              <button className="delete-btn" onClick={() => deleteProduct(p.id)}>
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <ToastContainer position="top-right" autoClose={2000} />
     </AdminLayout>
   );
 }

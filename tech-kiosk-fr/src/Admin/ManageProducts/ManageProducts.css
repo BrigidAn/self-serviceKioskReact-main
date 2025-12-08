@@ -1,9 +1,9 @@
-/* Header + Add button */
+/* Header */
 .manage-products-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .add-product-btn {
@@ -14,94 +14,58 @@
   color: #fff;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.2s;
 }
 
 .add-product-btn:hover {
   background: #3aa0d9;
 }
 
-/* Product Grid */
-.product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-}
-
-/* Product Card */
-.product-card {
-  background: rgba(255,255,255,0.15);
-  backdrop-filter: blur(12px);
-  border-radius: 15px;
-  padding: 15px;
-  width: 220px;
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-  transition: 0.25s ease-in-out;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.28);
-}
-
-.product-card img {
+/* Table */
+.product-table {
   width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 10px;
+  border-collapse: collapse;
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.05);
+  border-radius: 15px;
+  overflow: hidden;
+  color: #fff;
 }
 
-.product-card h4 {
-  font-size: 18px;
-  margin-bottom: 5px;
+.product-table th,
+.product-table td {
+  padding: 12px 15px;
+  text-align: left;
 }
 
-.product-card p {
-  font-size: 14px;
-  margin-bottom: 5px;
+.product-table th {
+  background: rgba(255,255,255,0.1);
 }
 
-/* Product Actions */
-.product-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.product-actions button {
-  padding: 6px 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
+.product-table tbody tr {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   transition: 0.2s;
 }
 
-.product-actions button:hover {
-  opacity: 0.85;
+.product-table tbody tr:hover {
+  background: rgba(255,255,255,0.1);
 }
 
-.product-actions .delete-btn {
-  background: #ff6b6b;
-  color: #fff;
+.table-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
-.product-actions button:not(.delete-btn) {
-  background: #4ec9ff;
-  color: #fff;
-}
-
-/* Modal Form */
+/* Modal */
 .product-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(19, 54, 31, 0.85);
+  background: rgba(19,54,31,0.85);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -109,27 +73,21 @@
 }
 
 .product-modal-content {
-  background: #4c7182ac; /* Slightly transparent for a glassy effect */
-  backdrop-filter: blur(12px); /* Soft blur behind modal */
-  padding: 35px 30px; /* More padding for comfort */
-  border-radius: 25px; /* Smoother corners */
+  background: rgba(76,113,130,0.85);
+  backdrop-filter: blur(12px);
+  padding: 35px 30px;
+  border-radius: 25px;
   width: 420px;
   max-width: 95%;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  color: #ffffff;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35); /* Elegant shadow */
-  border: 1px solid rgba(255, 255, 255, 0.15); /* subtle border for depth */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
-.product-modal-content:hover {
-  transform: translateY(-5px); /* Slight lift on hover */
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.45);
-}
-
-
+/* Inputs */
 .product-modal-content input,
 .product-modal-content textarea {
   padding: 10px 12px;
@@ -172,7 +130,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 10px;
 }
 
 .modal-actions button {
@@ -182,10 +139,6 @@
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
-}
-
-.modal-actions button:hover {
-  opacity: 0.85;
 }
 
 .cancel-btn {
@@ -198,17 +151,31 @@
   color: #fff;
 }
 
+/* Buttons in table */
+.product-table button {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.product-table .delete-btn {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+.product-table button:not(.delete-btn) {
+  background: #4ec9ff;
+  color: #fff;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .product-grid {
-    flex-direction: column;
-    align-items: center;
+  .product-table {
+    font-size: 14px;
   }
-
-  .product-card {
-    width: 90%;
-  }
-
   .product-modal-content {
     width: 95%;
   }

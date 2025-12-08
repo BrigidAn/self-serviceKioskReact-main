@@ -1,34 +1,110 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./AccountPage.css";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const ACCOUNT_API = "https://localhost:5016/api/account";
+const TX_API = "https://localhost:5016/api/Transaction";
+const token = localStorage.getItem("token");
 
 function AccountsPage() {
-  const [balance, setBalance] = useState(250); // example balance
+  const [balance, setBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTx, setLoadingTx] = useState(true);
 
-  const handleTopUp = () => {
-    const value = parseFloat(topUpAmount);
-    if (!isNaN(value) && value > 0) {
-      setBalance(balance + value);
+  const userId = localStorage.getItem("userId"); // stored after login
+
+  // Fetch balance
+  const fetchBalance = async () => {
+    try {
+      const res = await fetch(`${ACCOUNT_API}/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch balance");
+
+      const data = await res.json();
+      setBalance(data?.balance ?? 0);
+    } catch (err) {
+      toast.error(err.message);
+      setBalance(0);
+    }
+  };
+
+  // Fetch transaction history
+  const fetchTransactions = async () => {
+    try {
+      const res = await fetch(`${TX_API}/my`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Could not load transactions");
+
+      const data = await res.json();
+      setTransactions(data);
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setLoadingTx(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBalance();
+    fetchTransactions(); // load on mount
+  }, []);
+
+  // Top-up handler
+  const handleTopUp = async () => {
+    const amount = parseFloat(topUpAmount);
+
+    // Validation
+    if (isNaN(amount) || amount <= 0) {
+      return toast.error("Please enter a valid top-up amount greater than 0");
+    }
+
+    try {
+      const res = await fetch(`${ACCOUNT_API}/topup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Top-up failed");
+
+      // Update UI immediately
+      setBalance(data?.newBalance ?? balance + amount);
       setTopUpAmount("");
+
+      toast.success(`Successfully topped up R ${amount.toFixed(2)}`);
+
+      // Refresh transactions after top-up
+      fetchTransactions();
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
   return (
     <div className="acc-container">
       <button className="back-btn" onClick={() => window.history.back()}>
-          ← Back
-        </button>
-      {/* Header */}
-      <h1 className="acc-title">My Account</h1>
-      <p className="acc-sub">Manage your balance and account actions</p>
+        ← Back
+      </button>
 
-      {/* Balance Card */}
+      <h1 className="acc-title">My Account</h1>
+      <p className="acc-sub">Manage your balance, top-ups & spending</p>
+
+      {/* BALANCE */}
       <div className="acc-card balance-card">
         <h2>Available Balance</h2>
         <div className="acc-balance">R {balance.toFixed(2)}</div>
       </div>
 
-      {/* Top-Up Card */}
+      {/* TOP-UP */}
       <div className="acc-card topup-card">
         <h2>Add Funds</h2>
 
@@ -46,11 +122,45 @@ function AccountsPage() {
         </div>
       </div>
 
-      {/* Optional History Section */}
+      {/* TRANSACTION HISTORY */}
       <div className="acc-card history-card">
         <h2>Transaction History</h2>
 
-        <p className="acc-coming-soon">Coming Soon...</p>
+        {loadingTx ? (
+          <p>Loading transactions...</p>
+        ) : transactions.length === 0 ? (
+          <p className="acc-empty">No transactions yet...</p>
+        ) : (
+          <div className="tx-list">
+            {transactions.slice(0, 4).map((tx) => (
+              <div key={tx.transactionId} className="tx-item">
+                <div className="tx-left">
+                  <span className="tx-type">{tx.type}</span>
+                  <span className="tx-date">
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <span
+                  className={
+                    tx.totalAmount < 0 ? "tx-amount neg" : "tx-amount pos"
+                  }
+                >
+                  {tx.totalAmount < 0
+                    ? `- R${Math.abs(tx.totalAmount).toFixed(2)}`
+                    : `+ R${tx.totalAmount.toFixed(2)}`}
+                </span>
+              </div>
+            ))}
+
+            <button
+              className="tx-view-all"
+              onClick={() => (window.location.href = "/transactions")}
+            >
+              View Full History →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

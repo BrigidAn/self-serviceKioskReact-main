@@ -30,13 +30,10 @@ namespace KioskAPI.Controllers
     public async Task<IActionResult> GetAllUsers(
     [FromQuery] int page = 1,
     [FromQuery] int pageSize = 10,
-    [FromQuery] string? search = null,
-    [FromQuery] string sortBy = "CreatedAt",
-    [FromQuery] string sortOrder = "desc")
+    [FromQuery] string? search = null)
     {
       var query = this._usermanager.Users.AsQueryable();
 
-      // SEARCH
       if (!string.IsNullOrEmpty(search))
       {
         query = query.Where(u =>
@@ -44,32 +41,29 @@ namespace KioskAPI.Controllers
             u.Email.Contains(search));
       }
 
-      // SORT
-      query = sortBy.ToLower() switch
-      {
-        "name" => sortOrder == "asc" ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName),
-        "email" => sortOrder == "asc" ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email),
-        _ => sortOrder == "asc" ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
-      };
-
       var total = await query.CountAsync().ConfigureAwait(true);
       var users = await query.Skip((page - 1) * pageSize)
                              .Take(pageSize)
                              .ToListAsync()
                              .ConfigureAwait(true);
 
-      // GET ROLES FOR EACH USER
       var userRolesList = new List<object>();
       foreach (var u in users)
       {
-        var roles = await this._usermanager.GetRolesAsync(u); // List<string>
+        var roles = await this._usermanager.GetRolesAsync(u).ConfigureAwait(true); // List<string>
+
+        // Get user's balance
+        var account = await this._context.Accounts.FirstOrDefaultAsync(a => a.UserId == u.Id).ConfigureAwait(true);
+        var balance = account?.Balance ?? 0;
+
         userRolesList.Add(new
         {
           u.Id,
           Name = u.UserName,
           Email = u.Email,
           CreatedAt = u.CreatedAt,
-          Roles = roles
+          Roles = roles,
+          Balance = balance
         });
       }
 

@@ -82,7 +82,7 @@
 }
 
 .topup-btn {
-  background: linear-gradient(135deg, #00eaff, #008cff);
+  background: linear-gradient(90deg, #00ffe7, #7dffa5);
   border: none;
   padding: 12px 24px;
   border-radius: 12px;
@@ -104,4 +104,24 @@
   opacity: 0.5;
   font-style: italic;
   margin-top: 10px;
+}
+
+.tx-view-all{
+  display: block;
+  width: 100%;
+  margin: 35px 0 0 0;
+  padding: 16px;
+  background: linear-gradient(90deg, #00ffe7, #7dffa5);
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  color: #000;
+}
+
+.tx-view-all {
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px #00eaff;
 }

@@ -14,28 +14,29 @@ import AdminDashboard from "./admin/AdminDashboard/AdminDashboard";
 import ManageUsers from "./admin/ManageUsers/ManageUsers";
 import ManageProducts from "./admin/ManageProducts/ManageProducts";
 import AdminLogs from "./admin/AdminLog/AdminLogs";
+import UserRoute from "./components/UserRoute";
+import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./admin/AdminLayout";
 
 function App() {
-  const [user, setUser] = useState(null);
-
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Auth/>} />
-        <Route path="/landing" element={<LandingPage  />} />
-        <Route path="/products" element={<ProductsPage user={user} setUser={setUser} />} />
-        <Route path="/cart" element={<Cart user={user} setUser={setUser} />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="/transaction" element={<TransactionsPage />} />
-        <Route path="/account" element={<AccountPage />} /> 
-        <Route path="/about" element={<AboutPage />} /> 
-        <Route path="/orders" element={<HistoryPage/>} />
-        <Route path="/transactions" element={<TransactionsPage/>} />
-        <Route path="/checkout" element={<CheckoutPage/>} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-<Route path="/admin/users" element={<ManageUsers />} />
-<Route path="/admin/products" element={<ManageProducts />} />
-<Route path="/admin/logs" element={<AdminLogs />} />
+        <Route path="/landing" element={<UserRoute> <LandingPage/> </UserRoute>} />
+        <Route path="/products" element={<UserRoute> <ProductsPage /> </UserRoute>} />
+        <Route path="/cart" element={<UserRoute> <Cart/> </UserRoute>} />
+        <Route path="/support" element={<UserRoute> <SupportPage /> </UserRoute>} />
+        <Route path="/transaction" element={<UserRoute> <TransactionsPage /> </UserRoute>} />
+        <Route path="/account" element={<UserRoute> <AccountPage /> </UserRoute>} />
+        <Route path="/about" element={<UserRoute> <AboutPage /> </UserRoute>} />
+        <Route path="/orders" element={<UserRoute> <HistoryPage/> </UserRoute>} />
+        <Route path="/transactions" element={<UserRoute> <TransactionsPage/> </UserRoute>} />
+        <Route path="/checkout" element={<UserRoute> <CheckoutPage /> </UserRoute>} />
+        <Route path="/admin/dashboard" element={<AdminRoute> <AdminDashboard /> </AdminRoute>} />
+        <Route path="/admin/users" element={<AdminRoute> <ManageUsers /> </AdminRoute>} />
+        <Route path="/admin/products" element={<AdminRoute> <ManageProducts /> </AdminRoute>} />
+        <Route path="/admin/logs" element={<AdminRoute> <AdminLogs /> </AdminRoute>} />
 
       </Routes>
     </Router>

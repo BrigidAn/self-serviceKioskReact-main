@@ -2,6 +2,7 @@ namespace KioskAPI.Controllers
 {
   using System;
   using System.Linq;
+  using System.Security.Claims;
   using System.Threading.Tasks;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
@@ -12,6 +13,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize] // All endpoints require authentication unless overridden
   public class TransactionController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -45,14 +47,27 @@ namespace KioskAPI.Controllers
     }
 
     // USER: Get transactions for specific Identity User Id
-    [HttpGet("user/{id}")]
-    [Authorize]
-    public async Task<IActionResult> GetUserTransactions(int id)
+    // GET: api/transaction/user/{id}
+    [HttpGet("my")]
+    [Authorize] // Must be logged in
+    public async Task<IActionResult> GetMyTransactions()
     {
+      // Get the logged-in user's ID from the JWT
+      var userIdClaim = this.User.FindFirst("id")?.Value ?? this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+      if (string.IsNullOrEmpty(userIdClaim))
+      {
+        return this.Unauthorized(new { message = "Invalid token: no user id found." });
+      }
+
+      int userId = int.Parse(userIdClaim);
+
+      // Load the user + account + transactions
       var user = await this._context.Users
           .Include(u => u.Account)
           .ThenInclude(a => a.Transactions)
-          .FirstOrDefaultAsync(u => u.Id == id).ConfigureAwait(true); // ✅ Identity primary key
+          .FirstOrDefaultAsync(u => u.Id == userId)
+          .ConfigureAwait(true);
 
       if (user == null)
       {
@@ -65,6 +80,7 @@ namespace KioskAPI.Controllers
       }
 
       var transactions = user.Account.Transactions
+          .OrderByDescending(t => t.CreatedAt)
           .Select(t => new
           {
             t.TransactionId,
@@ -87,9 +103,7 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Transaction data is required." });
       }
 
-      var account = await this._context.Accounts
-          .FirstOrDefaultAsync(a => a.AccountId == dto.AccountId).ConfigureAwait(true);
-
+      var account = await this._context.Accounts.FirstOrDefaultAsync(a => a.AccountId == dto.AccountId).ConfigureAwait(true);
       if (account == null)
       {
         return this.NotFound(new { message = "Account not found." });
@@ -104,12 +118,10 @@ namespace KioskAPI.Controllers
         CreatedAt = DateTime.UtcNow
       };
 
-      // 🟩 APPLY CREDIT
       if (dto.Type.ToLower() == "credit")
       {
         account.Balance += dto.TotalAmount;
       }
-      // APPLY DEBIT
       else if (dto.Type.ToLower() == "debit")
       {
         if (account.Balance < dto.TotalAmount)
@@ -137,20 +149,19 @@ namespace KioskAPI.Controllers
       });
     }
 
-    //Delete Transaction (and reverse balance)
+
+    // Delete Transaction (Admin only)
     [HttpDelete("{transactionId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteTransaction(int transactionId)
     {
       var transaction = await this._context.Transactions.FindAsync(transactionId).ConfigureAwait(true);
-
       if (transaction == null)
       {
         return this.NotFound(new { message = "Transaction not found." });
       }
 
       var account = await this._context.Accounts.FindAsync(transaction.AccountId).ConfigureAwait(true);
-
       if (account != null)
       {
         if (transaction.Type.ToLower() == "credit")

@@ -1,10 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./HistoryPage.css";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 function HistoryPage() {
-  const orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  const navigate = useNavigate(); // <-- correct hook
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    fetch("https://localhost:5016/api/order/myOrders", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then(async (res) => res.json())
+      .then((data) => setOrders(data))
+      .catch(() => setOrders([]))
+      .finally(() => setLoading(false));
+  }, [navigate]);
+
+  if (loading) return <p className="loading">Loading order history...</p>;
 
   return (
     <div className="history-page">
@@ -15,19 +38,47 @@ function HistoryPage() {
       <h2>Order History</h2>
 
       {orders.length === 0 ? (
-        <p>No past orders yet.</p>
+        <p>No orders yet.</p>
       ) : (
         orders.map((o, index) => (
           <div className="order-card" key={index}>
-            <p>Date: {new Date(o.date).toLocaleString()}</p>
-            <p>Total: R {o.total.toFixed(2)}</p>
+            <div className="order-header">
+              <h3>Order #{o.orderId}</h3>
+              <span className="order-date">
+                {new Date(o.orderDate).toLocaleString()}
+              </span>
+            </div>
+
+            <div className="order-status">
+              <span>Status: {o.status}</span>
+              <span>Payment: {o.paymentStatus}</span>
+            </div>
 
             <div className="order-items">
               {o.items.map((i) => (
-                <p key={i.id}>
-                  {i.name} — R {Number(i.price).toFixed(2)}
-                </p>
+                <div className="order-item-row" key={i.productId}>
+                  <img
+                    src={i.productImageUrl || "/no-image.png"}
+                    alt={i.productName}
+                    className="order-img"
+                  />
+
+                  <div className="order-item-details">
+                    <h4>{i.productName}</h4>
+                    <p>Quantity: {i.quantity}</p>
+                    <p>Price Each: R {Number(i.priceAtPurchase).toFixed(2)}</p>
+                    <p className="subtotal">
+                      Subtotal: R{" "}
+                      {(Number(i.priceAtPurchase) * i.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
               ))}
+            </div>
+
+            <div className="order-total">
+              <strong>Total:</strong>
+              <span>R {Number(o.totalAmount).toFixed(2)}</span>
             </div>
           </div>
         ))

@@ -79,16 +79,23 @@ namespace KioskAPI.Controllers
     [HttpPost("add")]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDto dto)
     {
+      // Get the current user from JWT
       int userId = this.GetIdentityUserId();
       if (userId == 0)
       {
-        return this.Unauthorized();
+        return this.Unauthorized(new { message = "User not authenticated" });
       }
 
+      // Find the product
       var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
       if (product == null)
       {
         return this.BadRequest(new { message = "Product not found" });
+      }
+
+      if (dto.Quantity < 1)
+      {
+        return this.BadRequest(new { message = "Quantity must be at least 1" });
       }
 
       if (product.Quantity < dto.Quantity)
@@ -96,25 +103,18 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Not enough stock" });
       }
 
+      // Get or create cart for the user
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
-          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
 
-      if (cart == null)
-      {
-        cart = new Cart { UserId = dto.UserId };
-        this._context.Carts.Add(cart);
-        await this._context.SaveChangesAsync().ConfigureAwait(true);
-      }
-
-      // ========== CART EXPIRED? ==========
       if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
       {
+        // Remove expired cart
         this._context.CartItems.RemoveRange(cart.CartItems);
         this._context.Carts.Remove(cart);
         await this._context.SaveChangesAsync().ConfigureAwait(true);
-
-        cart = null; // recreate below
+        cart = null;
       }
 
       if (cart == null)
@@ -122,23 +122,22 @@ namespace KioskAPI.Controllers
         cart = new Cart
         {
           UserId = userId,
-          ExpiresAt = DateTime.UtcNow.AddMinutes(15) // NEW
+          ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
         this._context.Carts.Add(cart);
         await this._context.SaveChangesAsync().ConfigureAwait(true);
       }
       else
       {
-        // Extend timer on every add
-        cart.ExpiresAt = DateTime.UtcNow.AddMinutes(15);
+        // Extend expiry on each add
+        cart.ExpiresAt = DateTime.UtcNow.AddHours(24);
       }
 
+      // Add item
       var cartItem = new CartItem
       {
         CartId = cart.CartId,
-        Cart = cart,
         ProductId = product.ProductId,
-        Product = product,
         Quantity = dto.Quantity,
         UnitPrice = product.Price
       };
@@ -176,19 +175,56 @@ namespace KioskAPI.Controllers
     }
 
     //cart/item/{itemId}
-    [HttpDelete("item/{itemId}")]
-    public async Task<IActionResult> RemoveItem(int itemId)
+    [HttpDelete("item/{cartItemId}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveItem(int cartItemId)
     {
-      var item = await this._context.CartItems.FindAsync(itemId).ConfigureAwait(true);
-      if (item == null)
+      var cartItem = await this._context.CartItems
+          .Include(ci => ci.Product)
+          .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId).ConfigureAwait(true);
+
+      if (cartItem == null)
       {
-        return this.NotFound(new { message = "Item not found." });
+        return this.NotFound(new { message = "Cart item not found." });
       }
 
-      this._context.CartItems.Remove(item);
+      // Restore product stock
+      if (cartItem.Product != null)
+      {
+        cartItem.Product.Quantity += cartItem.Quantity;
+      }
+
+      this._context.CartItems.Remove(cartItem);
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      return this.Ok(new { message = "Item removed." });
+      return this.Ok(new { message = "Item removed and stock restored." });
+    }
+
+    [Authorize]
+    [HttpPost("expire")]
+    public async Task<IActionResult> ExpireCart()
+    {
+      var userId = int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+      var cart = await this._context.Carts
+          .Include(c => c.CartItems)
+          .ThenInclude(i => i.Product)
+          .FirstOrDefaultAsync(c => c.UserId == userId).ConfigureAwait(true);
+
+      if (cart == null || !cart.CartItems.Any())
+      {
+        return this.Ok(new { message = "Cart already empty." });
+      }
+
+      foreach (var item in cart.CartItems)
+      {
+        item.Product.Quantity += item.Quantity; // restore stock
+      }
+
+      cart.CartItems.Clear();
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { message = "Cart expired. Items returned to stock." });
     }
   }
 }

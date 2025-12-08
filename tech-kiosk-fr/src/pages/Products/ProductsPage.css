@@ -68,9 +68,7 @@ html, body {
   100% { transform: translate(-20px, 20px) scale(0.95); }
 }
 
-/* ============================================
-   ✨ EXTRA TECH GRID OVERLAY
-   ============================================ */
+/* EXTRA TECH GRID OVERLAY*/
 
 .velvety-products-page::after {
   content: "";
@@ -95,9 +93,7 @@ html, body {
   gap: 25px;
 }
 
-/* ============================================
-   🟦 HERO SECTION — FUTURISTIC
-   ============================================ */
+/* HERO SECTION — FUTURISTIC */
 .vp-hero {
   position: relative;
   text-align: center;
@@ -173,7 +169,7 @@ html, body {
   flex-wrap: wrap;
   position: sticky;   /* Stick to top */
   top: 90px;          /* Adjust based on your hero height + spacing */
-  z-index: 15; 
+  z-index: 15;
 }
 
 .vp-filter-group {
@@ -181,7 +177,7 @@ html, body {
   flex-direction: column;
   gap: 4px;
   font-size: 14px;
-  color: #e0ffff;
+  color: #000000;
 }
 
 .vp-filter-group input,
@@ -190,7 +186,7 @@ html, body {
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.2);
   background: rgba(255,255,255,0.08);
-  color: #e0ffff;
+  color: #000000;
   font-size: 14px;
   outline: none;
   backdrop-filter: blur(8px);
@@ -345,7 +341,7 @@ html, body {
 /* Glow on focus */
 .vp-search:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 16px rgba(0,255,234,0.45), 
+  box-shadow: 0 0 16px rgba(0,255,234,0.45),
               0 0 30px rgba(0,255,234,0.25) inset;
   background: rgba(255,255,255,0.15);
 }

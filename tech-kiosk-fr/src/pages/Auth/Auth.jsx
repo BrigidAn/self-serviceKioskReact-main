@@ -6,38 +6,63 @@ import "./Auth.css";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+
   const navigate = useNavigate();
 
   const toggleMode = () => setIsLogin(!isLogin);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simulate login/register success
-    const action = isLogin ? "logged in" : "registered";
-    
-    toast.success(`You have successfully ${action}!`, {
-      position: "top-right",
-      autoClose: 2500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      theme: "colored",
-    });
+    const url = isLogin
+      ? "https://localhost:5016/api/Auth/login"
+      : "https://localhost:5016/api/Auth/register";
 
-    // Redirect after a short delay
-    setTimeout(() => {
-      navigate("/landing"); // replace "/" with your landing page route
-    }, 2600);
+    const body = isLogin
+      ? { email, password }
+      : { fullName, email, password };
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) throw new Error("Authentication failed");
+
+      const data = await response.json();
+
+      // Save JWT + Role
+      localStorage.setItem("token", data.token);
+      const role = data.user.roles[0];
+      localStorage.setItem("role", role);
+
+      toast.success(
+        isLogin ? "Login successful!" : "Account created successfully!",
+        { autoClose: 2000 }
+      );
+
+      setTimeout(() => {
+      if (role === "Admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/landing", { replace: true });
+      }
+    }, 2200);
+
+  } catch (err) {
+    toast.error(err.message || "Something went wrong");
+  }
   };
-
+  
   return (
     <div className="auth-container">
-      {/* Toast container */}
       <ToastContainer />
 
-      {/* Background Shapes */}
       <div className="auth-floating c1"></div>
       <div className="auth-floating c2"></div>
       <div className="auth-floating c3"></div>
@@ -51,15 +76,38 @@ export default function Auth() {
             : "Create an account to get started"}
         </p>
 
-        <div className="auth-inputs">
-          {!isLogin && <input type="text" placeholder="Full Name" required />}
-          <input type="email" placeholder="Email Address" required />
-          <input type="password" placeholder="Password" required />
-        </div>
+        <form className="auth-inputs" onSubmit={handleSubmit}>
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          )}
 
-        <button className="auth-btn" onClick={handleSubmit}>
-          {isLogin ? "Login" : "Register"}
-        </button>
+          <input
+            type="email"
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            minLength="6"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" className="auth-btn">
+            {isLogin ? "Login" : "Register"}
+          </button>
+        </form>
 
         <p className="auth-toggle">
           {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}

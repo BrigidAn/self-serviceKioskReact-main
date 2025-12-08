@@ -40,6 +40,8 @@ builder.Services.AddIdentity<User, Role>(options =>
 // ===== JWT Authentication ONLY (NO COOKIES) =====
 var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 
+builder.Services.AddScoped<TokenService>();
+
 builder.Services.AddAuthentication(options =>
 {
   options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
