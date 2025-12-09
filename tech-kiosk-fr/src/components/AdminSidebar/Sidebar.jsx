@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FaUsers, FaBoxOpen, FaHome, FaBars, FaClipboardList } from "react-icons/fa";
+import { FaUsers, FaBoxOpen, FaHome, FaBars, FaClipboardList, FaShoppingBasket } from "react-icons/fa";
 import "./Sidebar.css";
 
 export default function Sidebar() {
@@ -11,6 +11,7 @@ export default function Sidebar() {
     { name: "Users", icon: <FaUsers />, path: "/admin/users" },
     { name: "Products", icon: <FaBoxOpen />, path: "/admin/products" },
     { name: "Logs", icon: <FaClipboardList />, path: "/admin/logs" },
+    { name: "Orders", icon: <FaShoppingBasket />, path: "/admin/orders" },
   ];
 
   return (

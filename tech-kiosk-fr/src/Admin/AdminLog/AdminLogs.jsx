@@ -52,6 +52,7 @@ export default function AdminLogs() {
         <button onClick={() => setFilter("purchase")}>Purchases</button>
         <button onClick={() => setFilter("deposit")}>User Deposits</button>
         <button onClick={() => setFilter("admin_topup")}>Admin Top-Ups</button>
+        <button onClick={() => setFilter("Top-up")}>Top-Ups</button>
       </div>
 
       {loading ? (

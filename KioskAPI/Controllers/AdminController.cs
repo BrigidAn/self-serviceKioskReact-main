@@ -216,37 +216,36 @@ namespace KioskAPI.Controllers
     [HttpPost("topup")]
     public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
     {
-      if (!this.ModelState.IsValid)
-      {
-        return this.BadRequest(this.ModelState);
-      }
+      if (!ModelState.IsValid)
+        return BadRequest(ModelState);
 
-      var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
+      // Check if user exists
+      var user = await _context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
-      {
-        return this.NotFound(new { message = "User not found" });
-      }
+        return NotFound(new { message = "User not found" });
 
       // Find or create account
-      var account = await this._context.Accounts
+      var account = await _context.Accounts
           .FirstOrDefaultAsync(a => a.UserId == dto.UserId).ConfigureAwait(true);
+
       if (account == null)
       {
         account = new Account
         {
           UserId = dto.UserId,
-          Balance = 0
+          Balance = 0,
+          LastUpdated = DateTime.UtcNow
         };
-        this._context.Accounts.Add(account);
+        _context.Accounts.Add(account);
+        await _context.SaveChangesAsync().ConfigureAwait(true); // Save to get AccountId
       }
 
       if (dto.Amount > 1500)
-      {
-        return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
-      }
+        return BadRequest(new { message = "Maximum amount to deposit is R1500" });
 
       // Top up
       account.Balance += dto.Amount;
+      account.LastUpdated = DateTime.UtcNow;
 
       // Log transaction
       var transaction = new Transaction
@@ -257,11 +256,11 @@ namespace KioskAPI.Controllers
         Description = dto.Description ?? "Admin Top-Up",
         CreatedAt = DateTime.UtcNow
       };
-      this._context.Transactions.Add(transaction);
+      _context.Transactions.Add(transaction);
 
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      await _context.SaveChangesAsync().ConfigureAwait(true);
 
-      return this.Ok(new
+      return Ok(new
       {
         message = $"Successfully topped up {dto.Amount:C} for {user.UserName}",
         newBalance = account.Balance

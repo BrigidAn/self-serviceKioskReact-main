@@ -60,13 +60,20 @@ namespace KioskAPI.Controllers
     // ADD NEW PRODUCT (ADMIN)
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AddProduct([FromBody] CreateProductDto dto)
+    public async Task<IActionResult> AddProduct([FromForm] CreateProductDto dto)
     {
       if (!this.ModelState.IsValid)
       {
         return this.BadRequest(this.ModelState);
       }
 
+      var imageUrl = await _cloudinary.UploadImageAsync(dto.File).ConfigureAwait(true);
+      dto.ImageUrl = imageUrl;
+
+      if (string.IsNullOrWhiteSpace(dto.ImageUrl))
+      {
+        return this.BadRequest("Image URL is required for a product.");
+      }
       //this is to view existing products dontforget
       var existingProduct = await this._context.Products
       .FirstOrDefaultAsync(p => p.Name.ToLower() == dto.Name.ToLower()
@@ -75,11 +82,6 @@ namespace KioskAPI.Controllers
       if (existingProduct != null)
       {
         return this.BadRequest(new { message = "Product already exists" });
-      }
-
-      if (string.IsNullOrWhiteSpace(dto.ImageUrl))
-      {
-        return this.BadRequest("Image URL is required for a product.");
       }
 
       var product = ProductMapper.ToEntity(dto);
@@ -96,7 +98,7 @@ namespace KioskAPI.Controllers
     // UPDATE PRODUCT (ADMIN)
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductDto dto)
+    public async Task<IActionResult> UpdateProduct(int id, [FromForm] UpdateProductDto dto)
     {
       if (!this.ModelState.IsValid)
       {
@@ -114,6 +116,15 @@ namespace KioskAPI.Controllers
       if (dto.Quantity < 0)
       {
         return this.BadRequest(new { message = "Quantity cannot be negative" });
+      }
+
+      if (dto.File != null)
+      {
+        var newImageUrl = await this._cloudinary.UploadImageAsync(dto.File).ConfigureAwait(true);
+        if (!string.IsNullOrWhiteSpace(newImageUrl))
+        {
+          dto.ImageUrl = newImageUrl;
+        }
       }
 
       ProductMapper.UpdateEntity(product, dto);  // Only updates non-null fields

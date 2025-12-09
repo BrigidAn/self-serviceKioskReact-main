@@ -1,59 +1,173 @@
-.glass-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 1rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+.dashboard-container {
+  padding: 30px;
+  color: white;
+  animation: fadeIn 0.4s ease-in-out;
 }
 
-.glass-card:hover {
+/* Fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Individual stat card */
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  border-radius: 16px;
+  padding: 22px;
+  text-align: center;
+  transition: 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* Table styling */
-.dashboard-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: #fff;
+.stat-card h2 {
+  font-size: 2.3rem;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
-.dashboard-table th,
-.dashboard-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+.stat-card p {
+  opacity: 0.8;
+  font-size: 0.95rem;
 }
 
-.dashboard-table th {
-  text-align: left;
+
+/* ===============================
+   Recent Products Section
+================================*/
+.recent-products {
+  margin-top: 40px;
+  padding: 25px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Header inside recent products */
+.recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Title */
+.recent-header h3 {
+  font-size: 1.4rem;
   font-weight: 600;
-  color: #f1f1f1;
 }
 
-.dashboard-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* Buttons */
-.dashboard-btn {
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.5rem;
+/* Add Product Button */
+.add-btn {
+  background: #2563eb;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  color: white;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.25s ease;
 }
 
-.dashboard-btn:hover {
-  opacity: 0.85;
+.add-btn:hover {
+  background: #1e50c9;
+  transform: translateY(-2px);
 }
 
-/* Scroll for tables if overflow */
-.table-container {
+/* ===============================
+        Table Section
+================================*/
+.table-wrapper {
   overflow-x: auto;
 }
 
-/* Toasts adjustments if needed */
-#react-hot-toast {
-  font-weight: 600;
-  font-size: 0.95rem;
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
 }
+
+/* Header */
+thead tr {
+  background: rgba(255,255,255,0.1);
+}
+
+th {
+  padding: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Table Body */
+td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+tbody tr {
+  transition: 0.2s ease;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===============================
+        Action Buttons
+================================*/
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Edit */
+.edit-btn {
+  background: #facc15;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  color: black;
+}
+
+.edit-btn:hover {
+  background: #eab308;
+  transform: translateY(-2px);
+}
+
+/* Delete */
+.delete-btn {
+  background: #dc2626;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+

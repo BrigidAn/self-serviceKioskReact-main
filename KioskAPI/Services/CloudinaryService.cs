@@ -1,8 +1,7 @@
 namespace KioskAPI.Services
 {
   using System;
-  using System.Collections.Generic;
-  using System.Linq;
+  using System.IO;
   using System.Threading.Tasks;
   using CloudinaryDotNet;
   using CloudinaryDotNet.Actions;
@@ -20,7 +19,8 @@ namespace KioskAPI.Services
       this._cloudinary = new Cloudinary(new Account(cloudName, apiKey, apiSecret));
     }
 
-    public async Task<string> UploadImageBase64Async(IFormFile file)
+    // Upload from Base64 string
+    public async Task<string> UploadImageAsync(IFormFile file)
     {
       if (file == null || file.Length == 0)
       {
@@ -38,7 +38,7 @@ namespace KioskAPI.Services
 
       if (result.StatusCode == System.Net.HttpStatusCode.OK)
       {
-        return result.SecureUrl.AbsolutePath;
+        return result.SecureUrl.ToString(); // <- full URL
       }
 
       return null;
