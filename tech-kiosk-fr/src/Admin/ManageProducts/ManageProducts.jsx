@@ -3,20 +3,17 @@ import AdminLayout from "../AdminLayout";
 import "./ManageProducts.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Popup from "../components/Popup";
 
 const API_URL = "https://localhost:5016/api";
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    lowStock: 0,
-    totalUsers: 0,
-    totalOrders: 0,
-  });
+export default function ManageProducts() {
+  const [stats, setStats] = useState({ totalProducts: 0, lowStock: 0 });
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({});
 
-  // Modal / form state
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -34,25 +31,29 @@ export default function AdminDashboard() {
 
   const token = localStorage.getItem("token");
 
+  const [popup, setPopup] = useState({ show: false, productId: null, productName: "", onConfirm: null });
+  const [filterLowStock, setFilterLowStock] = useState(false);
+
+  // Fetch products and calculate stats
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const resProducts = await fetch(`${API_URL}/product`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!resProducts.ok) throw new Error("Failed to load products");
-      const data = await resProducts.json();
+      const res = await fetch(`${API_URL}/product`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
       const productList = Array.isArray(data) ? data : data?.data ?? [];
       productList.sort((a, b) => (a.productId ?? a.id ?? 0) - (b.productId ?? b.id ?? 0));
       setProducts(productList);
 
       // Stats
-      const totalProducts = productList.length;
-      const lowStock = productList.filter((p) => Number(p.quantity) <= 5).length;
-      setStats((prev) => ({ ...prev, totalProducts, lowStock }));
+      const lowStockCount = productList.filter((p) => Number(p.quantity) <= 5).length;
+      setStats({ totalProducts: productList.length, lowStock: lowStockCount });
+
+      // Apply current filter
+      setFilteredProducts(filterLowStock ? productList.filter((p) => Number(p.quantity) <= 5) : productList);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch products");
+      toast.error(err.message || "Failed to fetch products");
     } finally {
       setLoading(false);
     }
@@ -61,20 +62,42 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboardData();
     // eslint-disable-next-line
-  }, []);
+  }, [filterLowStock]);
 
+  // Toggle Low Stock filter
+  const toggleLowStockFilter = () => setFilterLowStock((prev) => !prev);
+
+  //validation form
+  const validateForm = () => {
+  const newErrors = {};
+
+  if (!form.name.trim()) newErrors.name = "Product name is required";
+  if (!form.description.trim()) newErrors.description = "Description is required";
+
+  if (!form.price) newErrors.price = "Price is required";
+  else if (form.price <= 0) newErrors.price = "Price must be greater than 0";
+
+  if (!form.quantity) newErrors.quantity = "Quantity is required";
+  else if (form.quantity < 0) newErrors.quantity = "Quantity cannot be negative";
+
+  if (!form.category || form.category === "")
+    newErrors.category = "Please select a category";
+
+  if (!form.supplierId)
+    newErrors.supplierId = "Please select a supplier";
+
+  if (!isEditing && !fileRef.current?.files?.length)
+    newErrors.image = "Product image is required";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0; // valid if no errors
+};
+
+  // Add/Edit product modal
   const openAdd = () => {
     setIsEditing(false);
     setEditingId(null);
-    setForm({
-      name: "",
-      description: "",
-      price: "",
-      category: "",
-      quantity: 0,
-      supplierId: 1,
-      file: null,
-    });
+    setForm({ name: "", description: "", price: "", category: "", quantity: 0, supplierId: 1, file: null });
     setImagePreview(null);
     setShowModal(true);
   };
@@ -112,15 +135,12 @@ export default function AdminDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.price || !form.category) {
-      toast.error("Please fill name, price and category");
+
+    if (!validateForm()) {
       return;
     }
 
-    if (!form.file && !isEditing) {
-      toast.error("Please select a product image");
-      return;
-    }
+    if (!form.file && !isEditing) return toast.error("Please select a product image");
 
     try {
       const fd = new FormData();
@@ -130,18 +150,12 @@ export default function AdminDashboard() {
       fd.append("Category", form.category);
       fd.append("Quantity", String(form.quantity ?? 0));
       fd.append("SupplierId", String(form.supplierId ?? 1));
-
-      if (form.file) fd.append("File", form.file); // <-- must match DTO exactly
+      if (form.file) fd.append("File", form.file);
 
       const url = isEditing && editingId ? `${API_URL}/product/${editingId}` : `${API_URL}/product`;
       const method = isEditing ? "PUT" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        body: fd,
-      });
-
+      const res = await fetch(url, { method, headers: token ? { Authorization: `Bearer ${token}` } : {}, body: fd });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.message || "Failed to save product");
@@ -149,15 +163,7 @@ export default function AdminDashboard() {
 
       toast.success(isEditing ? "Product updated" : "Product added");
       setShowModal(false);
-      setForm({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        quantity: 0,
-        supplierId: 1,
-        file: null,
-      });
+      setForm({ name: "", description: "", price: "", category: "", quantity: 0, supplierId: 1, file: null });
       setImagePreview(null);
       fetchDashboardData();
     } catch (err) {
@@ -166,15 +172,17 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDelete = async (productId) => {
-    if (!window.confirm("Delete this product?")) return;
+  const requestDelete = (productId, productName) => {
+    setPopup({ show: true, productId, productName, onConfirm: handleConfirmDelete });
+  };
+
+  const handleConfirmDelete = async () => {
     try {
-      const res = await fetch(`${API_URL}/product/${productId}`, {
-        method: "DELETE",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const { productId, productName } = popup;
+      const res = await fetch(`${API_URL}/product/${productId}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} });
       if (!res.ok) throw new Error("Delete failed");
-      toast.success("Product deleted");
+      toast.success(`Product "${productName}" deleted successfully`);
+      setPopup({ show: false, productId: null, productName: "", onConfirm: null });
       fetchDashboardData();
     } catch (err) {
       console.error(err);
@@ -186,102 +194,57 @@ export default function AdminDashboard() {
     <AdminLayout>
       <ToastContainer position="top-right" />
       <div className="admin-dashboard">
-        {/* HEADER */}
         <header className="dashboard-header">
-          <h1>Admin Dashboard</h1>
+          <h1>Manage Products</h1>
           <div className="header-actions">
             <button className="btn primary" onClick={openAdd}>+ Add Product</button>
             <button className="btn" onClick={fetchDashboardData}>Refresh</button>
           </div>
         </header>
 
-        {/* STATS */}
         <section className="stats-grid">
           <div className="stat-card">
             <div className="stat-num">{loading ? "—" : stats.totalProducts}</div>
             <div className="stat-label">Total Products</div>
           </div>
-          <div className="stat-card">
+          <div className={`stat-card clickable ${filterLowStock ? "active" : ""}`} onClick={toggleLowStockFilter}>
             <div className="stat-num">{loading ? "—" : stats.lowStock}</div>
-            <div className="stat-label">Low Stock (&le; 5)</div>
+            <div className="stat-label">Low Stock (≤5)</div>
           </div>
         </section>
 
-        {/* CARDS */}
-        <section className="recent-products-section">
-          <div className="card-grid">
-            {products.length === 0 ? (
-              <div className="empty">No products found</div>
-            ) : (
-              products.map((p, idx) => (
-                <div key={p.productId ?? p.id ?? idx} className="product-card">
-                  <div className="product-media">
-                    <img
-                      src={p.imageUrl || p.image || "https://via.placeholder.com/240x160?text=No+Image"}
-                      alt={p.name}
-                      onError={(e) => (e.target.src = "https://via.placeholder.com/240x160?text=No+Image")}
-                    />
-                  </div>
-                  <div className="product-body">
-                    <div className="product-title">
-                      <span className="index">{String((p.productId ?? p.id ?? 0)).padStart(3, "0")}</span>
-                      <h3>{p.name}</h3>
-                    </div>
-                    <p className="product-cat">{p.category}</p>
-                    <div className="product-meta">
-                      <div>R {Number(p.price).toFixed(2)}</div>
-                      <div>Qty: {p.quantity ?? 0}</div>
-                    </div>
-                    <div className="product-actions">
-                      <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn danger small" onClick={() => handleDelete(p.productId ?? p.id)}>Delete</button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* TABLE */}
         <section className="product-table-section">
           <table className="product-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Id</th>
                 <th>Image</th>
                 <th>Name</th>
                 <th>Category</th>
-                <th>Price (R)</th>
+                <th>Price</th>
                 <th>Quantity</th>
                 <th>Supplier</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {products.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: "center" }}>No products found</td>
+                  <td colSpan={8} className="empty">No products found</td>
                 </tr>
               ) : (
-                products.map((p, idx) => (
+                filteredProducts.map((p, idx) => (
                   <tr key={p.productId ?? p.id ?? idx}>
                     <td>{idx + 1}</td>
-                    <td>
-                      <img
-                        src={p.imageUrl || p.image || "https://via.placeholder.com/50"}
-                        alt={p.name}
-                        style={{ width: "50px", height: "50px", objectFit: "cover" }}
-                      />
-                    </td>
+                    <td><img src={p.imageUrl || p.image || "/placeholder.png"} alt={p.name} /></td>
                     <td>{p.name}</td>
                     <td>{p.category}</td>
-                    <td>{Number(p.price).toFixed(2)}</td>
+                    <td>R {Number(p.price).toFixed(2)}</td>
                     <td>{p.quantity ?? 0}</td>
                     <td>{p.supplierId}</td>
                     <td>
                       <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn danger small" onClick={() => handleDelete(p.productId ?? p.id)}>Delete</button>
+                      <button className="btn danger small" onClick={() => requestDelete(p.productId ?? p.id, p.name)}>Delete</button>
                     </td>
                   </tr>
                 ))
@@ -290,68 +253,141 @@ export default function AdminDashboard() {
           </table>
         </section>
 
-        {/* MODAL */}
         {showModal && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <header className="modal-header">
-                <h3>{isEditing ? "Edit Product" : "Add Product"}</h3>
-                <button className="close" onClick={() => setShowModal(false)}>✕</button>
-              </header>
+        <div className="modal-overlay">
+          <div className="modal">
+            <header className="modal-header">
+              <h3>{isEditing ? "Edit Product" : "Add Product"}</h3>
+              <button className="close" onClick={() => setShowModal(false)}>✕</button>
+            </header>
 
-              <form className="modal-form" onSubmit={handleSubmit}>
-                <label>
-                  Name
-                  <input name="name" value={form.name} onChange={handleFormChange} />
-                </label>
-                <label>
-                  Description
-                  <textarea name="description" value={form.description} onChange={handleFormChange} />
-                </label>
-                <div className="row">
-                  <label>
-                    Price
-                    <input name="price" type="number" step="0.01" value={form.price} onChange={handleFormChange} />
-                  </label>
-                  <label>
-                    Quantity
-                    <input name="quantity" type="number" value={form.quantity} onChange={handleFormChange} />
-                  </label>
+            <form className="modal-form" onSubmit={handleSubmit}>
+
+              {/* NAME */}
+              <label>
+                Name
+                <input
+                  name="name"
+                  value={form.name}
+                  onChange={handleFormChange}
+                />
+                {errors.name && <span className="error">{errors.name}</span>}
+              </label>
+
+              {/* DESCRIPTION */}
+              <label>
+                Description
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleFormChange}
+                />
+                {errors.description && <span className="error">{errors.description}</span>}
+              </label>
+
+              {/* PRICE */}
+              <label>
+                Price
+                <input
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  value={form.price}
+                  onChange={handleFormChange}
+                />
+                {errors.price && <span className="error">{errors.price}</span>}
+              </label>
+
+              {/* QUANTITY */}
+              <label>
+                Quantity
+                <input
+                  name="quantity"
+                  type="number"
+                  value={form.quantity}
+                  onChange={handleFormChange}
+                />
+                {errors.quantity && <span className="error">{errors.quantity}</span>}
+              </label>
+
+              {/* CATEGORY */}
+              <label>
+                Category
+                <select
+                  className="c-form-select"
+                  name="category"
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                >
+                  <option value="">Select Category</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="VR">Virtual Reality</option>
+                  <option value="Robots">Robots</option>
+                  <option value="Headsets">Headsets</option>
+                  <option value="Earbuds">Earbuds</option>
+                </select>
+                {errors.category && <span className="error">{errors.category}</span>}
+              </label>
+
+              {/* SUPPLIER */}
+              <label>
+                Supplier
+                <select
+                  className="c-form-select"
+                  name="supplierId"
+                  value={form.supplierId}
+                  onChange={(e) =>
+                    setForm({ ...form, supplierId: Number(e.target.value) })
+                  }
+                >
+                  <option value={1}>Becy</option>
+                  <option value={2}>Stacy</option>
+                  <option value={3}>Garfield</option>
+                  <option value={4}>Marie</option>
+                  <option value={5}>Ebuka</option>
+                </select>
+                {errors.supplierId && <span className="error">{errors.supplierId}</span>}
+              </label>
+
+              {/* IMAGE UPLOAD */}
+              <label>
+                Product Image
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                />
+                {errors.image && <span className="error">{errors.image}</span>}
+              </label>
+
+              {imagePreview && (
+                <div className="preview-wrap">
+                  <img src={imagePreview} alt="preview" />
                 </div>
-                <label>
-                  Category
-                  <input name="category" value={form.category} onChange={handleFormChange} />
-                </label>
-                <label>
-                  Supplier
-                  <select
-                    name="supplierId"
-                    value={form.supplierId}
-                    onChange={(e) => setForm({ ...form, supplierId: Number(e.target.value) })}
-                  >
-                    <option value={1}>Becy</option>
-                    <option value={2}>Stacy</option>
-                    <option value={3}>Garfield</option>
-                    <option value={4}>Marie</option>
-                    <option value={5}>Ebuka</option>
-                  </select>
-                </label>
-                <label className="file-label">
-                  Product Image (optional)
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleFileSelect} />
-                </label>
-                {imagePreview && (
-                  <div className="preview-wrap">
-                    <img src={imagePreview} alt="preview" />
-                  </div>
-                )}
-                <div className="modal-actions">
-                  <button type="submit" className="btn primary">{isEditing ? "Update" : "Add Product"}</button>
-                  <button type="button" className="btn" onClick={() => setShowModal(false)}>Cancel</button>
-                </div>
-              </form>
-            </div>
+              )}
+
+              <div className="modal-actions">
+                <button type="submit" className="btn primary">
+                  {isEditing ? "Update" : "Add Product"}
+                </button>
+                <button type="button" className="btn" onClick={() => setShowModal(false)}>
+                  Cancel
+                </button>
+              </div>
+
+            </form>
           </div>
+        </div>
+      )}
+
+        {/* Delete confirmation popup */}
+        {popup.show && (
+          <Popup
+            message={`Are you sure you want to delete "${popup.productName}"?`}
+            onConfirm={popup.onConfirm}
+            onCancel={() => setPopup({ show: false, productId: null, productName: "", onConfirm: null })}
+          />
         )}
       </div>
     </AdminLayout>

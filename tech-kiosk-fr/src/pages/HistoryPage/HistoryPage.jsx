@@ -40,8 +40,8 @@ function HistoryPage() {
       {orders.length === 0 ? (
         <p>No orders yet.</p>
       ) : (
-        orders.map((o, index) => (
-          <div className="order-card" key={index}>
+        orders.map((o) => (
+          <div className="order-card" key={o.orderId}>
             <div className="order-header">
               <h3>Order #{o.orderId}</h3>
               <span className="order-date">
@@ -58,7 +58,7 @@ function HistoryPage() {
               {o.items.map((i) => (
                 <div className="order-item-row" key={i.productId}>
                   <img
-                    src={i.productImageUrl || "/no-image.png"}
+                    src={i.productImageUrl || "/images/no-image.png"}
                     alt={i.productName}
                     className="order-img"
                   />

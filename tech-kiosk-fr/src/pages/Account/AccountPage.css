@@ -125,3 +125,87 @@
   transform: translateY(-2px);
   box-shadow: 0 0 10px #00eaff;
 }
+
+/* POPUP OVERLAY */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: overlayFade 0.25s ease-in-out;
+}
+
+/* POPUP BOX */
+.popup-box {
+  background: #fff;
+  padding: 30px 25px;
+  width: 360px;
+  max-width: 90%;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  animation: popupFadeIn 0.25s ease-in-out;
+}
+
+.popup-box p {
+  font-size: 16px;
+  color: #333;
+  margin: 15px 0;
+  line-height: 1.5;
+}
+
+.popup-actions {
+  margin-top: 25px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.popup-confirm {
+  flex: 1;
+  background: #4caf50;
+  color: #fff;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.popup-confirm:hover {
+  background: #45a049;
+}
+
+.popup-cancel {
+  flex: 1;
+  background: #f44336;
+  color: #fff;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.popup-cancel:hover {
+  background: #e53935;
+}
+
+/* ANIMATIONS */
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popupFadeIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}

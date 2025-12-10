@@ -36,7 +36,7 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const res = await fetch(`${API_URL}/order/${orderId}/status`, {
+      const res = await fetch(`${API_URL}/order/${orderId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function AdminOrders() {
           <table className="orders-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th>Id</th>
                 <th>Order ID</th>
                 <th>User</th>
                 <th>Products</th>

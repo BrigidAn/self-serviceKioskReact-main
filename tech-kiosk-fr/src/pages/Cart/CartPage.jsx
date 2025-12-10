@@ -149,7 +149,7 @@ const startCountdown = () => {
       } else {
         toast.success(data.message);
         fetchCart();
-        navigate("/products");
+        navigate("/checkout");
       }
     } catch (err) {
       console.error(err);

@@ -75,8 +75,6 @@ namespace KioskAPI.Dtos
     [Range(0, int.MaxValue, ErrorMessage = "Quantity can not be negative")]
     public int? Quantity { get; set; }
     public int? SupplierId { get; set; }
-
-    [Required]
     public IFormFile File { get; set; }
   }
 }

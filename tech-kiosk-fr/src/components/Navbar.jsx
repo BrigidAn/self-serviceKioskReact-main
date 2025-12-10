@@ -9,7 +9,7 @@ export default function NavBar({ cartCount = 0 }) {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/");
     setMenuOpen(false);
   };
 

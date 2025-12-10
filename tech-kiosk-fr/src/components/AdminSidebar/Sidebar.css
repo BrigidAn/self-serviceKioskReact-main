@@ -109,3 +109,21 @@
 .text {
   transition: opacity 0.2s ease-in-out;
 }
+
+.logout-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: rgba(255, 77, 77, 0.15);
+  color: #ff4d4d;
+}

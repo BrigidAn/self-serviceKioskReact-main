@@ -3,36 +3,37 @@ body {
   min-height: 100vh;
   margin: 0;
   background-attachment: fixed;
+  font-family: "Poppins", sans-serif;
 }
 
 .velvety-cart-page {
-  max-width: 900px;
-  margin: 120px auto 40px auto;
-  padding: 20px 10px;
+  max-width: 950px;
+  margin: 150px auto 60px auto;
+  padding: 30px 20px;
   color: #dfffe9;
-  font-family: "Poppins", sans-serif;
   animation: fadeIn 0.5s ease;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .velvety-cart-page h2 {
   text-align: center;
-  font-size: 40px;
-  margin-bottom: 40px;
+  font-size: 34px;
   font-weight: 700;
+  margin-bottom: 40px;
   background: linear-gradient(90deg, #00ffe7, #7dffa5, #d7ff8f);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: 1px;
 }
 
 .empty-cart {
   text-align: center;
   font-size: 18px;
-  padding: 40px;
+  padding: 60px 20px;
   opacity: 0.85;
   color: #b8ffd2;
 }
@@ -58,18 +59,20 @@ body {
 .cart-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
-  border-radius: 16px;
+  gap: 12px;
+  padding: 20px 0;
   backdrop-filter: blur(8px);
-  padding: 10px 0;
+  border-radius: 16px;
 }
+
 
 .cart-item {
   display: grid;
-  grid-template-columns: 90px 1fr 80px 40px;
+  grid-template-columns: 100px 1fr 100px 50px;
   align-items: center;
-  padding: 12px 5px;
-  border-bottom: 1px solid rgba(0, 255, 170, 0.15);
+  padding: 18px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
   transition: 0.2s ease;
 }
 
@@ -78,49 +81,49 @@ body {
 }
 
 .cart-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .cart-item img {
-  width: 70px;
-  height: 70px;
+  width: 85px;
+  height: 85px;
   object-fit: cover;
   border-radius: 12px;
   border: 2px solid rgba(0, 255, 170, 0.25);
 }
 
 .cart-item h4 {
-  margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   color: #e8fff2;
-  font-weight: 500;
+  font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .cart-item p {
-  margin: 3px 0 0 0;
   font-size: 15px;
   color: #afffd3;
+  margin-top: 4px;
 }
 
 .cart-price {
-  font-size: 18px;
-  text-align: right;
+  font-size: 20px;
   color: #b9ffe1;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: right;
 }
 
 .remove-btn {
   background: transparent;
   border: none;
-  font-size: 22px;
+  font-size: 26px;
   color: #ff9b9b;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.25s ease;
 }
 
 .remove-btn:hover {
   color: #ff5f5f;
-  transform: scale(1.2);
+  transform: scale(1.25);
 }
 
 .checkout-bar {
@@ -139,22 +142,20 @@ body {
 }
 
 .checkout-total {
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   color: #aaffda;
-  margin-left: 20px;
 }
 
 .checkout-btn {
-  padding: 14px 30px;
-  margin-right: 20px;
-  font-size: 16px;
+  padding: 16px 35px;
+  font-size: 17px;
   font-weight: 700;
   background: linear-gradient(90deg, #00ffe7, #7dffa5);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.25s ease;
 }
 
 .checkout-btn:hover {
@@ -165,56 +166,55 @@ body {
 .delivery-options {
   margin: 25px 0;
   display: flex;
-  align-items: center;
   gap: 15px;
   font-size: 16px;
   color: #b8ffd2;
 }
 
 .delivery-options select {
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: none;
-  background: rgba(0, 255, 180, 0.1);
-  color: #000000;
+  background: rgba(0, 255, 180, 0.15);
+  color: #000;
   font-weight: 500;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.25s ease;
 }
 
 .delivery-options select:hover {
-  background: rgba(152, 219, 199, 0.466);
+  background: rgba(152, 219, 199, 0.35);
 }
 
 .cart-quantity {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 10px 0;
+  gap: 10px;
+  margin-top: 8px;
 }
 
+
 .cart-quantity button {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #00ffe7, #7dffa5);
-  color: #000;
-  font-weight: 700;
   cursor: pointer;
-  transition: 0.2s ease;
+  font-size: 16px;
+  font-weight: 700;
+  transition: 0.25s ease;
 }
 
 .cart-quantity button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 8px rgba(0, 255, 180, 0.4);
 }
 
 .cart-quantity span {
-  min-width: 24px;
+  min-width: 28px;
   text-align: center;
-  font-weight: 600;
   color: #dfffe9;
+  font-weight: 600;
 }
 
 /* ===== MODAL POPUP ===== */

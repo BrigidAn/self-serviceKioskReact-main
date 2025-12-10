@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { FaUsers, FaBoxOpen, FaHome, FaBars, FaClipboardList, FaShoppingBasket } from "react-icons/fa";
+import { NavLink, useNavigate } from "react-router-dom";
+import { FaUsers, FaBoxOpen, FaHome, FaBars, FaClipboardList, FaShoppingBasket, FaShoppingBag, FaSignOutAlt } from "react-icons/fa";
 import "./Sidebar.css";
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
 
   const menuItems = [
     { name: "Dashboard", icon: <FaHome />, path: "/admin/dashboard" },
@@ -12,7 +13,15 @@ export default function Sidebar() {
     { name: "Products", icon: <FaBoxOpen />, path: "/admin/products" },
     { name: "Logs", icon: <FaClipboardList />, path: "/admin/logs" },
     { name: "Orders", icon: <FaShoppingBasket />, path: "/admin/orders" },
+    { name: "Shop For User", icon: <FaShoppingBag />, path: "/admin/shop" },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    navigate("/");
+  };
+
 
   return (
     <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
@@ -35,6 +44,16 @@ export default function Sidebar() {
             {!collapsed && <span className="text">{item.name}</span>}
           </NavLink>
         ))}
+             <button
+          className="nav-item logout-btn"
+          onClick={handleLogout}
+          title={collapsed ? "Logout" : ""}
+        >
+          <span className="icon">
+            <FaSignOutAlt />
+          </span>
+          {!collapsed && <span className="text">Logout</span>}
+        </button>
       </nav>
     </aside>
   );

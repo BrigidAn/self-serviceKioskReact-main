@@ -46,11 +46,9 @@
 }
 
 
-/* ===============================
-   Recent Products Section
-================================*/
+
 .recent-products {
-  margin-top: 40px;
+  margin-top: 50px;
   padding: 25px;
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.12);
@@ -90,9 +88,8 @@
   transform: translateY(-2px);
 }
 
-/* ===============================
-        Table Section
-================================*/
+
+
 .table-wrapper {
   overflow-x: auto;
 }
@@ -102,6 +99,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   min-width: 700px;
+  justify-content: space-between;
 }
 
 /* Header */

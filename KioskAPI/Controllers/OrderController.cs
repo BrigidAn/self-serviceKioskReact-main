@@ -57,7 +57,7 @@ namespace KioskAPI.Controllers
     [HttpGet("myOrders")]
     public async Task<IActionResult> GetMyOrders()
     {
-      var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+      var userId = int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
 
       var orders = await this._context.Orders
           .Include(o => o.OrderItems)
@@ -125,6 +125,27 @@ namespace KioskAPI.Controllers
         message = "Order created successfully",
         order = OrderMapper.ToDto(order)
       });
+    }
+    // PUT: api/order/{orderId}/complete
+    [Authorize]
+    [HttpPost("complete/{orderId}")]
+    public async Task<IActionResult> CompleteOrder(int orderId)
+    {
+      var userId = int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+      var order = await this._context.Orders
+          .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId).ConfigureAwait(true);
+
+      if (order == null)
+      {
+        return this.NotFound(new { message = "Order not found" });
+      }
+
+      order.Status = "Complete";
+      order.PaymentStatus = "Paid";
+
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      return this.Ok(new { message = "Order marked as complete" });
     }
   }
 }

@@ -12,6 +12,7 @@ function AccountsPage() {
   const [topUpAmount, setTopUpAmount] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [loadingTx, setLoadingTx] = useState(true);
+  const [popupMessage, setPopupMessage] = useState("");
 
   const userId = localStorage.getItem("userId"); // stored after login
 
@@ -54,14 +55,43 @@ function AccountsPage() {
     fetchTransactions(); // load on mount
   }, []);
 
-  // Top-up handler
-  const handleTopUp = async () => {
+  // Validation function
+  const validateAmount = () => {
+    if (topUpAmount.trim() === "") {
+      setPopupMessage("Amount is required.");
+      return false;
+    }
+
+    if (/[^0-9.]/.test(topUpAmount)) {
+      setPopupMessage("Amount cannot contain letters.");
+      return false;
+    }
+
     const amount = parseFloat(topUpAmount);
 
-    // Validation
-    if (isNaN(amount) || amount <= 0) {
-      return toast.error("Please enter a valid top-up amount greater than 0");
+    if (isNaN(amount)) {
+      setPopupMessage("Invalid amount entered.");
+      return false;
     }
+
+    if (amount <= 0) {
+      setPopupMessage("Amount must be greater than zero.");
+      return false;
+    }
+
+    if (amount > 1500) {
+      setPopupMessage("You cannot top up more than R1500 at once.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Top-up handler
+  const handleTopUp = async () => {
+    if (!validateAmount()) return;
+
+    const amount = parseFloat(topUpAmount);
 
     try {
       const res = await fetch(`${ACCOUNT_API}/topup`, {
@@ -76,16 +106,14 @@ function AccountsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Top-up failed");
 
-      // Update UI immediately
       setBalance(data?.newBalance ?? balance + amount);
       setTopUpAmount("");
-
-      toast.success(`Successfully topped up R ${amount.toFixed(2)}`);
+      setPopupMessage(`Successfully topped up R${amount.toFixed(2)}`);
 
       // Refresh transactions after top-up
       fetchTransactions();
     } catch (err) {
-      toast.error(err.message);
+      setPopupMessage(err.message);
     }
   };
 
@@ -162,6 +190,18 @@ function AccountsPage() {
           </div>
         )}
       </div>
+
+      {/* Popup */}
+      {popupMessage && (
+        <div className="popup-overlay" onClick={() => setPopupMessage("")}>
+          <div className="popup-box">
+            <p>{popupMessage}</p>
+            <button className="btn primary" onClick={() => setPopupMessage("")}>
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

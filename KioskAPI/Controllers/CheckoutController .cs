@@ -110,7 +110,7 @@ namespace KioskAPI.Controllers
       // Create order items
       foreach (var item in cart.CartItems)
       {
-        if (item.Product.Quantity < item.Quantity)
+        if (item.Product.Quantity < 0)
         {
           return this.BadRequest(new { message = $"Not enough stock for {item.Product.Name}" });
         }
