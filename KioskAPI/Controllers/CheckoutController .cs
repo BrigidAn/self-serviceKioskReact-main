@@ -1,11 +1,11 @@
 namespace KioskAPI.Controllers
 {
+  using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Models;
-  using Microsoft.AspNetCore.Authorization;
   using System.Security.Claims;
 
   [ApiController]
@@ -26,16 +26,15 @@ namespace KioskAPI.Controllers
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
+    // ------------------- SUMMARY -------------------
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetCheckoutSummary()
     {
       int userId = this.GetIdentityUserId();
       if (userId == 0)
       {
-        return this.Unauthorized(new { message = "Invalid or expired tokens" });
+        return this.Unauthorized(new { message = "Invalid token" });
       }
-
-      using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
 
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
@@ -44,21 +43,57 @@ namespace KioskAPI.Controllers
 
       if (cart == null || !cart.CartItems.Any())
       {
-        return this.BadRequest(new { message = "Cart is empty or not found" });
+        return this.NotFound(new { message = "Cart is empty" });
+      }
+
+      decimal itemsTotal = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity);
+
+      return this.Ok(new
+      {
+        cartId = cart.CartId,
+        items = cart.CartItems.Select(ci => new
+        {
+          ci.CartItemId,
+          ci.ProductId,
+          ProductName = ci.Product?.Name ?? "Unknown",
+          ImageUrl = ci.Product?.ImageUrl ?? "",
+          Quantity = ci.Quantity,
+          UnitPrice = ci.UnitPrice
+        }),
+        itemsTotal
+      });
+    }
+
+    // ------------------- CHECKOUT -------------------
+    [HttpPost]
+    public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
+    {
+      int userId = this.GetIdentityUserId();
+      if (userId == 0)
+      {
+        return this.Unauthorized(new { message = "Invalid token" });
+      }
+
+      var cart = await this._context.Carts
+          .Include(c => c.CartItems)
+          .ThenInclude(ci => ci.Product)
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+
+      if (cart == null || !cart.CartItems.Any())
+      {
+        return this.BadRequest(new { message = "Cart is empty" });
       }
 
       if (cart.ExpiresAt < DateTime.UtcNow)
       {
-        return this.BadRequest(new { message = "Cart expired. Please add items again." });
+        return this.BadRequest(new { message = "Cart expired. Add items again." });
       }
 
       decimal itemsTotal = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity);
       decimal deliveryFee = dto.DeliveryMethod?.ToLower() == "delivery" ? 80 : 0;
       decimal grandTotal = itemsTotal + deliveryFee;
 
-      var account = await this._context.Accounts
-          .FirstOrDefaultAsync(a => a.UserId == userId).ConfigureAwait(true);
-
+      var account = await this._context.Accounts.FirstOrDefaultAsync(a => a.UserId == userId).ConfigureAwait(true);
       if (account == null)
       {
         return this.BadRequest(new { message = "User account not found" });
@@ -68,7 +103,6 @@ namespace KioskAPI.Controllers
       {
         decimal remaining = grandTotal - account.Balance;
         decimal deducted = account.Balance;
-
         account.Balance = 0;
         await this._context.SaveChangesAsync().ConfigureAwait(true);
 
@@ -83,67 +117,76 @@ namespace KioskAPI.Controllers
         });
       }
 
-      // Create order
-      var order = new Order
-      {
-        UserId = userId,
-        DeliveryFee = deliveryFee,
-        TotalAmount = grandTotal,
-        DeliveryMethod = dto.DeliveryMethod,
-        Status = "Pending",
-        PaymentStatus = "Paid",
-        OrderItems = new List<OrderItem>()
-      };
+      // BEGIN TRANSACTION
+      using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
 
-      // Deduct money from account
-      account.Balance -= grandTotal;
-
-      this._context.Transactions.Add(new Transaction
+      try
       {
-        AccountId = account.AccountId,
-        Type = "Checkout",
-        TotalAmount = grandTotal,
-        Description = $"Checkout: Items={itemsTotal}, DeliveryFee={deliveryFee}",
-        CreatedAt = DateTime.UtcNow
-      });
+        // Deduct account balance
+        account.Balance -= grandTotal;
 
-      // Create order items
-      foreach (var item in cart.CartItems)
-      {
-        if (item.Product.Quantity < 0)
+        // Create order
+        var order = new Order
         {
-          return this.BadRequest(new { message = $"Not enough stock for {item.Product.Name}" });
+          UserId = userId,
+          DeliveryMethod = dto.DeliveryMethod,
+          DeliveryFee = deliveryFee,
+          TotalAmount = grandTotal,
+          Status = "Pending",
+          PaymentStatus = "Paid",
+          OrderItems = new List<OrderItem>()
+        };
+
+        foreach (var item in cart.CartItems)
+        {
+          if (item.Product.Quantity < item.Quantity)
+          {
+            return this.BadRequest(new { message = $"Not enough stock for {item.Product.Name}" });
+          }
+
+          order.OrderItems.Add(new OrderItem
+          {
+            ProductId = item.ProductId,
+            Quantity = item.Quantity,
+            PriceAtPurchase = item.UnitPrice
+          });
+
+          item.Product.Quantity -= item.Quantity;
         }
 
-        order.OrderItems.Add(new OrderItem
+        this._context.Orders.Add(order);
+
+        // Transactions log
+        this._context.Transactions.Add(new Transaction
         {
-          ProductId = item.ProductId,
-          Quantity = item.Quantity,
-          PriceAtPurchase = item.UnitPrice
+          AccountId = account.AccountId,
+          Type = "Checkout",
+          TotalAmount = grandTotal,
+          Description = $"Checkout: Items={itemsTotal}, DeliveryFee={deliveryFee}",
+          CreatedAt = DateTime.UtcNow
         });
 
-        item.Product.Quantity -= item.Quantity;
+        // Mark cart as checked out & clear items
+        cart.IsCheckedOut = true;
+        this._context.CartItems.RemoveRange(cart.CartItems);
+
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
+        await transaction.CommitAsync().ConfigureAwait(true);
+
+        return this.Ok(new CheckoutResponseDto
+        {
+          CheckoutId = order.OrderId,
+          DeliveryFee = deliveryFee,
+          TotalAmount = grandTotal,
+          DeliveryMethod = dto.DeliveryMethod,
+          Message = "Checkout successful"
+        });
       }
-
-      this._context.Orders.Add(order);
-
-      // Mark cart as completed
-      cart.IsCheckedOut = true;
-
-      // clear the cart
-      this._context.CartItems.RemoveRange(cart.CartItems);
-
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
-      await transaction.CommitAsync().ConfigureAwait(true);
-
-      return this.Ok(new CheckoutResponseDto
+      catch (Exception ex)
       {
-        CheckoutId = order.OrderId,      // IMPORTANT FIX
-        DeliveryFee = deliveryFee,
-        TotalAmount = grandTotal,
-        DeliveryMethod = dto.DeliveryMethod,
-        Message = "Checkout successful"
-      });
+        await transaction.RollbackAsync().ConfigureAwait(true);
+        return this.StatusCode(500, new { message = "Checkout failed", error = ex.Message });
+      }
     }
   }
 }

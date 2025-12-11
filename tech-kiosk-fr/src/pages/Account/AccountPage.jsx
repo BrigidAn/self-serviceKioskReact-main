@@ -35,7 +35,7 @@ function AccountsPage() {
   // Fetch transaction history
   const fetchTransactions = async () => {
     try {
-      const res = await fetch(`${TX_API}/my`, {
+      const res = await fetch(`${TX_API}/mytrasactions`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -83,6 +83,7 @@ function AccountsPage() {
       setPopupMessage("You cannot top up more than R1500 at once.");
       return false;
     }
+
 
     return true;
   };

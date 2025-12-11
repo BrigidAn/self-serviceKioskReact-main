@@ -48,7 +48,7 @@ namespace KioskAPI.Controllers
 
     // USER: Get transactions for specific Identity User Id
     // GET: api/transaction/user/{id}
-    [HttpGet("my")]
+    [HttpGet("mytrasactions")]
     [Authorize] // Must be logged in
     public async Task<IActionResult> GetMyTransactions()
     {

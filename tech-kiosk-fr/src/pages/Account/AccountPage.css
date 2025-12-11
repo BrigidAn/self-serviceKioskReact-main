@@ -143,19 +143,19 @@
 
 /* POPUP BOX */
 .popup-box {
-  background: #fff;
+  background: #fcfbfb;
   padding: 30px 25px;
   width: 360px;
   max-width: 90%;
   border-radius: 14px;
   text-align: center;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(255, 254, 254, 0.452);
   animation: popupFadeIn 0.25s ease-in-out;
 }
 
 .popup-box p {
   font-size: 16px;
-  color: #333;
+  color: #ffffff;
   margin: 15px 0;
   line-height: 1.5;
 }

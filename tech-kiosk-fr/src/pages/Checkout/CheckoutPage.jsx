@@ -1,29 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CheckoutPage.css";
 
 const API_URL = "https://localhost:5016/api";
 const token = localStorage.getItem("token");
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const [cart, setCart] = useState([]);
+  const [balance, setBalance] = useState(0);
+  const [orderSummary, setOrderSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [cart, setCart] = useState(
-    JSON.parse(localStorage.getItem("cart") || "[]")
-  );
-  const [balance, setBalance] = useState(Number(localStorage.getItem("balance") || 0));
-  const [showTopup, setShowTopup] = useState(false);
-  const [topupAmount, setTopupAmount] = useState("");
-  const [showThankYou, setShowThankYou] = useState(false);
-  const [orderSummary, setOrderSummary] = useState({ items: [], total: 0, deliveryFee: 0 });
+  const fetchCart = async () => {
+    try {
+      const res = await fetch(`${API_URL}/cart`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch cart");
+      const data = await res.json();
+      setCart(data.items || []);
+      setBalance(data.accountBalance || 0); // if you want to fetch user's balance
+    } catch (err) {
+      console.error(err);
+      setCart([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Calculate total items price based on quantity
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
   const totalItemsPrice = cart.reduce(
-    (sum, item) => sum + Number(item.price) * (item.quantity || 1),
+    (sum, item) => sum + item.unitPrice * item.quantity,
     0
   );
 
-  const checkout = async (deliveryMethod = "pickup") => {
+  const handleCheckout = async (deliveryMethod = "pickup") => {
     try {
       const res = await fetch(`${API_URL}/checkout`, {
         method: "POST",
@@ -31,135 +45,56 @@ export default function CheckoutPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ DeliveryMethod: deliveryMethod }),
+        body: JSON.stringify({ deliveryMethod }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Checkout failed");
 
-      if (!res.ok) {
-        if (data.remainingAmount) {
-          // Insufficient funds
-          setShowTopup(true);
-          return;
-        }
-        throw new Error(data.message || "Checkout failed");
-      }
-
-      // Backend grand total (includes delivery fee)
-      const grandTotal = data.totalAmount ?? totalItemsPrice + (data.deliveryFee ?? 0);
-
-      // Deduct balance and store
-      const newBalance = balance - grandTotal;
-      setBalance(newBalance);
-      localStorage.setItem("balance", newBalance);
-
-      // Clear local cart
-      localStorage.removeItem("cart");
-      setCart([]);
-
-      // Show thank-you popup with correct quantities and totals
       setOrderSummary({
-        items: cart.map((i) => ({ ...i })), // preserve name, price, quantity
-        total: grandTotal,
-        deliveryFee: data.deliveryFee ?? 0,
+        items: cart,
+        total: data.totalAmount,
+        deliveryFee: data.deliveryFee,
       });
-      setShowThankYou(true);
+
+      setCart([]);
+      setBalance(prev => prev - data.totalAmount);
     } catch (err) {
       console.error(err);
-      alert(err.message || "Checkout failed");
+      alert(err.message);
     }
   };
 
-  const handleTopup = () => {
-    const amount = parseFloat(topupAmount);
-    if (isNaN(amount) || amount <= 0) return;
-
-    const newBal = balance + amount;
-    setBalance(newBal);
-    localStorage.setItem("balance", newBal);
-    setTopupAmount("");
-    setShowTopup(false);
-
-    alert(`💰 Top-up successful. Current balance: R ${newBal.toFixed(2)}`);
-  };
+  if (loading) return <p>Loading checkout...</p>;
+  if (cart.length === 0) return <p>Your cart is empty.</p>;
 
   return (
-    <div className="checkout-page">
-      <h2>Checkout</h2>
-      <button className="checkout-back-btn" onClick={() => navigate("/cart")}>
-        ← Back
-      </button>
-
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Checkout</h2>
       <p>Balance: R {balance.toFixed(2)}</p>
-      <p>Total Price: R {totalItemsPrice.toFixed(2)}</p>
+      <p>Total: R {totalItemsPrice.toFixed(2)}</p>
 
-      <h3>Items</h3>
-      {cart.map((i) => (
-        <div key={i.id} className="checkout-item">
-          <span>
-            {i.name} x {i.quantity || 1}
-          </span>
-          <span>R {(Number(i.price) * (i.quantity || 1)).toFixed(2)}</span>
-        </div>
-      ))}
+      <div className="space-y-2 mt-4">
+        {cart.map((i) => (
+          <div key={i.cartItemId} className="flex justify-between">
+            <div>{i.productName} x {i.quantity}</div>
+            <div>R {(i.unitPrice * i.quantity).toFixed(2)}</div>
+          </div>
+        ))}
+      </div>
 
-      <button onClick={() => checkout("pickup")} className="confirm-btn">
+      <button
+        className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
+        onClick={() => handleCheckout("pickup")}
+      >
         Confirm Checkout
       </button>
 
-      {/* TOP-UP POPUP */}
-      {showTopup && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>❌ Insufficient Balance</h2>
-            <p>Your balance is R {balance.toFixed(2)}. Please top up to complete the purchase.</p>
-            <input
-              type="number"
-              placeholder="Enter top-up amount"
-              value={topupAmount}
-              onChange={(e) => setTopupAmount(e.target.value)}
-            />
-            <div className="popup-actions">
-              <button className="popup-confirm" onClick={handleTopup}>
-                Top Up
-              </button>
-              <button className="popup-cancel" onClick={() => setShowTopup(false)}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* THANK YOU POPUP */}
-      {showThankYou && (
-        <div className="popup-overlay">
-          <div className="popup-box">
-            <h2>🎉 Thank You!</h2>
-            <p>Your purchase was successful.</p>
-            <h4>Items Purchased:</h4>
-            <ul style={{ textAlign: "left", marginBottom: "10px" }}>
-              {orderSummary.items.map((i, idx) => (
-                <li key={idx}>
-                  {i.name} x {i.quantity || 1} — R {(Number(i.price) * (i.quantity || 1)).toFixed(2)}
-                </li>
-              ))}
-            </ul>
-            <p>Total Spent: R {orderSummary.total.toFixed(2)}</p>
-            <p>Delivery Fee: R {orderSummary.deliveryFee.toFixed(2)}</p>
-            <p>Current Balance: R {balance.toFixed(2)}</p>
-            <div className="popup-actions">
-              <button className="popup-confirm" onClick={() => setShowThankYou(false)}>
-                Close
-              </button>
-              <button className="popup-cancel" onClick={() => {
-                setShowThankYou(false);
-                setShowTopup(true);
-              }}>
-                Top Up
-              </button>
-            </div>
-          </div>
+      {orderSummary && (
+        <div className="mt-6 p-4 border rounded bg-gray-100">
+          <h3 className="font-bold text-lg">Thank You!</h3>
+          <p>Delivery Fee: R {orderSummary.deliveryFee.toFixed(2)}</p>
+          <p>Total Paid: R {orderSummary.total.toFixed(2)}</p>
         </div>
       )}
     </div>

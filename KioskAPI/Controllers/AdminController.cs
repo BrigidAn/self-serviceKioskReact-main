@@ -216,16 +216,20 @@ namespace KioskAPI.Controllers
     [HttpPost("topup")]
     public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
     {
-      if (!ModelState.IsValid)
-        return BadRequest(ModelState);
+      if (!this.ModelState.IsValid)
+      {
+        return this.BadRequest(this.ModelState);
+      }
 
       // Check if user exists
-      var user = await _context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
+      var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
-        return NotFound(new { message = "User not found" });
+      {
+        return this.NotFound(new { message = "User not found" });
+      }
 
       // Find or create account
-      var account = await _context.Accounts
+      var account = await this._context.Accounts
           .FirstOrDefaultAsync(a => a.UserId == dto.UserId).ConfigureAwait(true);
 
       if (account == null)
@@ -236,12 +240,14 @@ namespace KioskAPI.Controllers
           Balance = 0,
           LastUpdated = DateTime.UtcNow
         };
-        _context.Accounts.Add(account);
-        await _context.SaveChangesAsync().ConfigureAwait(true); // Save to get AccountId
+        this._context.Accounts.Add(account);
+        await this._context.SaveChangesAsync().ConfigureAwait(true); // Save to get AccountId
       }
 
       if (dto.Amount > 1500)
-        return BadRequest(new { message = "Maximum amount to deposit is R1500" });
+      {
+        return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
+      }
 
       // Top up
       account.Balance += dto.Amount;
@@ -256,15 +262,62 @@ namespace KioskAPI.Controllers
         Description = dto.Description ?? "Admin Top-Up",
         CreatedAt = DateTime.UtcNow
       };
-      _context.Transactions.Add(transaction);
+      this._context.Transactions.Add(transaction);
 
-      await _context.SaveChangesAsync().ConfigureAwait(true);
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      return Ok(new
+      return this.Ok(new
       {
         message = $"Successfully topped up {dto.Amount:C} for {user.UserName}",
         newBalance = account.Balance
       });
+    }
+
+    [HttpPost("cart/add")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddToUserCart([FromBody] AdminAddToCartDto dto)
+    {
+      var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
+      if (user == null)
+      {
+        return this.NotFound(new { message = "User not found" });
+      }
+
+      var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
+      if (product == null)
+      {
+        return this.BadRequest(new { message = "Product not found" });
+      }
+
+      if (dto.Quantity < 1 || product.Quantity < dto.Quantity)
+      {
+        return this.BadRequest(new { message = "Invalid quantity" });
+      }
+
+      var cart = await this._context.Carts
+          .Include(c => c.CartItems)
+          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
+
+      if (cart == null)
+      {
+        cart = new Cart { UserId = dto.UserId, ExpiresAt = DateTime.UtcNow.AddHours(24) };
+        this._context.Carts.Add(cart);
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
+      }
+
+      var cartItem = new CartItem
+      {
+        CartId = cart.CartId,
+        ProductId = product.ProductId,
+        Quantity = dto.Quantity,
+        UnitPrice = product.Price
+      };
+
+      this._context.CartItems.Add(cartItem);
+      product.Quantity -= dto.Quantity;
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { message = "Item added to user's cart" });
     }
   }
 }

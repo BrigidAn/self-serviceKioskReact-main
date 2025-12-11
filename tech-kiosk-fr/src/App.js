@@ -18,6 +18,7 @@ import UserRoute from "./components/UserRoute";
 import AdminRoute from "./components/AdminRoute";
 import AdminLayout from "./admin/AdminLayout";
 import AdminOrders from "./admin/AdminOrders/AdminOrders";
+import ShopForUser from "./admin/ShopforUsers/ShopforUsers";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
         <Route path="/admin/products" element={<AdminRoute> <ManageProducts /> </AdminRoute>} />
         <Route path="/admin/logs" element={<AdminRoute> <AdminLogs /> </AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute> <AdminOrders /> </AdminRoute>} />
+        <Route path="/admin/shop" element={<AdminRoute> <ShopForUser /> </AdminRoute>} />
 
       </Routes>
     </Router>

@@ -66,6 +66,7 @@ builder.Services.AddAuthentication(options =>
   };
 });
 
+
 // ===== Authorization =====
 builder.Services.AddAuthorization();
 

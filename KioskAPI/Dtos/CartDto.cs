@@ -23,6 +23,7 @@ namespace KioskAPI.Dtos
     public string ProductName { get; set; } = string.Empty;
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
+    public string? ImageUrl { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public decimal TotalPrice => this.UnitPrice * this.Quantity;
   }

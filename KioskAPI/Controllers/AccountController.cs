@@ -95,7 +95,7 @@ namespace KioskAPI.Controllers
     }
 
     // GET /api/Account/me
-    [HttpGet("me")]
+    [HttpGet("myaccount")]
     public async Task<IActionResult> GetCurrentUser()
     {
       int userId = this.GetIdentityUserId();

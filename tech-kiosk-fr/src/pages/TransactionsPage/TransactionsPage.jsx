@@ -15,7 +15,7 @@ function TransactionsPage() {
     const fetchTransactions = async () => {
       try {
         const res = await axios.get(
-          `https://localhost:5016/api/Transaction/my`,
+          `https://localhost:5016/api/Transaction/mytrasactions`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
