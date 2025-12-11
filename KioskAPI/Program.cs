@@ -9,8 +9,22 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "Logs/kioskapi-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14, // keep 14 days
+        shared: true
+    )
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog();
 
 // ===== Controllers + Swagger =====
 builder.Services.AddControllers();
@@ -125,6 +139,7 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
+app.UseSerilogRequestLogging();
 // ===== Middleware =====
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");

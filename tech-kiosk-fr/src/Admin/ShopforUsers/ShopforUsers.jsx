@@ -1,137 +1,170 @@
-import React, { useState, useEffect } from "react";
-import AdminLayout from "../AdminLayout";
+import { useEffect, useState } from "react";
+import AdminLayout from "../layout/AdminLayout";
 import "./ShopforUsers.css";
 
 export default function ShopForUser() {
   const [users, setUsers] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState(null);
   const [products, setProducts] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
   const [cart, setCart] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+
   const token = localStorage.getItem("token");
 
-  // Fetch all users (admin only)
+  // ------------ FETCH USERS ------------
   const fetchUsers = async () => {
-    try {
-      const res = await fetch("https://localhost:5016/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      console.error(err.message);
-    }
+    const res = await fetch(`https://localhost:5016/api/account`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setUsers(data);
   };
 
-  // Fetch all products
+  // ------------ FETCH PRODUCTS ------------
   const fetchProducts = async () => {
-    try {
-      const res = await fetch("https://localhost:5016/api/product", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
-      setProducts(data);
-    } catch (err) {
-      console.error(err.message);
-    }
+    const res = await fetch(`https://localhost:5016/api/product`);
+    const data = await res.json();
+    setProducts(data);
   };
 
-  // Fetch selected user's cart
+  // ------------ FETCH CART ------------
   const fetchCartForUser = async (userId) => {
-    try {
-      const res = await fetch(`https://localhost:5016/api/cart/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) setCart(null); // if no cart yet
-      else {
-        const data = await res.json();
-        setCart(data);
-      }
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
-
-  const addToUserCart = async (productId, quantity) => {
-    if (!selectedUserId) return alert("Select a user first");
-
-    try {
-      const res = await fetch(`https://localhost:5016/api/admin/cart/add`, {
-        method: "POST",
+    const res = await fetch(
+      `https://localhost:5016/api/cart/user/${userId}`,
+      {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId: selectedUserId, productId, quantity }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to add product");
       }
+    );
+    const data = await res.json();
+    setCart(data);
+  };
 
-      const data = await res.json();
-      console.log(data.message);
-      fetchCartForUser(selectedUserId); // refresh cart
-    } catch (err) {
-      console.error(err.message);
+  // ------------ ADD TO CART ------------
+  const addToCart = async (productId) => {
+    const res = await fetch(`https://localhost:5016/api/cart/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId: selectedUserId,
+        productId: productId,
+        quantity: 1,
+      }),
+    });
+
+    if (res.ok) {
+      fetchCartForUser(selectedUserId);
     }
   };
 
+  // ------------ ADMIN CHECKOUT ------------
+  const checkoutForUser = async () => {
+    const res = await fetch(`https://localhost:5016/api/admin/cart/checkout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        userId: selectedUserId,
+      }),
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    fetchCartForUser(selectedUserId);
+  };
+
+  // LOAD DATA
   useEffect(() => {
     fetchUsers();
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    if (selectedUserId) fetchCartForUser(selectedUserId);
-  }, [selectedUserId]);
-
   return (
-    <div>
-      <h2>Shop For User</h2>
+    <AdminLayout>
+      <div className="shop-container">
+        <h1 className="page-title">Shop For User</h1>
 
-      <div>
-        <label>Select User: </label>
-        <select
-          value={selectedUserId || ""}
-          onChange={(e) => setSelectedUserId(e.target.value)}
-        >
-          <option value="">-- Select a User --</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name} ({u.email})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <h3>Products</h3>
-      <ul>
-        {products.map((p) => (
-          <li key={p.productId}>
-            {p.name} - ${p.price} - Stock: {p.quantity}
-            <button onClick={() => addToUserCart(p.productId, 1)}>Add 1</button>
-          </li>
-        ))}
-      </ul>
-
-      {cart && cart.items.length > 0 && (
-        <div>
-          <h3>User Cart</h3>
-          <ul>
-            {cart.items.map((item) => (
-              <li key={item.cartItemId}>
-                {item.productName} x {item.quantity} = $
-                {item.unitPrice * item.quantity}
-              </li>
+        {/* USER SELECTOR */}
+        <div className="card">
+          <label>Select User</label>
+          <select
+            value={selectedUserId}
+            onChange={(e) => {
+              setSelectedUserId(e.target.value);
+              fetchCartForUser(e.target.value);
+            }}
+          >
+            <option value="">-- Select a User --</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.firstName} {u.lastName}
+              </option>
             ))}
-          </ul>
-          <h4>Total: ${cart.totalAmount}</h4>
+          </select>
         </div>
-      )}
-    </div>
+
+        {/* SEARCH */}
+        <div className="card">
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="search-input"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* PRODUCT GRID */}
+        <div className="products-grid">
+          {products
+            .filter((p) =>
+              p.productName.toLowerCase().includes(search.toLowerCase())
+            )
+            .map((p) => (
+              <div key={p.productId} className="product-card">
+                <img src={p.imageUrl} alt="" />
+                <h3>{p.productName}</h3>
+                <p className="price">R {p.price}</p>
+                <button
+                  disabled={!selectedUserId}
+                  onClick={() => addToCart(p.productId)}
+                >
+                  Add to Cart
+                </button>
+              </div>
+            ))}
+        </div>
+
+        {/* CART PANEL */}
+        {cart && cart.items.length > 0 && (
+          <div className="card cart-card">
+            <h2>User Cart</h2>
+            <ul>
+              {cart.items.map((item) => (
+                <li key={item.cartItemId}>
+                  {item.productName} x {item.quantity} = R{" "}
+                  {item.totalPrice}
+                </li>
+              ))}
+            </ul>
+
+            <h3 className="total">Total: R {cart.totalAmount}</h3>
+
+            <button className="checkout-btn" onClick={checkoutForUser}>
+              Checkout for User
+            </button>
+          </div>
+        )}
+      </div>
+    </AdminLayout>
   );
 }

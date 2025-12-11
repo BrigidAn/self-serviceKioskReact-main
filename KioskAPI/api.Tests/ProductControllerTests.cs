@@ -1,173 +1,124 @@
-// namespace KioskAPI.api.Tests
-// {
-//   using System;
-//   using System.Collections.Generic;
-//   using System.Linq;
-//   using System.Threading.Tasks;
-//   using FluentAssertions;
-//   using KioskAPI.Controllers;
-//   using KioskAPI.Data;
-//   using KioskAPI.Dtos;
-//   using KioskAPI.Mappers;
-//   using KioskAPI.Models;
-//   using KioskAPI.Tests.Fixtures;
-//   using Microsoft.AspNetCore.Mvc;
-//   using Xunit;
+using Xunit;
+using Moq;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using KioskAPI.Controllers;
+using KioskAPI.Data;
+using KioskAPI.Models;
+using KioskAPI.Services;
+using KioskAPI.Dtos;
+using Microsoft.AspNetCore.Http;
 
-//   public class ProductControllerTests
-//   {
-//     private AppDbContext CreateSeeded()
-//     {
-//       var ctx = TestContextFactory.CreateContext();
+public class ProductControllerTests
+{
+  private AppDbContext GetDbContext()
+  {
+    var options = new DbContextOptionsBuilder<AppDbContext>()
+        .UseInMemoryDatabase(Guid.NewGuid().ToString())
+        .Options;
 
-//       // Seed suppliers
-//       var supplier1 = new Supplier { SupplierId = 1, Name = "Acme Supplies" };
-//       var supplier2 = new Supplier { SupplierId = 2, Name = "BestGoods" };
+    return new AppDbContext(options);
+  }
 
-//       ctx.Suppliers.AddRange(supplier1, supplier2);
+  private IFormFile FakeFile()
+  {
+    var stream = new MemoryStream(new byte[10]);
+    return new FormFile(stream, 0, stream.Length, "file", "test.png");
+  }
 
-//       // Seed products mock data
-//       ctx.Products.AddRange(
-//           new Product { ProductId = 1, Name = "Apple", Description = "Fresh Apple", Category = "Fruit", Price = 1.25m, Quantity = 10, SupplierId = 1 },
-//           new Product { ProductId = 2, Name = "Banana", Description = "Yellow Banana", Category = "Fruit", Price = 0.75m, Quantity = 30, SupplierId = 1 },
-//           new Product { ProductId = 3, Name = "Shampoo", Description = "Hair care", Category = "Personal Care", Price = 5.99m, Quantity = 5, SupplierId = 2 }
-//       );
+  [Fact]
+  public async Task GetProducts_ReturnsList()
+  {
+    // Arrange
+    var context = this.GetDbContext();
 
-//       ctx.SaveChanges();
-//       return ctx;
-//     }
+    context.Products.Add(new Product { ProductId = 1, Name = "Test", Category = "Food", Price = 10 });
+    await context.SaveChangesAsync();
 
-//     [Fact] // returns all products from seeded data
-//     public async Task GetProducts_ReturnsAllProducts()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+    var mockCloudinary = new Mock<CloudinaryService>();
+    var controller = new ProductController(context, mockCloudinary.Object);
 
-//       var result = await controller.GetProducts().ConfigureAwait(true);
+    // Act
+    var result = await controller.GetProducts() as OkObjectResult;
 
-//       result.Should().BeOfType<OkObjectResult>();
-//       var products = (result as OkObjectResult).Value as List<ProductDto>;
-//       products.Should().NotBeNull();
-//       products.Count.Should().Be(3);
-//       products.Any(p => p.Name == "Apple").Should().BeTrue();
-//     }
+    // Assert
+    result.Should().NotBeNull();
+    var list = result.Value as IEnumerable<ProductDto>;
+    list.Should().HaveCount(1);
+  }
 
-//     [Fact] // returns specifc product by their id
-//     public async Task GetProduct_ExistingId_ReturnsProduct()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+  [Fact]
+  public async Task GetProduct_ReturnsNotFound_WhenMissing()
+  {
+    var context = this.GetDbContext();
+    var mockCloudinary = new Mock<CloudinaryService>();
+    var controller = new ProductController(context, mockCloudinary.Object);
 
-//       var result = await controller.GetProduct(1).ConfigureAwait(true);
+    var result = await controller.GetProduct(99);
 
-//       result.Should().BeOfType<OkObjectResult>();
-//       var product = (result as OkObjectResult).Value as ProductDto;
-//       product.Should().NotBeNull();
-//       product.Name.Should().Be("Apple");
-//     }
+    result.Should().BeOfType<NotFoundObjectResult>();
+  }
 
-//     [Fact] // returns products that do not exist
-//     public async Task GetProduct_NonExistingId_ReturnsNotFound()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+  [Fact]
+  public async Task AddProduct_AddsSuccessfully()
+  {
+    // Arrange
+    var context = this.GetDbContext();
+    var mockCloudinary = new Mock<CloudinaryService>();
 
-//       var result = await controller.GetProduct(999).ConfigureAwait(true);
+    mockCloudinary.Setup(c => c.UploadImageAsync(It.IsAny<IFormFile>()))
+                  .ReturnsAsync("http://img.com/example.png");
 
-//       result.Should().BeOfType<NotFoundObjectResult>();
-//     }
+    var controller = new ProductController(context, mockCloudinary.Object);
 
-//     [Fact] // create/adds a new product
-//     public async Task AddProduct_NegativeQuantity_ReturnsBadRequest()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+    var dto = new CreateProductDto
+    {
+      Name = "Burger",
+      Category = "Food",
+      Description = "Tasty",
+      Price = 20,
+      Quantity = 5,
+      File = this.FakeFile()
+    };
 
-//       var dto = new CreateProductDto
-//       {
-//         Name = "Faulty Item",
-//         Quantity = -5,
-//         Price = 1m,
-//         Category = "Misc",
-//         SupplierId = 1
-//       };
+    // Act
+    var result = await controller.AddProduct(dto) as OkObjectResult;
 
-//       var result = await controller.AddProduct(dto).ConfigureAwait(true);
+    // Assert
+    result.Should().NotBeNull();
+    context.Products.Count().Should().Be(1);
+  }
 
-//       result.Should().BeOfType<BadRequestObjectResult>();
-//     }
+  [Fact]
+  public async Task UpdateProduct_ReturnsNotFound_WhenMissing()
+  {
+    var context = this.GetDbContext();
+    var mockCloudinary = new Mock<CloudinaryService>();
 
-//     [Fact]
-//     public async Task UpdateProduct_ExistingId_UpdatesProduct() //update exsiting products
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+    var controller = new ProductController(context, mockCloudinary.Object);
 
-//       var dto = new UpdateProductDto
-//       {
-//         Name = "Apple Updated",
-//         Price = 1.50m,
-//         Quantity = 15
-//       };
+    var dto = new UpdateProductDto { Name = "Updated" };
 
-//       var result = await controller.UpdateProduct(1, dto).ConfigureAwait(true);
+    var result = await controller.UpdateProduct(10, dto);
 
-//       result.Should().BeOfType<OkObjectResult>();
-//       var updated = await ctx.Products.FindAsync(1).ConfigureAwait(true);
-//       updated.Name.Should().Be("Apple Updated");
-//       updated.Price.Should().Be(1.50m);
-//       updated.Quantity.Should().Be(15);
-//     }
+    result.Should().BeOfType<NotFoundObjectResult>();
+  }
 
-//     [Fact]
-//     public async Task UpdateProduct_NonExistingId_ReturnsNotFound()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+  [Fact]
+  public async Task DeleteProduct_DeletesSuccessfully()
+  {
+    var context = this.GetDbContext();
 
-//       var dto = new UpdateProductDto { Name = "DoesNotExist" };
-//       var result = await controller.UpdateProduct(999, dto).ConfigureAwait(true);
+    context.Products.Add(new Product { ProductId = 1, Name = "Test" });
+    await context.SaveChangesAsync();
 
-//       result.Should().BeOfType<NotFoundObjectResult>();
-//     }
+    var mockCloudinary = new Mock<CloudinaryService>();
+    var controller = new ProductController(context, mockCloudinary.Object);
 
-//     [Fact]
-//     public async Task DeleteProduct_ExistingId_RemovesProduct()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
+    var result = await controller.DeleteProduct(1) as OkObjectResult;
 
-//       var result = await controller.DeleteProduct(1).ConfigureAwait(true);
-
-//       result.Should().BeOfType<OkObjectResult>();
-//       ctx.Products.Count().Should().Be(2);
-//       ctx.Products.Any(p => p.ProductId == 1).Should().BeFalse();
-//     }
-
-//     [Fact]
-//     public async Task DeleteProduct_NonExistingId_ReturnsNotFound()
-//     {
-//       var ctx = this.CreateSeeded();
-//       var controller = new ProductController(ctx);
-
-//       var result = await controller.DeleteProduct(999).ConfigureAwait(true);
-
-//       result.Should().BeOfType<NotFoundObjectResult>();
-//     }
-
-//     // [Fact]
-//     // public async Task FilterProducts_ByCategory_ReturnsFilteredResults()
-//     // {
-//     //     var ctx = CreateSeeded(out var mapper);
-//     //     var controller = new ProductController(ctx, mapper);
-
-//     //     var filter = new ProductFilterDto { Category = "Fruit" };
-//     //     var result = await controller.FilterProducts(filter);
-
-//     //     result.Should().BeOfType<OkObjectResult>();
-//     //     var data = (result as OkObjectResult).Value as dynamic;
-//     //     ((List<ProductDto>)data.products).All(p => p.Category == "Fruit").Should().BeTrue();
-//     // }
-
-//   }
-// }
+    result.Should().NotBeNull();
+    context.Products.Count().Should().Be(0);
+  }
+}

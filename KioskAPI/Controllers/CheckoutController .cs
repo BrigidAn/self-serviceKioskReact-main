@@ -68,7 +68,18 @@ namespace KioskAPI.Controllers
     [HttpPost]
     public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
     {
-      int userId = this.GetIdentityUserId();
+      int userId;
+
+      // Admin acting on behalf of a user
+      if (this.User.IsInRole("Admin") && dto.UserId.HasValue)
+      {
+        userId = dto.UserId.Value;
+      }
+      else
+      {
+        userId = this.GetIdentityUserId();
+      }
+
       if (userId == 0)
       {
         return this.Unauthorized(new { message = "Invalid token" });
@@ -77,7 +88,8 @@ namespace KioskAPI.Controllers
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
-          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
+          .ConfigureAwait(true);
 
       if (cart == null || !cart.CartItems.Any())
       {

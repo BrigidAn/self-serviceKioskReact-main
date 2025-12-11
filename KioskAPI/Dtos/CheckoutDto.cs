@@ -23,6 +23,7 @@ namespace KioskAPI.Dtos
     [Required]
     public string DeliveryMethod { get; set; }  // "Collection" or "Delivery"
     public decimal DeliveryFee { get; set; }
+    public int? UserId { get; set;}
   }
 
   public class CheckoutResponseDto
