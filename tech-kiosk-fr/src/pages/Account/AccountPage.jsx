@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./AccountPage.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ConfirmTopUpModal from "../../components/ConfirmTopUpModal";
 
 const ACCOUNT_API = "https://localhost:5016/api/account";
 const TX_API = "https://localhost:5016/api/Transaction";
@@ -13,8 +14,10 @@ function AccountsPage() {
   const [transactions, setTransactions] = useState([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [popupMessage, setPopupMessage] = useState("");
+  const [showConfirmTopUp, setShowConfirmTopUp] = useState(false);
+  const [pendingAmount, setPendingAmount] = useState(0);
 
-  const userId = localStorage.getItem("userId"); // stored after login
+  const userId = localStorage.getItem("userId");
 
   // Fetch balance
   const fetchBalance = async () => {
@@ -52,10 +55,10 @@ function AccountsPage() {
 
   useEffect(() => {
     fetchBalance();
-    fetchTransactions(); // load on mount
+    fetchTransactions();
   }, []);
 
-  // Validation function
+  // Validation before confirmation modal
   const validateAmount = () => {
     if (topUpAmount.trim() === "") {
       setPopupMessage("Amount is required.");
@@ -84,16 +87,14 @@ function AccountsPage() {
       return false;
     }
 
-
+    // Show confirm modal
+    setPendingAmount(amount);
+    setShowConfirmTopUp(true);
     return true;
   };
 
-  // Top-up handler
-  const handleTopUp = async () => {
-    if (!validateAmount()) return;
-
-    const amount = parseFloat(topUpAmount);
-
+  // Top-up handler (NO validation inside!)
+  const handleTopUp = async (amount) => {
     try {
       const res = await fetch(`${ACCOUNT_API}/topup`, {
         method: "POST",
@@ -111,7 +112,6 @@ function AccountsPage() {
       setTopUpAmount("");
       setPopupMessage(`Successfully topped up R${amount.toFixed(2)}`);
 
-      // Refresh transactions after top-up
       fetchTransactions();
     } catch (err) {
       setPopupMessage(err.message);
@@ -145,7 +145,10 @@ function AccountsPage() {
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
           />
-          <button className="topup-btn" onClick={handleTopUp}>
+          <button
+            className="topup-btn"
+            onClick={validateAmount} // FIXED ✔
+          >
             Top Up
           </button>
         </div>
@@ -192,12 +195,26 @@ function AccountsPage() {
         )}
       </div>
 
+      {/* CONFIRM TOP UP MODAL */}
+      <ConfirmTopUpModal
+        show={showConfirmTopUp}
+        amount={pendingAmount}
+        onConfirm={() => {
+          setShowConfirmTopUp(false);
+          handleTopUp(pendingAmount);
+        }}
+        onCancel={() => setShowConfirmTopUp(false)}
+      />
+
       {/* Popup */}
       {popupMessage && (
         <div className="popup-overlay" onClick={() => setPopupMessage("")}>
           <div className="popup-box">
             <p>{popupMessage}</p>
-            <button className="btn primary" onClick={() => setPopupMessage("")}>
+            <button
+              className="btn primary"
+              onClick={() => setPopupMessage("")}
+            >
               OK
             </button>
           </div>

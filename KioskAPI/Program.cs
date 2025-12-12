@@ -11,14 +11,16 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
+// ===== Serilog Logging =====
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information() // changed from Debug to Information for cleaner logs
     .WriteTo.Console()
     .WriteTo.File(
         path: "Logs/kioskapi-.log",
         rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 14, // keep 14 days
-        shared: true
+        retainedFileCountLimit: 14,
+        shared: true,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
     )
     .CreateLogger();
 
@@ -29,16 +31,18 @@ builder.Host.UseSerilog();
 // ===== Controllers + Swagger =====
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-// builder.Services.AddSwaggerGen();
 
+// ===== Dependency Injection =====
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddSingleton<CloudinaryService>();
+builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<AuthService>();
 
 // ===== Database Context =====
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ===== ASP.NET Identity (KEEP THIS) =====
+// ===== ASP.NET Identity =====
 builder.Services.AddIdentity<User, Role>(options =>
 {
   options.Password.RequireDigit = true;
@@ -51,10 +55,8 @@ builder.Services.AddIdentity<User, Role>(options =>
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
-// ===== JWT Authentication ONLY (NO COOKIES) =====
+// ===== JWT Authentication =====
 var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
-
-builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -75,24 +77,21 @@ builder.Services.AddAuthentication(options =>
     ValidIssuer = builder.Configuration["Jwt:Issuer"],
     ValidAudience = builder.Configuration["Jwt:Audience"],
     IssuerSigningKey = new SymmetricSecurityKey(key),
-    ClockSkew = TimeSpan.Zero //incase tokens fail
-
+    ClockSkew = TimeSpan.Zero
   };
 });
-
 
 // ===== Authorization =====
 builder.Services.AddAuthorization();
 
-//SWAGGER JWT AUTH
+// ===== Swagger JWT =====
 builder.Services.AddSwaggerGen(c =>
 {
   c.SwaggerDoc("v1", new OpenApiInfo { Title = "KioskAPI API", Version = "v1" });
 
-  //Jwt Bearer definition
   c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
   {
-    Description = "Enter JWT token like: **Bearer YOUR_TOKEN_HERE",
+    Description = "Enter JWT token like: **Bearer YOUR_TOKEN_HERE**",
     Name = "Authorization",
     In = ParameterLocation.Header,
     Type = SecuritySchemeType.Http,
@@ -100,21 +99,20 @@ builder.Services.AddSwaggerGen(c =>
     BearerFormat = "JWT"
   });
 
-  //TELL SWAGGER TO USE THE TOKEN
   c.AddSecurityRequirement(new OpenApiSecurityRequirement
-  {
-      {
-          new OpenApiSecurityScheme
-          {
-              Reference = new OpenApiReference
-              {
-                  Type = ReferenceType.SecurityScheme,
-                  Id = "Bearer"
-              }
-          },
-          Array.Empty<string>()
-      }
-  });
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // ===== CORS =====
@@ -127,9 +125,6 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-// AuthService for login/register
-builder.Services.AddScoped<AuthService>();
-
 var app = builder.Build();
 
 // ===== Swagger =====
@@ -139,8 +134,8 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-app.UseSerilogRequestLogging();
 // ===== Middleware =====
+app.UseSerilogRequestLogging(); // logs incoming requests
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./CheckoutPage.css";
+import InsufficientBalanceModal from "../../components/InsufficientBalanceModal";
 
 const API_URL = "https://localhost:5016/api";
 const token = localStorage.getItem("token");
@@ -10,6 +12,13 @@ export default function CheckoutPage() {
   const [balance, setBalance] = useState(0);
   const [orderSummary, setOrderSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deliveryMethod, setDeliveryMethod] = useState("pickup");
+  const [deliveryFee, setDeliveryFee] = useState(0);
+
+  const [showInsufficientModal, setShowInsufficientModal] = useState(false);
+  const [amountNeeded, setAmountNeeded] = useState(0);
+
+  const [topUpAmount, setTopUpAmount] = useState("");
 
   const fetchCart = async () => {
     try {
@@ -17,19 +26,38 @@ export default function CheckoutPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to fetch cart");
+
       const data = await res.json();
       setCart(data.items || []);
-      setBalance(data.accountBalance || 0); // if you want to fetch user's balance
     } catch (err) {
       console.error(err);
       setCart([]);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchBalance = async () => {
+    try {
+      const res = await fetch(`${API_URL}/Account/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch balance");
+
+      const balanceData = await res.json();
+      setBalance(balanceData.balance ?? 0);
+    } catch (err) {
+      console.error(err);
+      setBalance(0);
     }
   };
 
   useEffect(() => {
-    fetchCart();
+    const loadData = async () => {
+      await fetchCart();
+      await fetchBalance();
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   const totalItemsPrice = cart.reduce(
@@ -37,7 +65,54 @@ export default function CheckoutPage() {
     0
   );
 
-  const handleCheckout = async (deliveryMethod = "pickup") => {
+  useEffect(() => {
+    setDeliveryFee(deliveryMethod === "delivery" ? 80 : 0);
+  }, [deliveryMethod]);
+
+  const handleTopUp = async () => {
+    if (!topUpAmount || topUpAmount <= 0) return alert("Enter a valid amount");
+
+    try {
+      const res = await fetch(`${API_URL}/Account/topup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount: Number(topUpAmount) }),
+      });
+
+      if (!res.ok) throw new Error("Failed to top up");
+
+      const data = await res.json();
+      setBalance(prev => prev + Number(topUpAmount));
+      setTopUpAmount("");
+
+      // Close modal if balance is now enough
+      if (balance + Number(topUpAmount) >= totalItemsPrice + deliveryFee) {
+        setShowInsufficientModal(false);
+      }
+
+      alert("Top-up successful!");
+    } catch (err) {
+      console.error(err);
+      alert("Top-up failed.");
+    }
+  };
+
+
+  const handleCheckout = async () => {
+
+  const totalCost = totalItemsPrice + deliveryFee;
+
+
+    if (balance < totalCost) {
+      setAmountNeeded(totalCost - balance);
+      setShowInsufficientModal(true);
+      return;
+    }
+
+
     try {
       const res = await fetch(`${API_URL}/checkout`, {
         method: "POST",
@@ -58,7 +133,7 @@ export default function CheckoutPage() {
       });
 
       setCart([]);
-      setBalance(prev => prev - data.totalAmount);
+      setBalance((prev) => prev - data.totalAmount);
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -66,35 +141,117 @@ export default function CheckoutPage() {
   };
 
   if (loading) return <p>Loading checkout...</p>;
-  if (cart.length === 0) return <p>Your cart is empty.</p>;
+  if (cart.length === 0 && !orderSummary) return <p>Your cart is empty.</p>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Checkout</h2>
-      <p>Balance: R {balance.toFixed(2)}</p>
-      <p>Total: R {totalItemsPrice.toFixed(2)}</p>
+    <div className="checkout-container">
+      <button
+        className="checkout-back-btn"
+        onClick={() => navigate("/products")}
+      >
+        ← Back
+      </button>
 
-      <div className="space-y-2 mt-4">
+      <div className="vp-hero-floating">
+                <div className="float-shape fs1"></div>
+                <div className="float-shape fs2"></div>
+                <div className="float-shape fs3"></div>
+              </div>
+
+      <h2 className="checkout-title">Checkout</h2>
+
+      <p className="checkout-balance">Balance: R {balance.toFixed(2)}</p>
+
+      <p className="checkout-total">
+        Total Items: R {totalItemsPrice.toFixed(2)}
+      </p>
+
+      <p className="checkout-total">
+        Total with Delivery: R {(totalItemsPrice + deliveryFee).toFixed(2)}
+      </p>
+
+      <div className="checkout-delivery">
+        <label>
+          <input
+            type="radio"
+            value="pickup"
+            checked={deliveryMethod === "pickup"}
+            onChange={(e) => setDeliveryMethod(e.target.value)}
+          />
+          Pickup (Free)
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            value="delivery"
+            checked={deliveryMethod === "delivery"}
+            onChange={(e) => setDeliveryMethod(e.target.value)}
+          />
+          Delivery (R80)
+        </label>
+      </div>
+
+      <div className="checkout-items">
         {cart.map((i) => (
-          <div key={i.cartItemId} className="flex justify-between">
-            <div>{i.productName} x {i.quantity}</div>
+          <div key={i.cartItemId} className="checkout-item-row">
+            <div>
+              {i.productName} x {i.quantity}
+            </div>
             <div>R {(i.unitPrice * i.quantity).toFixed(2)}</div>
           </div>
         ))}
       </div>
 
-      <button
-        className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
-        onClick={() => handleCheckout("pickup")}
-      >
+      <button className="checkout-confirm-btn" onClick={handleCheckout}>
         Confirm Checkout
       </button>
 
+       <InsufficientBalanceModal
+        show={showInsufficientModal}
+        onClose={() => setShowInsufficientModal(false)}
+        remainingAmount={amountNeeded}
+      >
+        <div className="topup-container">
+          <input
+            type="number"
+            placeholder="Enter top-up amount"
+            value={topUpAmount}
+            onChange={(e) => setTopUpAmount(e.target.value)}
+            className="modal-input"
+          />
+          <button className="modal-topup-btn" onClick={handleTopUp}>
+            Top Up
+          </button>
+        </div>
+      </InsufficientBalanceModal>
+
       {orderSummary && (
-        <div className="mt-6 p-4 border rounded bg-gray-100">
-          <h3 className="font-bold text-lg">Thank You!</h3>
+        <div className="checkout-popup">
+          <h3 className="checkout-popup-title">🎉 Thank You!</h3>
+
           <p>Delivery Fee: R {orderSummary.deliveryFee.toFixed(2)}</p>
           <p>Total Paid: R {orderSummary.total.toFixed(2)}</p>
+
+          <p className="checkout-remaining">
+            Remaining Balance: R {balance.toFixed(2)}
+          </p>
+
+          <div className="checkout-popup-buttons">
+            <button
+              className="checkout-popup-btn"
+              onClick={() => navigate("/account")}
+            >
+              Top Up
+            </button>
+
+            <button
+              className="checkout-popup-btn"
+              onClick={() => navigate("/products")}
+            >
+              Exit
+            </button>
+          </div>
         </div>
       )}
     </div>

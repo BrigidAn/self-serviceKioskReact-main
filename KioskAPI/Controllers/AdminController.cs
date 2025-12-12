@@ -319,5 +319,85 @@ namespace KioskAPI.Controllers
 
       return this.Ok(new { message = "Item added to user's cart" });
     }
+
+    [HttpGet("cart/summary/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetUserCartSummary(int userId)
+    {
+      var cart = await this._context.Carts
+          .Include(c => c.CartItems)
+          .ThenInclude(ci => ci.Product)
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+
+      if (cart == null || !cart.CartItems.Any())
+      {
+        return this.NotFound(new { message = "Cart is empty" });
+      }
+
+      var itemsTotal = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity);
+
+      return this.Ok(new
+      {
+        cartId = cart.CartId,
+        items = cart.CartItems.Select(ci => new
+        {
+          ci.CartItemId,
+          ci.ProductId,
+          ProductName = ci.Product?.Name ?? "Unknown",
+          ImageUrl = ci.Product?.ImageUrl ?? "",
+          Quantity = ci.Quantity,
+          UnitPrice = ci.UnitPrice
+        }),
+        itemsTotal
+      });
+    }
+    [HttpPost("cart/checkout/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> CheckoutUserCart(int userId)
+    {
+      var cart = await _context.Carts
+          .Include(c => c.CartItems)
+          .ThenInclude(ci => ci.Product)
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
+          .ConfigureAwait(true);
+
+      if (cart == null || !cart.CartItems.Any())
+        return NotFound(new { message = "Cart is empty" });
+
+      // Create order
+      var order = new Order
+      {
+        UserId = userId,
+        OrderDate = DateTime.UtcNow,
+        Status = "Pending",
+        PaymentStatus = "Pending",
+        TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity)
+      };
+
+      _context.Orders.Add(order);
+      await _context.SaveChangesAsync().ConfigureAwait(true);
+
+      // Create order items
+      foreach (var ci in cart.CartItems)
+      {
+        _context.OrderItems.Add(new OrderItem
+        {
+          OrderId = order.OrderId,
+          ProductId = ci.ProductId,
+          Quantity = ci.Quantity,
+          PriceAtPurchase = ci.UnitPrice
+        });
+
+        // Reduce product stock
+        ci.Product.Quantity -= ci.Quantity;
+      }
+
+      // Mark cart as checked out
+      cart.IsCheckedOut = true;
+      await _context.SaveChangesAsync().ConfigureAwait(true);
+
+      return Ok(new { message = "Checkout successful", orderId = order.OrderId });
+    }
+
   }
 }

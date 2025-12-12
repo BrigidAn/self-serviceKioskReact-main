@@ -1,169 +1,352 @@
-import { useEffect, useState } from "react";
-import AdminLayout from "../layout/AdminLayout";
-import "./ShopforUsers.css";
+import React, { useEffect, useState } from "react";
+import "./ShopForUsers.css";
+import AdminLayout from "../AdminLayout";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const API_URL = "https://localhost:5016/api";
 
 export default function ShopForUser() {
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [cart, setCart] = useState(null);
-  const [search, setSearch] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [quantityMap, setQuantityMap] = useState({});
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
 
-  const token = localStorage.getItem("token");
+  const getToken = () => localStorage.getItem("token");
 
-  // ------------ FETCH USERS ------------
+  // Fetch users
   const fetchUsers = async () => {
-    const res = await fetch(`https://localhost:5016/api/account`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await res.json();
-    setUsers(data);
-  };
+    const token = getToken();
+    if (!token) return;
 
-  // ------------ FETCH PRODUCTS ------------
-  const fetchProducts = async () => {
-    const res = await fetch(`https://localhost:5016/api/product`);
-    const data = await res.json();
-    setProducts(data);
-  };
-
-  // ------------ FETCH CART ------------
-  const fetchCartForUser = async (userId) => {
-    const res = await fetch(
-      `https://localhost:5016/api/cart/user/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    const data = await res.json();
-    setCart(data);
-  };
-
-  // ------------ ADD TO CART ------------
-  const addToCart = async (productId) => {
-    const res = await fetch(`https://localhost:5016/api/cart/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        userId: selectedUserId,
-        productId: productId,
-        quantity: 1,
-      }),
-    });
-
-    if (res.ok) {
-      fetchCartForUser(selectedUserId);
+    try {
+      const res = await fetch(`${API_URL}/admin/users?page=1&pageSize=50`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setUsers(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setUsers([]);
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
-  // ------------ ADMIN CHECKOUT ------------
-  const checkoutForUser = async () => {
-    const res = await fetch(`https://localhost:5016/api/admin/cart/checkout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        userId: selectedUserId,
-      }),
-    });
+  // Fetch products
+  const fetchProducts = async () => {
+    const token = getToken();
+    if (!token) return;
 
-    const data = await res.json();
-    alert(data.message);
-
-    fetchCartForUser(selectedUserId);
+    try {
+      const res = await fetch(`${API_URL}/admin/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setProducts(Array.isArray(data.data) ? data.data : []);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
   };
 
-  // LOAD DATA
+  // Fetch user's cart
+  const fetchUserCart = async (userId) => {
+    const token = getToken();
+    if (!token || !userId) return;
+
+    try {
+      const res = await fetch(`${API_URL}/admin/cart/summary/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        setCart([]);
+        return;
+      }
+
+      const data = await res.json();
+      const items = data.items?.map((i) => ({
+        cartItemId: i.cartItemId, // important for deletion
+        productId: i.productId,
+        name: i.productName,
+        quantity: i.quantity,
+      })) || [];
+      setCart(items);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+      setCart([]);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    if (selectedUserId) fetchUserCart(selectedUserId);
+  }, [selectedUserId]);
+
+  const handleQuantityChange = (productId, value) => {
+    setQuantityMap((prev) => ({
+      ...prev,
+      [productId]: parseInt(value),
+    }));
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!selectedUserId) {
+      toast.warning("Select a user first");
+      return;
+    }
+
+    const token = getToken();
+    const quantity = quantityMap[productId] || 1;
+
+    try {
+      const res = await fetch(`${API_URL}/admin/cart/add`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: selectedUserId,
+          productId,
+          quantity,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to add to cart");
+      }
+
+      fetchUserCart(selectedUserId);
+      toast.success("Item added to cart");
+    } catch (err) {
+      console.error("Add to cart error:", err);
+      toast.error("Failed to add to cart");
+    }
+  };
+
+  const handleRemoveCartItem = async (cartItemId) => {
+    const token = getToken();
+    if (!token || !cartItemId) return;
+
+    try {
+      const res = await fetch(`${API_URL}/cart/item/${cartItemId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to remove item");
+      }
+
+      fetchUserCart(selectedUserId);
+      toast.success("Item removed from cart");
+    } catch (err) {
+      console.error("Remove cart error:", err);
+      toast.error("Failed to remove item");
+    }
+  };
+
+
+  const handleUpdateCartQuantity = async (cartItemId, newQty) => {
+  const token = getToken();
+  if (!token || !cartItemId) return;
+
+  const item = cart.find((ci) => ci.cartItemId === cartItemId);
+  if (!item) return;
+
+  const diff = newQty - item.quantity; // positive if increasing, negative if decreasing
+  const product = products.find((p) => p.productId === item.productId);
+
+  if (!product || newQty < 1 || newQty > (product.quantity + item.quantity)) {
+    toast.warning("Invalid quantity");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/cart/item/${cartItemId}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantity: newQty }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to update quantity");
+    }
+
+    // Optimistic UI update
+    setCart((prev) =>
+      prev.map((ci) =>
+        ci.cartItemId === cartItemId ? { ...ci, quantity: newQty } : ci
+      )
+    );
+
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.productId === item.productId
+          ? { ...p, quantity: p.quantity - diff }
+          : p
+      )
+    );
+
+    toast.success("Quantity updated");
+  } catch (err) {
+    console.error("Update quantity error:", err);
+    toast.error("Failed to update quantity");
+  }
+};
+
+
+
+  const handleCheckout = async () => {
+    if (!selectedUserId) {
+      toast.warning("Select a user first");
+      return;
+    }
+
+    const token = getToken();
+    try {
+      const res = await fetch(`${API_URL}/admin/cart/checkout/${selectedUserId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Checkout failed");
+      }
+
+      const data = await res.json();
+      toast.success(`Checkout successful! Order ID: ${data.orderId}`);
+
+      fetchUserCart(selectedUserId);
+      fetchProducts();
+    } catch (err) {
+      console.error("Checkout error:", err);
+      toast.error("Checkout failed");
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="shop-container">
-        <h1 className="page-title">Shop For User</h1>
+        <h1>Admin Shop for Users</h1>
 
-        {/* USER SELECTOR */}
-        <div className="card">
-          <label>Select User</label>
-          <select
-            value={selectedUserId}
-            onChange={(e) => {
-              setSelectedUserId(e.target.value);
-              fetchCartForUser(e.target.value);
-            }}
-          >
-            <option value="">-- Select a User --</option>
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.firstName} {u.lastName}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* SEARCH */}
-        <div className="card">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="search-input"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* PRODUCT GRID */}
-        <div className="products-grid">
-          {products
-            .filter((p) =>
-              p.productName.toLowerCase().includes(search.toLowerCase())
-            )
-            .map((p) => (
-              <div key={p.productId} className="product-card">
-                <img src={p.imageUrl} alt="" />
-                <h3>{p.productName}</h3>
-                <p className="price">R {p.price}</p>
-                <button
-                  disabled={!selectedUserId}
-                  onClick={() => addToCart(p.productId)}
-                >
-                  Add to Cart
-                </button>
-              </div>
-            ))}
-        </div>
-
-        {/* CART PANEL */}
-        {cart && cart.items.length > 0 && (
-          <div className="card cart-card">
-            <h2>User Cart</h2>
-            <ul>
-              {cart.items.map((item) => (
-                <li key={item.cartItemId}>
-                  {item.productName} x {item.quantity} = R{" "}
-                  {item.totalPrice}
-                </li>
+        {/* User Selection */}
+        <div className="user-select">
+          {loadingUsers ? (
+            <p>Loading users...</p>
+          ) : (
+            <select
+              value={selectedUserId || ""}
+              onChange={(e) => setSelectedUserId(parseInt(e.target.value))}
+            >
+              <option value="">-- Select User --</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
               ))}
-            </ul>
+            </select>
+          )}
+        </div>
 
-            <h3 className="total">Total: R {cart.totalAmount}</h3>
+        {/* Products Table */}
+        <div className="products-table">
+          {loadingProducts ? (
+            <p>Loading products...</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Quantity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((p) => (
+                  <tr key={p.productId}>
+                    <td>{p.name}</td>
+                    <td>{p.category}</td>
+                    <td>${p.price.toFixed(2)}</td>
+                    <td>{p.quantity}</td>
+                    <td>
+                      <input
+                        type="number"
+                        min="1"
+                        max={p.quantity || 1}
+                        value={quantityMap[p.productId] || 1}
+                        onChange={(e) =>
+                          handleQuantityChange(p.productId, e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <button onClick={() => handleAddToCart(p.productId)}>Add</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
 
-            <button className="checkout-btn" onClick={checkoutForUser}>
-              Checkout for User
-            </button>
-          </div>
-        )}
+        {/* User Cart */}
+        <div className="user-cart">
+          <h2>Cart for {users.find((u) => u.id === selectedUserId)?.name}</h2>
+          {cart.length === 0 ? (
+            <p>No items in cart</p>
+          ) : (
+            <>
+              <ul>
+                {cart.map((item) => (
+                  <li key={item.cartItemId}>
+                    {item.name} x{" "}
+                    <input
+                      type="number"
+                      min="1"
+                      max={
+                        (products.find((p) => p.productId === item.productId)?.quantity || 0) +
+                        item.quantity
+                      }
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleUpdateCartQuantity(item.cartItemId, parseInt(e.target.value))
+                      }
+                    />{" "}
+                    <button onClick={() => handleRemoveCartItem(item.cartItemId)}>Remove</button>
+                  </li>
+                ))}
+              </ul>
+
+              <button onClick={handleCheckout}>Checkout</button>
+            </>
+          )}
+        </div>
+
+        <ToastContainer position="top-right" autoClose={3000} />
       </div>
     </AdminLayout>
   );

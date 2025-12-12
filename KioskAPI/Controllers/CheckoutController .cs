@@ -84,7 +84,8 @@ namespace KioskAPI.Controllers
       {
         return this.Unauthorized(new { message = "Invalid token" });
       }
-
+      // BEGIN TRANSACTION
+      using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
@@ -129,8 +130,7 @@ namespace KioskAPI.Controllers
         });
       }
 
-      // BEGIN TRANSACTION
-      using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
+
 
       try
       {
@@ -144,7 +144,7 @@ namespace KioskAPI.Controllers
           DeliveryMethod = dto.DeliveryMethod,
           DeliveryFee = deliveryFee,
           TotalAmount = grandTotal,
-          Status = "Pending",
+          Status = "Completed",
           PaymentStatus = "Paid",
           OrderItems = new List<OrderItem>()
         };

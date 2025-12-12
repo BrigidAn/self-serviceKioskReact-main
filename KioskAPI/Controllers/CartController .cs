@@ -39,6 +39,7 @@ namespace KioskAPI.Controllers
       {
         return this.Unauthorized();
       }
+      using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
 
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
@@ -48,7 +49,7 @@ namespace KioskAPI.Controllers
       // Remove expired cart
       if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
       {
-        using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
+
         try
         {
           this._context.CartItems.RemoveRange(cart.CartItems);
@@ -82,6 +83,7 @@ namespace KioskAPI.Controllers
           ProductId = ci.ProductId,
           ProductName = ci.Product?.Name ?? "Unknown",
           UnitPrice = ci.UnitPrice,
+          ImageUrl = ci.Product?.ImageUrl ?? null,
           Quantity = ci.Quantity
         }).ToList(),
         TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity),
@@ -153,7 +155,7 @@ namespace KioskAPI.Controllers
           CartId = cart.CartId,
           ProductId = product.ProductId,
           Quantity = dto.Quantity,
-          UnitPrice = product.Price
+          UnitPrice = product.Price,
         };
 
         this._context.CartItems.Add(cartItem);

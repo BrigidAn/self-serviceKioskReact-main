@@ -15,6 +15,7 @@ public static class CartMapper
         ProductId = i.ProductId,
         ProductName = i.Product.Name,
         Quantity = i.Quantity,
+        ImageUrl = i.Product?.ImageUrl ?? null,
         UnitPrice = i.UnitPrice
       }).ToList(),
       TotalAmount = cart.CartItems.Sum(i => i.UnitPrice * i.Quantity)
