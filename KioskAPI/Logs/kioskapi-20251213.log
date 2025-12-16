@@ -1,0 +1,239 @@
+[2025-12-13 19:46:37 INF] User profile is available. Using 'C:\Users\ochim\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[2025-12-13 19:46:38 WRN] The ASP.NET Core developer certificate is not trusted. For information about trusting the ASP.NET Core developer certificate, see https://aka.ms/aspnet/https-trust-dev-cert
+[2025-12-13 19:46:38 INF] Now listening on: https://localhost:5016
+[2025-12-13 19:46:38 INF] Application started. Press Ctrl+C to shut down.
+[2025-12-13 19:46:38 INF] Hosting environment: Development
+[2025-12-13 19:46:38 INF] Content root path: C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI
+[2025-12-13 19:46:41 INF] Request starting HTTP/2 GET https://localhost:5016/swagger - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/index.html - null null
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger - 301 0 null 469.5828ms
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/index.html - 200 null text/html;charset=utf-8 625.325ms
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/swagger-ui.css - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/index.css - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/swagger-ui-bundle.js - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/swagger-ui-standalone-preset.js - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/_framework/aspnetcore-browser-refresh.js - null null
+[2025-12-13 19:46:42 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/index.js - null null
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/index.css - 200 152 text/css 43.2221ms
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/index.js - 200 null application/javascript;charset=utf-8 25.0279ms
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/swagger-ui.css - 200 23647 text/css 85.3211ms
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/_framework/aspnetcore-browser-refresh.js - 200 16481 application/javascript; charset=utf-8 63.6855ms
+[2025-12-13 19:46:42 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/swagger-ui-standalone-preset.js - 200 77352 text/javascript 78.9032ms
+[2025-12-13 19:46:43 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/swagger-ui-bundle.js - 200 424767 text/javascript 100.3775ms
+[2025-12-13 19:46:46 INF] Request starting HTTP/2 GET https://localhost:5016/swagger/v1/swagger.json - null null
+[2025-12-13 19:46:47 INF] Request finished HTTP/2 GET https://localhost:5016/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 1138.1461ms
+[2025-12-13 19:47:25 INF] Request starting HTTP/2 POST https://localhost:5016/api/Auth/login - application/json 58
+[2025-12-13 19:47:25 INF] CORS policy execution failed.
+[2025-12-13 19:47:25 INF] Request origin https://localhost:5016 does not have permission to access the resource.
+[2025-12-13 19:47:25 INF] Executing endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 19:47:25 INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(KioskAPI.Dtos.LoginDto) on controller KioskAPI.Controllers.AuthController (KioskAPI).
+[2025-12-13 19:47:28 WRN] The foreign key property 'Checkout.UserId1' was created in shadow state because a conflicting property with the simple name 'UserId' exists in the entity type, but is either not mapped, is already used for another relationship, or is incompatible with the associated primary key type. See https://aka.ms/efcore-relationships for information on mapping relationships in EF Core.
+[2025-12-13 19:47:28 WRN] No store type was specified for the decimal property 'UnitPrice' on entity type 'CartItem'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+[2025-12-13 19:47:28 WRN] No store type was specified for the decimal property 'TotalAmount' on entity type 'Checkout'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+[2025-12-13 19:47:28 WRN] No store type was specified for the decimal property 'DeliveryFee' on entity type 'Order'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+[2025-12-13 19:47:31 INF] Executed DbCommand (179ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='0']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[Name], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+[2025-12-13 19:47:31 INF] Executing UnauthorizedObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+[2025-12-13 19:47:31 INF] Executed action KioskAPI.Controllers.AuthController.Login (KioskAPI) in 5995.4611ms
+[2025-12-13 19:47:31 INF] Executed endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 19:47:31 INF] HTTP POST /api/Auth/login responded 401 in 6289.4407 ms
+[2025-12-13 19:47:31 INF] Request finished HTTP/2 POST https://localhost:5016/api/Auth/login - 401 null application/json; charset=utf-8 6345.5754ms
+[2025-12-13 20:36:32 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/Auth/login - null null
+[2025-12-13 20:36:32 INF] CORS policy execution successful.
+[2025-12-13 20:36:32 INF] HTTP OPTIONS /api/Auth/login responded 204 in 48.4701 ms
+[2025-12-13 20:36:32 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/Auth/login - 204 null null 118.9801ms
+[2025-12-13 20:36:32 INF] Request starting HTTP/2 POST https://localhost:5016/api/Auth/login - application/json 51
+[2025-12-13 20:36:32 INF] CORS policy execution successful.
+[2025-12-13 20:36:32 INF] Executing endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 20:36:32 INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(KioskAPI.Dtos.LoginDto) on controller KioskAPI.Controllers.AuthController (KioskAPI).
+[2025-12-13 20:36:33 INF] Executed DbCommand (104ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='0']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[Name], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+[2025-12-13 20:36:35 INF] Request starting HTTP/2 POST https://localhost:5016/api/Auth/login - application/json 51
+[2025-12-13 20:36:35 INF] CORS policy execution successful.
+[2025-12-13 20:36:35 INF] Executing endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 20:36:35 INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] Login(KioskAPI.Dtos.LoginDto) on controller KioskAPI.Controllers.AuthController (KioskAPI).
+[2025-12-13 20:36:35 INF] Executed DbCommand (44ms) [Parameters=[@__normalizedEmail_0='?' (Size = 256)], CommandType='"Text"', CommandTimeout='0']
+SELECT TOP(2) [a].[Id], [a].[AccessFailedCount], [a].[ConcurrencyStamp], [a].[CreatedAt], [a].[Email], [a].[EmailConfirmed], [a].[LockoutEnabled], [a].[LockoutEnd], [a].[Name], [a].[NormalizedEmail], [a].[NormalizedUserName], [a].[PasswordHash], [a].[PhoneNumber], [a].[PhoneNumberConfirmed], [a].[SecurityStamp], [a].[TwoFactorEnabled], [a].[UpdatedAt], [a].[UserName]
+FROM [AspNetUsers] AS [a]
+WHERE [a].[NormalizedEmail] = @__normalizedEmail_0
+[2025-12-13 20:36:35 INF] Executed DbCommand (56ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [a0].[Name]
+FROM [AspNetUserRoles] AS [a]
+INNER JOIN [AspNetRoles] AS [a0] ON [a].[RoleId] = [a0].[Id]
+WHERE [a].[UserId] = @__userId_0
+[2025-12-13 20:36:35 INF] Executed DbCommand (68ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [a0].[Name]
+FROM [AspNetUserRoles] AS [a]
+INNER JOIN [AspNetRoles] AS [a0] ON [a].[RoleId] = [a0].[Id]
+WHERE [a].[UserId] = @__userId_0
+[2025-12-13 20:36:35 INF] Executed DbCommand (36ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [a0].[Name]
+FROM [AspNetUserRoles] AS [a]
+INNER JOIN [AspNetRoles] AS [a0] ON [a].[RoleId] = [a0].[Id]
+WHERE [a].[UserId] = @__userId_0
+[2025-12-13 20:36:35 INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType15`3[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[<>f__AnonymousType16`4[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Collections.Generic.IList`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], KioskAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2025-12-13 20:36:35 INF] Executed action KioskAPI.Controllers.AuthController.Login (KioskAPI) in 3322.8844ms
+[2025-12-13 20:36:35 INF] Executed endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 20:36:35 INF] HTTP POST /api/Auth/login responded 200 in 3384.9367 ms
+[2025-12-13 20:36:35 INF] Request finished HTTP/2 POST https://localhost:5016/api/Auth/login - 200 null application/json; charset=utf-8 3391.7886ms
+[2025-12-13 20:36:36 INF] Executed DbCommand (192ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [a0].[Name]
+FROM [AspNetUserRoles] AS [a]
+INNER JOIN [AspNetRoles] AS [a0] ON [a].[RoleId] = [a0].[Id]
+WHERE [a].[UserId] = @__userId_0
+[2025-12-13 20:36:36 INF] Executing OkObjectResult, writing value of type '<>f__AnonymousType15`3[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[<>f__AnonymousType16`4[[System.Int32, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e],[System.Collections.Generic.IList`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]], KioskAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2025-12-13 20:36:36 INF] Executed action KioskAPI.Controllers.AuthController.Login (KioskAPI) in 980.5667ms
+[2025-12-13 20:36:36 INF] Executed endpoint 'KioskAPI.Controllers.AuthController.Login (KioskAPI)'
+[2025-12-13 20:36:36 INF] HTTP POST /api/Auth/login responded 200 in 997.0085 ms
+[2025-12-13 20:36:36 INF] Request finished HTTP/2 POST https://localhost:5016/api/Auth/login - 200 null application/json; charset=utf-8 999.0672ms
+[2025-12-13 20:36:44 INF] Request starting HTTP/2 GET https://localhost:5016/api/product - null null
+[2025-12-13 20:36:44 INF] CORS policy execution successful.
+[2025-12-13 20:36:44 INF] Executing endpoint 'KioskAPI.Controllers.ProductController.GetProducts (KioskAPI)'
+[2025-12-13 20:36:44 INF] Route matched with {action = "GetProducts", controller = "Product"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetProducts() on controller KioskAPI.Controllers.ProductController (KioskAPI).
+[2025-12-13 20:36:45 INF] Executed DbCommand (47ms) [Parameters=[], CommandType='"Text"', CommandTimeout='0']
+SELECT [p].[ProductId], [p].[Category], [p].[Description], [p].[ImageUrl], [p].[Name], [p].[Price], [p].[Quantity], [p].[SupplierId], [s].[SupplierId], [s].[ContactInfo], [s].[Name]
+FROM [Products] AS [p]
+LEFT JOIN [Suppliers] AS [s] ON [p].[SupplierId] = [s].[SupplierId]
+[2025-12-13 20:36:45 INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[KioskAPI.Dtos.ProductDto, KioskAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2025-12-13 20:36:45 INF] Executed action KioskAPI.Controllers.ProductController.GetProducts (KioskAPI) in 442.0709ms
+[2025-12-13 20:36:45 INF] Executed endpoint 'KioskAPI.Controllers.ProductController.GetProducts (KioskAPI)'
+[2025-12-13 20:36:45 INF] HTTP GET /api/product responded 200 in 474.2019 ms
+[2025-12-13 20:36:45 INF] Request finished HTTP/2 GET https://localhost:5016/api/product - 200 null application/json; charset=utf-8 487.4303ms
+[2025-12-13 20:36:45 INF] Request starting HTTP/2 GET https://localhost:5016/api/product - null null
+[2025-12-13 20:36:45 INF] CORS policy execution successful.
+[2025-12-13 20:36:45 INF] Executing endpoint 'KioskAPI.Controllers.ProductController.GetProducts (KioskAPI)'
+[2025-12-13 20:36:45 INF] Route matched with {action = "GetProducts", controller = "Product"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetProducts() on controller KioskAPI.Controllers.ProductController (KioskAPI).
+[2025-12-13 20:36:45 INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='0']
+SELECT [p].[ProductId], [p].[Category], [p].[Description], [p].[ImageUrl], [p].[Name], [p].[Price], [p].[Quantity], [p].[SupplierId], [s].[SupplierId], [s].[ContactInfo], [s].[Name]
+FROM [Products] AS [p]
+LEFT JOIN [Suppliers] AS [s] ON [p].[SupplierId] = [s].[SupplierId]
+[2025-12-13 20:36:45 INF] Executing OkObjectResult, writing value of type 'System.Collections.Generic.List`1[[KioskAPI.Dtos.ProductDto, KioskAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+[2025-12-13 20:36:45 INF] Executed action KioskAPI.Controllers.ProductController.GetProducts (KioskAPI) in 22.0206ms
+[2025-12-13 20:36:45 INF] Executed endpoint 'KioskAPI.Controllers.ProductController.GetProducts (KioskAPI)'
+[2025-12-13 20:36:45 INF] HTTP GET /api/product responded 200 in 24.8133 ms
+[2025-12-13 20:36:45 INF] Request finished HTTP/2 GET https://localhost:5016/api/product - 200 null application/json; charset=utf-8 27.6335ms
+[2025-12-13 20:36:45 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/cart - null null
+[2025-12-13 20:36:45 INF] CORS policy execution successful.
+[2025-12-13 20:36:45 INF] HTTP OPTIONS /api/cart responded 204 in 0.4742 ms
+[2025-12-13 20:36:45 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/cart - 204 null null 1.2794ms
+[2025-12-13 20:36:45 INF] Request starting HTTP/2 GET https://localhost:5016/api/cart - null null
+[2025-12-13 20:36:45 INF] CORS policy execution successful.
+[2025-12-13 20:36:45 INF] Executing endpoint 'KioskAPI.Controllers.CartController.GetCart (KioskAPI)'
+[2025-12-13 20:36:45 INF] Route matched with {action = "GetCart", controller = "Cart"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GetCart() on controller KioskAPI.Controllers.CartController (KioskAPI).
+[2025-12-13 20:36:46 INF] Executed DbCommand (63ms) [Parameters=[@__userId_0='?' (DbType = Int32)], CommandType='"Text"', CommandTimeout='0']
+SELECT [c1].[CartId], [c1].[ExpiresAt], [c1].[IsCheckedOut], [c1].[UserId], [s].[CartItemId], [s].[CartId], [s].[ProductId], [s].[Quantity], [s].[UnitPrice], [s].[ProductId0], [s].[Category], [s].[Description], [s].[ImageUrl], [s].[Name], [s].[Price], [s].[Quantity0], [s].[SupplierId]
+FROM (
+    SELECT TOP(1) [c].[CartId], [c].[ExpiresAt], [c].[IsCheckedOut], [c].[UserId]
+    FROM [Carts] AS [c]
+    WHERE [c].[UserId] = @__userId_0 AND [c].[IsCheckedOut] = CAST(0 AS bit)
+) AS [c1]
+LEFT JOIN (
+    SELECT [c0].[CartItemId], [c0].[CartId], [c0].[ProductId], [c0].[Quantity], [c0].[UnitPrice], [p].[ProductId] AS [ProductId0], [p].[Category], [p].[Description], [p].[ImageUrl], [p].[Name], [p].[Price], [p].[Quantity] AS [Quantity0], [p].[SupplierId]
+    FROM [CartItems] AS [c0]
+    INNER JOIN [Products] AS [p] ON [c0].[ProductId] = [p].[ProductId]
+) AS [s] ON [c1].[CartId] = [s].[CartId]
+ORDER BY [c1].[CartId], [s].[CartItemId]
+[2025-12-13 20:36:46 INF] Executing NotFoundObjectResult, writing value of type '<>f__AnonymousType0`1[[System.String, System.Private.CoreLib, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]'.
+[2025-12-13 20:36:46 INF] Executed action KioskAPI.Controllers.CartController.GetCart (KioskAPI) in 503.8728ms
+[2025-12-13 20:36:46 INF] Executed endpoint 'KioskAPI.Controllers.CartController.GetCart (KioskAPI)'
+[2025-12-13 20:36:46 INF] HTTP GET /api/cart responded 404 in 733.6387 ms
+[2025-12-13 20:36:46 INF] Request finished HTTP/2 GET https://localhost:5016/api/cart - 404 null application/json; charset=utf-8 734.8726ms
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/Transaction/mytrasactions - null null
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/account/balance - null null
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/account/balance - null null
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] HTTP OPTIONS /api/Transaction/mytrasactions responded 204 in 0.2121 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/Transaction/mytrasactions - 204 null null 0.8931ms
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] HTTP OPTIONS /api/account/balance responded 204 in 0.3257 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/account/balance - 204 null null 1.5947ms
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] HTTP OPTIONS /api/account/balance responded 204 in 0.6785 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/account/balance - 204 null null 1.8769ms
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/Transaction/mytrasactions - null null
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] HTTP OPTIONS /api/Transaction/mytrasactions responded 204 in 0.1781 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/Transaction/mytrasactions - 204 null null 0.4973ms
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 GET https://localhost:5016/api/Transaction/mytrasactions - null null
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 GET https://localhost:5016/api/account/balance - null null
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString, TryReadJwtClaim tryReadJwtClaim)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+[2025-12-13 20:37:01 INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString, TryReadJwtClaim tryReadJwtClaim)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+[2025-12-13 20:37:01 INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+[2025-12-13 20:37:01 INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+[2025-12-13 20:37:01 INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+[2025-12-13 20:37:01 INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+[2025-12-13 20:37:01 INF] AuthenticationScheme: Bearer was challenged.
+[2025-12-13 20:37:01 INF] HTTP GET /api/Transaction/mytrasactions responded 401 in 63.2140 ms
+[2025-12-13 20:37:01 INF] AuthenticationScheme: Bearer was challenged.
+[2025-12-13 20:37:01 INF] HTTP GET /api/account/balance responded 401 in 61.2738 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 GET https://localhost:5016/api/Transaction/mytrasactions - 401 0 null 64.0938ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 GET https://localhost:5016/api/account/balance - 401 0 null 64.2343ms
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 GET https://localhost:5016/api/account/balance - null null
+[2025-12-13 20:37:01 INF] Request starting HTTP/2 GET https://localhost:5016/api/Transaction/mytrasactions - null null
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] CORS policy execution successful.
+[2025-12-13 20:37:01 INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString, TryReadJwtClaim tryReadJwtClaim)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+[2025-12-13 20:37:01 INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString, TryReadJwtClaim tryReadJwtClaim)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+[2025-12-13 20:37:01 INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+[2025-12-13 20:37:01 INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+[2025-12-13 20:37:01 INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+[2025-12-13 20:37:01 INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+[2025-12-13 20:37:01 INF] AuthenticationScheme: Bearer was challenged.
+[2025-12-13 20:37:01 INF] AuthenticationScheme: Bearer was challenged.
+[2025-12-13 20:37:01 INF] HTTP GET /api/Transaction/mytrasactions responded 401 in 4.9468 ms
+[2025-12-13 20:37:01 INF] HTTP GET /api/account/balance responded 401 in 4.9153 ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 GET https://localhost:5016/api/account/balance - 401 0 null 5.4394ms
+[2025-12-13 20:37:01 INF] Request finished HTTP/2 GET https://localhost:5016/api/Transaction/mytrasactions - 401 0 null 5.5525ms
+[2025-12-13 20:37:11 INF] Request starting HTTP/2 OPTIONS https://localhost:5016/api/account/topup - null null
+[2025-12-13 20:37:11 INF] CORS policy execution successful.
+[2025-12-13 20:37:11 INF] HTTP OPTIONS /api/account/topup responded 204 in 0.5234 ms
+[2025-12-13 20:37:11 INF] Request finished HTTP/2 OPTIONS https://localhost:5016/api/account/topup - 204 null null 2.0289ms
+[2025-12-13 20:37:11 INF] Request starting HTTP/2 POST https://localhost:5016/api/account/topup - application/json 13
+[2025-12-13 20:37:11 INF] CORS policy execution successful.
+[2025-12-13 20:37:11 INF] Failed to validate the token.
+Microsoft.IdentityModel.Tokens.SecurityTokenMalformedException: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken.ReadToken(ReadOnlyMemory`1 encodedTokenMemory)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebToken..ctor(String jwtEncodedString, TryReadJwtClaim tryReadJwtClaim)
+   at Microsoft.IdentityModel.JsonWebTokens.JsonWebTokenHandler.ReadToken(String token, TokenValidationParameters validationParameters)
+[2025-12-13 20:37:11 INF] Bearer was not authenticated. Failure message: IDX14100: JWT is not well formed, there are no dots (.).
+The token needs to be in JWS or JWE Compact Serialization Format. (JWS): 'EncodedHeader.EncodedPayload.EncodedSignature'. (JWE): 'EncodedProtectedHeader.EncodedEncryptedKey.EncodedInitializationVector.EncodedCiphertext.EncodedAuthenticationTag'.
+[2025-12-13 20:37:11 INF] Authorization failed. These requirements were not met:
+DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+[2025-12-13 20:37:11 INF] AuthenticationScheme: Bearer was challenged.
+[2025-12-13 20:37:11 INF] HTTP POST /api/account/topup responded 401 in 2.4950 ms
+[2025-12-13 20:37:11 INF] Request finished HTTP/2 POST https://localhost:5016/api/account/topup - 401 0 null 2.9447ms

@@ -33,6 +33,7 @@ namespace KioskAPI.Mappers
         SupplierId = dto.SupplierId,
         Category = dto.Category,
         ImageUrl = dto.ImageUrl,
+        IsAvailable = dto.IsAvailable,
       };
     }
 
@@ -76,6 +77,10 @@ namespace KioskAPI.Mappers
       if (dto.ImageUrl != null)
       {
         product.ImageUrl = dto.ImageUrl;
+      }
+      if (dto.IsAvailable != null)
+      {
+        product.IsAvailable = dto.IsAvailable;
       }
     }
   }

@@ -8,14 +8,33 @@ const API_URL = "https://localhost:5016/api";
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
 
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/admin/products`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      return Array.isArray(data) ? data : data?.data ?? [];
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Failed to load products");
+      return [];
+    }
+  };
+
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/order`, {
+      const prodList = await fetchProducts();
+      setProducts(prodList);
+
+      const res = await fetch(`${API_URL}/admin/orders`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("Failed to fetch orders");
@@ -54,6 +73,11 @@ export default function AdminOrders() {
     }
   };
 
+  const getProductName = (productId) => {
+    const prod = products.find(p => p.productId === productId);
+    return prod ? prod.name : `Product #${productId}`;
+  };
+
   return (
     <AdminLayout>
       <ToastContainer position="top-right" />
@@ -83,23 +107,25 @@ export default function AdminOrders() {
             </thead>
             <tbody>
               {orders.map((order, idx) => (
-                <tr key={order.id}>
+                <tr key={order.orderId}>
                   <td>{idx + 1}</td>
-                  <td>{order.id}</td>
-                  <td>{order.userName || order.userEmail}</td>
+                  <td>{order.orderId}</td>
+                  <td>{order.customer}</td>
                   <td>
-                    {order.items?.map((i) => (
-                      <div key={i.productId}>{i.name} x{i.quantity}</div>
+                    {order.items?.map((i, index) => (
+                      <div key={index}>
+                        {getProductName(i.productId)} x{i.quantity} @ R{i.priceAtPurchase.toFixed(2)}
+                      </div>
                     ))}
                   </td>
-                  <td>R {Number(order.total).toFixed(2)}</td>
+                  <td>R {Number(order.totalAmount).toFixed(2)}</td>
                   <td>{order.status}</td>
-                  <td>{new Date(order.createdAt).toLocaleString()}</td>
+                  <td>{new Date(order.orderDate).toLocaleString()}</td>
                   <td>
                     {order.status !== "Completed" && (
                       <button
                         className="btn small"
-                        onClick={() => handleStatusChange(order.id, "Completed")}
+                        onClick={() => handleStatusChange(order.orderId, "Completed")}
                       >
                         Mark Completed
                       </button>

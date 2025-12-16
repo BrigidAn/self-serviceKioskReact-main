@@ -23,7 +23,6 @@ namespace KioskAPI.Controllers
       this._logger = logger;
     }
 
-    // Helper: Get UserId from JWT
     private int GetIdentityUserId()
     {
       var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
@@ -39,17 +38,17 @@ namespace KioskAPI.Controllers
       {
         return this.Unauthorized();
       }
+
       using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
 
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
-          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
+          .ConfigureAwait(true);
 
-      // Remove expired cart
       if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
       {
-
         try
         {
           this._context.CartItems.RemoveRange(cart.CartItems);
@@ -57,19 +56,26 @@ namespace KioskAPI.Controllers
           await this._context.SaveChangesAsync().ConfigureAwait(true);
           await transaction.CommitAsync().ConfigureAwait(true);
 
-          this._logger.LogInformation("Cart for user {UserId} expired and cleared", userId);
+          this._logger.LogInformation(
+            "Cart expired and cleared for user {UserId}", userId);
+
           return this.NotFound(new { message = "Cart expired and was cleared" });
         }
         catch (Exception ex)
         {
           await transaction.RollbackAsync().ConfigureAwait(true);
-          this._logger.LogError(ex, "Error clearing expired cart for user {UserId}", userId);
+          this._logger.LogError(
+            ex, "Error clearing expired cart for user {UserId}", userId);
+
           return this.StatusCode(500, new { message = "Error processing cart expiration" });
         }
       }
 
       if (cart == null)
       {
+        this._logger.LogWarning(
+          "Cart not found for user {UserId}", userId);
+
         return this.NotFound(new { message = "Cart not found" });
       }
 
@@ -83,7 +89,7 @@ namespace KioskAPI.Controllers
           ProductId = ci.ProductId,
           ProductName = ci.Product?.Name ?? "Unknown",
           UnitPrice = ci.UnitPrice,
-          ImageUrl = ci.Product?.ImageUrl ?? null,
+          ImageUrl = ci.Product?.ImageUrl,
           Quantity = ci.Quantity
         }).ToList(),
         TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity),
@@ -109,22 +115,35 @@ namespace KioskAPI.Controllers
         var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
         if (product == null)
         {
+          this._logger.LogWarning(
+            "AddToCart failed: Product {ProductId} not found for user {UserId}",
+            dto.ProductId, userId);
+
           return this.BadRequest(new { message = "Product not found" });
         }
 
         if (dto.Quantity < 1)
         {
+          this._logger.LogWarning(
+            "AddToCart failed: Invalid quantity {Quantity} for user {UserId}",
+            dto.Quantity, userId);
+
           return this.BadRequest(new { message = "Quantity must be at least 1" });
         }
 
         if (product.Quantity < dto.Quantity)
         {
+          this._logger.LogWarning(
+            "AddToCart failed: Insufficient stock for product {ProductId} requested {Quantity} by user {UserId}",
+            product.ProductId, dto.Quantity, userId);
+
           return this.BadRequest(new { message = "Not enough stock" });
         }
 
         var cart = await this._context.Carts
             .Include(c => c.CartItems)
-            .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut).ConfigureAwait(true);
+            .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
+            .ConfigureAwait(true);
 
         if (cart != null && cart.ExpiresAt < DateTime.UtcNow)
         {
@@ -132,7 +151,9 @@ namespace KioskAPI.Controllers
           this._context.Carts.Remove(cart);
           await this._context.SaveChangesAsync().ConfigureAwait(true);
           cart = null;
-          this._logger.LogInformation("Expired cart cleared for user {UserId}", userId);
+
+          this._logger.LogInformation(
+            "Expired cart cleared for user {UserId}", userId);
         }
 
         if (cart == null)
@@ -147,7 +168,7 @@ namespace KioskAPI.Controllers
         }
         else
         {
-          cart.ExpiresAt = DateTime.UtcNow.AddHours(24); // extend expiry
+          cart.ExpiresAt = DateTime.UtcNow.AddHours(24);
         }
 
         var cartItem = new CartItem
@@ -164,14 +185,18 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Added product {ProductId} x {Quantity} to cart {CartId}", product.ProductId, dto.Quantity, cart.CartId);
+        this._logger.LogInformation(
+          "User {UserId} added product {ProductId} x {Quantity} to cart {CartId}",
+          userId, product.ProductId, dto.Quantity, cart.CartId);
 
         return this.Ok(new { message = "Item added to cart" });
       }
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error adding item to cart for user {UserId}", userId);
+        this._logger.LogError(
+          ex, "Error adding item to cart for user {UserId}", userId);
+
         return this.StatusCode(500, new { message = "Error adding item to cart" });
       }
     }
@@ -182,20 +207,37 @@ namespace KioskAPI.Controllers
     {
       if (dto.Quantity < 1)
       {
+        this._logger.LogWarning(
+          "UpdateQuantity failed: Invalid quantity {Quantity} for cart item {CartItemId}",
+          dto.Quantity, itemId);
+
         return this.BadRequest(new { message = "Quantity must be at least 1." });
       }
 
       using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
       try
       {
-        var item = await this._context.CartItems.Include(ci => ci.Product).FirstOrDefaultAsync(ci => ci.CartItemId == itemId).ConfigureAwait(true);
+        var item = await this._context.CartItems
+          .Include(ci => ci.Product)
+          .Include(ci => ci.Cart)
+          .FirstOrDefaultAsync(ci => ci.CartItemId == itemId)
+          .ConfigureAwait(true);
+
         if (item == null)
         {
+          this._logger.LogWarning(
+            "UpdateQuantity failed: Cart item {CartItemId} not found",
+            itemId);
+
           return this.NotFound(new { message = "Item not found." });
         }
 
         if (item.Product.Quantity + item.Quantity < dto.Quantity)
         {
+          this._logger.LogWarning(
+            "UpdateQuantity failed: Insufficient stock for product {ProductId} requested {Quantity} by user {UserId}",
+            item.ProductId, dto.Quantity, item.Cart.UserId);
+
           return this.BadRequest(new { message = "Not enough stock" });
         }
 
@@ -205,13 +247,19 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Updated quantity for cart item {CartItemId} to {Quantity}", itemId, dto.Quantity);
+        this._logger.LogInformation(
+          "User {UserId} updated cart item {CartItemId} to quantity {Quantity}",
+          item.Cart.UserId, itemId, dto.Quantity);
+
         return this.Ok(new { message = "Quantity updated." });
       }
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error updating quantity for cart item {CartItemId}", itemId);
+        this._logger.LogError(
+          ex, "Error updating quantity for cart item {CartItemId}",
+          itemId);
+
         return this.StatusCode(500, new { message = "Error updating quantity" });
       }
     }
@@ -225,10 +273,16 @@ namespace KioskAPI.Controllers
       {
         var cartItem = await this._context.CartItems
             .Include(ci => ci.Product)
-            .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId).ConfigureAwait(true);
+            .Include(ci => ci.Cart)
+            .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId)
+            .ConfigureAwait(true);
 
         if (cartItem == null)
         {
+          this._logger.LogWarning(
+            "RemoveItem failed: Cart item {CartItemId} not found",
+            cartItemId);
+
           return this.NotFound(new { message = "Cart item not found." });
         }
 
@@ -241,13 +295,19 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Removed cart item {CartItemId} and restored stock", cartItemId);
+        this._logger.LogInformation(
+          "User {UserId} removed cart item {CartItemId} and restored stock",
+          cartItem.Cart.UserId, cartItemId);
+
         return this.Ok(new { message = "Item removed and stock restored." });
       }
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error removing cart item {CartItemId}", cartItemId);
+        this._logger.LogError(
+          ex, "Error removing cart item {CartItemId}",
+          cartItemId);
+
         return this.StatusCode(500, new { message = "Error removing item" });
       }
     }
@@ -263,10 +323,15 @@ namespace KioskAPI.Controllers
         var cart = await this._context.Carts
             .Include(c => c.CartItems)
             .ThenInclude(ci => ci.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId).ConfigureAwait(true);
+            .FirstOrDefaultAsync(c => c.UserId == userId)
+            .ConfigureAwait(true);
 
         if (cart == null || !cart.CartItems.Any())
         {
+          this._logger.LogInformation(
+            "ExpireCart skipped: Cart already empty for user {UserId}",
+            userId);
+
           return this.Ok(new { message = "Cart already empty." });
         }
 
@@ -279,13 +344,19 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Cart for user {UserId} expired manually", userId);
+        this._logger.LogInformation(
+          "Cart expired manually for user {UserId}",
+          userId);
+
         return this.Ok(new { message = "Cart expired. Items returned to stock." });
       }
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error expiring cart for user {UserId}", userId);
+        this._logger.LogError(
+          ex, "Error expiring cart for user {UserId}",
+          userId);
+
         return this.StatusCode(500, new { message = "Error expiring cart" });
       }
     }

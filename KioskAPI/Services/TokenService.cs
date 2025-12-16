@@ -9,8 +9,9 @@ namespace KioskAPI.Services
   using System.Text;
   using KioskAPI.Models;
   using Microsoft.AspNetCore.Identity;
+  using KioskAPI.interfaces;
 
-  public class TokenService
+  public class TokenService : ITokenService
   {
     private readonly IConfiguration _config;
     private readonly UserManager<User> _userManager;

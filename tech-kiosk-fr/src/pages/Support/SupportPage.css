@@ -14,7 +14,7 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f8fa, #e3faff);
+  background: linear-gradient(120deg, #4c7182, #5a757f, #8cb2c3);
   color: #0b2a1d;
   font-family: "Poppins", sans-serif;
 }

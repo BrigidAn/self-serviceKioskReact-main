@@ -4,6 +4,7 @@ import "./ManageProducts.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Popup from "../components/Popup";
+import DeleteConfirmPopup from "../../components/DeleteConfirmPopup"; 
 
 const API_URL = "https://localhost:5016/api";
 
@@ -172,23 +173,37 @@ export default function ManageProducts() {
     }
   };
 
-  const requestDelete = (productId, productName) => {
-    setPopup({ show: true, productId, productName, onConfirm: handleConfirmDelete });
-  };
+ const requestDelete = (productId, productName) => {
+  if (!productId) return toast.error("Invalid product");
+  setPopup({
+    show: true,
+    productId,
+    productName,
+    onConfirm: () => handleConfirmDelete(productId, productName)
+  });
+};
 
-  const handleConfirmDelete = async () => {
-    try {
-      const { productId, productName } = popup;
-      const res = await fetch(`${API_URL}/product/${productId}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!res.ok) throw new Error("Delete failed");
-      toast.success(`Product "${productName}" deleted successfully`);
-      setPopup({ show: false, productId: null, productName: "", onConfirm: null });
-      fetchDashboardData();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Delete failed");
+
+const handleConfirmDelete = async (productId, productName) => {
+  try {
+    const res = await fetch(`${API_URL}/product/${productId}`, {
+      method: "DELETE",
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.message || "Delete failed");
     }
-  };
+
+    toast.success(`Product "${productName}" deleted successfully`);
+    setPopup({ show: false, productId: null, productName: "", onConfirm: null });
+    fetchDashboardData();
+  } catch (err) {
+    console.error(err);
+    toast.error(err.message || "Delete failed");
+  }
+};
 
   return (
     <AdminLayout>
@@ -381,15 +396,15 @@ export default function ManageProducts() {
         </div>
       )}
 
-        {/* Delete confirmation popup */}
-        {popup.show && (
-          <Popup
-            message={`Are you sure you want to delete "${popup.productName}"?`}
-            onConfirm={popup.onConfirm}
-            onCancel={() => setPopup({ show: false, productId: null, productName: "", onConfirm: null })}
-          />
-        )}
-      </div>
-    </AdminLayout>
-  );
-}
+       {/* Delete confirmation popup */} 
+       <DeleteConfirmPopup 
+       show={popup.show} 
+       message={`Are you sure you want to delete "${popup.productName}"?`} 
+       onDelete={popup.onConfirm} onCancel={() => 
+        setPopup({ 
+          show: false, productId: null, productName: "", onConfirm: null }) } 
+          /> 
+          </div> 
+          </AdminLayout> 
+        ); 
+      }

@@ -17,5 +17,6 @@ namespace KioskAPI.Models
     [Column(TypeName = "decimal(18,2)")]
 
     public ICollection<Order>? Orders { get; set; }
+
   } //depends on if this is a user or an admin
 }
