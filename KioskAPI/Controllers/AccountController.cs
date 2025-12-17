@@ -1,6 +1,5 @@
 namespace KioskAPI.Controllers
 {
-  using System.Collections.Generic;
   using System.Linq;
   using System.Security.Claims;
   using System.Threading.Tasks;
@@ -9,7 +8,6 @@ namespace KioskAPI.Controllers
   using KioskAPI.interfaces;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
-  using KioskAPI.Models;
 
   [ApiController]
   [Route("api/[controller]")]

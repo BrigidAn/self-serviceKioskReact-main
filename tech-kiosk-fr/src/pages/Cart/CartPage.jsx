@@ -71,11 +71,44 @@ export default function CartPage() {
     navigate("/checkout");
   };
 
- if (loading) return <p>Loading cart...</p>;
-  if (cart.length === 0) return <p>Your cart is empty.</p>;
+ if (loading) {
+    return (
+      <div className="cart-page empty-cart">
+        <div className="cart-message">
+          <h2>Loading your cart...</h2>
+        </div>
+        <div className="vp-hero-floating">
+          <div className="float-shape fs1"></div>
+          <div className="float-shape fs2"></div>
+          <div className="float-shape fs3"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty cart state
+  if (!cart || cart.length === 0) {
+    return (
+      <div className="cart-page empty-cart">
+        <div className="cart-message">
+          <h2>Your cart is empty 😔</h2>
+          <p>Looks like you haven't added any items yet.</p>
+          <button className="cart-back-btn" onClick={() => navigate("/products")}>
+            ← Browse Products
+          </button>
+        </div>
+        <div className="vp-hero-floating">
+          <div className="float-shape fs1"></div>
+          <div className="float-shape fs2"></div>
+          <div className="float-shape fs3"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="cart-page">
+
       <button className="cart-back-btn" onClick={() => navigate("/products")}>
         ← Back
       </button>

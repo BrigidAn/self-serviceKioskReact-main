@@ -1,7 +1,6 @@
 namespace KioskAPI.Dtos
 {
   using System.ComponentModel.DataAnnotations;
-  using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 
   public class AdminDto
   {

@@ -1,7 +1,5 @@
 namespace KioskAPI.Mappers
 {
-  using KioskAPI.Dtos;
-  using KioskAPI.Models;
   public class MappingProfile
   {
     // public MappingProfile()

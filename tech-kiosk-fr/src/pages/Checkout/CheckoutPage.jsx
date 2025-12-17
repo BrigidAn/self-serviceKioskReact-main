@@ -140,8 +140,27 @@ export default function CheckoutPage() {
     }
   };
 
-  if (loading) return <p>Loading checkout...</p>;
-  if (cart.length === 0 && !orderSummary) return <p>Your cart is empty.</p>;
+  if (loading) {
+  return (
+    <div className="checkout-container center-state">
+      <div className="checkout-glass">
+        <div className="checkout-spinner"></div>
+        <h3>Loading checkout...</h3>
+        <p>Please wait while we prepare your order</p>
+      </div>
+    </div>
+  );
+}
+  if (cart.length === 0 && !orderSummary) {
+  return (
+    <div className="checkout-container center-state">
+      <div className="checkout-glass">
+        <h3>Your cart is empty 🛒</h3>
+        <p>Add items before proceeding to checkout.</p>
+            </div>
+    </div>
+  );
+}
 
   return (
     <div className="checkout-container">

@@ -3,7 +3,6 @@ namespace KioskAPI.Controllers
   using KioskAPI.Data;
   using KioskAPI.Dtos;
   using KioskAPI.Mappers;
-  using KioskAPI.Models;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
@@ -11,7 +10,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize] // 🔐 All endpoints now require JWT
+  [Authorize]
   public class OrderItemController : ControllerBase
   {
     private readonly AppDbContext _context;

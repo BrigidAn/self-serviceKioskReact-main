@@ -10,6 +10,20 @@
   background: linear-gradient(135deg, #4c7182, #5a757f, #8cb2c3);
 }
 
+.cart-page empty-cart{
+  font-size: 18px;
+  align-items: center;
+  position: relative;
+  left: 300px;
+}
+
+.cart-message h2, p{
+  color: white;
+  position: relative;
+  left: 450px;
+  top: 250px;
+}
+
 .cart-back-btn {
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.35);
@@ -22,9 +36,9 @@
   margin-bottom: 20px;
   font-size: 16px;
   position: relative;
-  top: 10px;
-  width: 100px;
-  left: 12px;
+  bottom: 45px;
+  width: 200px;
+  left: 20px;
 }
 
 .cart-back-btn:hover {

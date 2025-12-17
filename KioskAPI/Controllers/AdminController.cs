@@ -17,11 +17,13 @@ namespace KioskAPI.Controllers
   {
     private readonly UserManager<User> _usermanager;
     private readonly AppDbContext _context;
+    private readonly ILogger<AdminController> _logger;
 
-    public AdminController(UserManager<User> userManager, AppDbContext context)
+    public AdminController(UserManager<User> userManager, AppDbContext context, ILogger<AdminController> logger)
     {
       this._usermanager = userManager;
       this._context = context;
+      this._logger = logger;
     }
 
     // ===================== USERS =====================
@@ -32,6 +34,7 @@ namespace KioskAPI.Controllers
     [FromQuery] int pageSize = 10,
     [FromQuery] string? search = null)
     {
+      this._logger.LogInformation("Admin requested all users. Page: {Page}, PageSize: {PageSize}, Search: {Search}", page, pageSize, search);
       var query = this._usermanager.Users.AsQueryable();
 
       if (!string.IsNullOrEmpty(search))
@@ -39,6 +42,7 @@ namespace KioskAPI.Controllers
         query = query.Where(u =>
             u.UserName.Contains(search) ||
             u.Email.Contains(search));
+        this._logger.LogInformation("Filtering users by search term: {Search}", search);
       }
 
       var total = await query.CountAsync().ConfigureAwait(true);
@@ -46,6 +50,8 @@ namespace KioskAPI.Controllers
                              .Take(pageSize)
                              .ToListAsync()
                              .ConfigureAwait(true);
+
+      this._logger.LogInformation("{Count} users retrieved from database", users.Count);
 
       var userRolesList = new List<object>();
       foreach (var u in users)
@@ -67,6 +73,7 @@ namespace KioskAPI.Controllers
         });
       }
 
+      this._logger.LogInformation("Returning user data to client");
       return this.Ok(new
       {
         total,
@@ -86,6 +93,7 @@ namespace KioskAPI.Controllers
         [FromQuery] string sortBy = "Price",
         [FromQuery] string sortOrder = "asc")
     {
+      this._logger.LogInformation("Admin requested all products. Page: {Page}, PageSize: {PageSize}, Search: {Search}", page, pageSize, search);
       var query = this._context.Products.Include(p => p.Supplier).AsQueryable();
 
       if (!string.IsNullOrEmpty(search))
@@ -94,6 +102,8 @@ namespace KioskAPI.Controllers
             p.Name.Contains(search) ||
             p.Category.Contains(search) ||
             p.Supplier.Name.Contains(search));
+        this._logger.LogInformation("Filtering products by search term: {Search}", search);
+
       }
 
       query = sortBy.ToLower() switch
@@ -106,7 +116,9 @@ namespace KioskAPI.Controllers
 
       var total = await query.CountAsync().ConfigureAwait(true);
       var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);
+      this._logger.LogInformation("{Count} products retrieved from database");
 
+      this._logger.LogInformation("Returning product data to client");
       return this.Ok(new
       {
         total,
@@ -134,6 +146,8 @@ namespace KioskAPI.Controllers
         [FromQuery] string? search = null,
         [FromQuery] string? status = null)
     {
+      this._logger.LogInformation("Admin requested all orders. Page: {Page}, PageSize: {PageSize}, Search: {Search}", page, pageSize, search);
+
       var query = this._context.Orders
           .Include(o => o.User)
           .Include(o => o.OrderItems)
@@ -141,17 +155,23 @@ namespace KioskAPI.Controllers
 
       if (!string.IsNullOrEmpty(search))
       {
+        this._logger.LogInformation("Filtering orders by search term: {Search}", search);
+
         query = query.Where(o => o.User.Name.Contains(search));
       }
 
       if (!string.IsNullOrEmpty(status))
       {
+        this._logger.LogInformation("Filtering orders by status term: {Search}", search);
+
         query = query.Where(o => o.Status.Contains(status));
       }
 
       var total = await query.CountAsync().ConfigureAwait(true);
       var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);
+      this._logger.LogInformation("{Count} orders retrieved from database");
 
+      this._logger.LogInformation("Returning user data to client");
       return this.Ok(new
       {
         total,
@@ -216,8 +236,10 @@ namespace KioskAPI.Controllers
     [HttpPost("topup")]
     public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
     {
+      this._logger.LogInformation("Admin attempting to top up user {UserId} with amount {Amount}", dto.UserId, dto.Amount);
       if (!this.ModelState.IsValid)
       {
+        this._logger.LogWarning("Invalid model state for top-up: {@ModelState}", ModelState);
         return this.BadRequest(this.ModelState);
       }
 
@@ -225,6 +247,7 @@ namespace KioskAPI.Controllers
       var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
       {
+        this._logger.LogWarning("User {UserId} not found for top-up", dto.UserId);
         return this.NotFound(new { message = "User not found" });
       }
 
@@ -242,10 +265,12 @@ namespace KioskAPI.Controllers
         };
         this._context.Accounts.Add(account);
         await this._context.SaveChangesAsync().ConfigureAwait(true); // Save to get AccountId
+        this._logger.LogInformation("Created new account for user {UserId}", dto.UserId);
       }
 
       if (dto.Amount > 1500)
       {
+        this._logger.LogWarning("Attempted top-up exceeds maximum: {Amount}", dto.Amount);
         return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
       }
 
@@ -265,7 +290,7 @@ namespace KioskAPI.Controllers
       this._context.Transactions.Add(transaction);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
-
+      this._logger.LogInformation("Successfully topped up {Amount} for user {UserId}", dto.Amount, dto.UserId);
       return this.Ok(new
       {
         message = $"Successfully topped up {dto.Amount:C} for {user.UserName}",
