@@ -5,8 +5,9 @@ namespace KioskAPI.Services
   using System.Threading.Tasks;
   using CloudinaryDotNet;
   using CloudinaryDotNet.Actions;
+  using KioskAPI.interfaces;
 
-  public class CloudinaryService
+  public class CloudinaryService : ICloudinaryService
   {
     private readonly Cloudinary _cloudinary;
 

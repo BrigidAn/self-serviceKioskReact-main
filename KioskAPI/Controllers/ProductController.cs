@@ -67,7 +67,7 @@ namespace KioskAPI.Controllers
         return this.BadRequest(this.ModelState);
       }
 
-      var imageUrl = await _cloudinary.UploadImageAsync(dto.File).ConfigureAwait(true);
+      var imageUrl = await this._cloudinary.UploadImageAsync(dto.File).ConfigureAwait(true);
       dto.ImageUrl = imageUrl;
 
       if (string.IsNullOrWhiteSpace(dto.ImageUrl))
@@ -226,6 +226,27 @@ namespace KioskAPI.Controllers
         Products = productDtos,
         Categories = categories
       });
+    }
+
+    [HttpPatch("{id}/availability")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateAvailability(int id, [FromBody] UpdateProductAvailabilityDto dto)
+    {
+      if (!this.ModelState.IsValid)
+      {
+        return this.BadRequest(this.ModelState);
+      }
+
+      var product = await this._context.Products.FindAsync(id).ConfigureAwait(true);
+      if (product == null)
+      {
+        return this.NotFound(new { message = "Product not found" });
+      }
+
+      product.IsAvailable = dto.IsAvailable;
+
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      return this.Ok(new { message = "Product availability updated" });
     }
   }
 }

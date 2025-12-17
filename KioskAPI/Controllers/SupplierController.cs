@@ -9,7 +9,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  
+
   public class SupplierController : ControllerBase
   {
     private readonly AppDbContext _context;

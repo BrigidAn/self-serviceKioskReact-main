@@ -14,10 +14,6 @@ namespace KioskAPI.Migrations
                 name: "ImageUrl",
                 table: "Products");
 
-            migrationBuilder.DropColumn(
-                name: "Balance",
-                table: "AspNetUsers");
-
             migrationBuilder.AddColumn<string>(
                 name: "ImageBase64",
                 table: "Products",

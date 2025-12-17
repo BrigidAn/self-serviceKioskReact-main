@@ -42,6 +42,9 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
+
 // ===== ASP.NET Identity =====
 builder.Services.AddIdentity<User, Role>(options =>
 {
@@ -54,6 +57,8 @@ builder.Services.AddIdentity<User, Role>(options =>
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 // ===== JWT Authentication =====
 var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);

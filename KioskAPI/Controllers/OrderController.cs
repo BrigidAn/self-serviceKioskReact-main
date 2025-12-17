@@ -11,6 +11,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
+  [Authorize]
   public class OrderController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -29,8 +30,10 @@ namespace KioskAPI.Controllers
     {
       var orders = await this._context.Orders
           .Include(o => o.User)
-          .Include(o => o.OrderItems).ThenInclude(i => i.Product)
-          .ToListAsync().ConfigureAwait(true);
+          .Include(o => o.OrderItems)
+            .ThenInclude(i => i.Product)
+          .ToListAsync()
+          .ConfigureAwait(true);
 
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
@@ -41,12 +44,18 @@ namespace KioskAPI.Controllers
     public async Task<IActionResult> GetOrdersByUser(int userId)
     {
       var orders = await this._context.Orders
-          .Include(o => o.OrderItems).ThenInclude(i => i.Product)
+          .Include(o => o.OrderItems)
+            .ThenInclude(i => i.Product)
           .Where(o => o.UserId == userId)
-          .ToListAsync().ConfigureAwait(true);
+          .ToListAsync()
+          .ConfigureAwait(true);
 
       if (!orders.Any())
       {
+        this._logger.LogWarning(
+          "No orders found for user {UserId} (admin request)",
+          userId);
+
         return this.NotFound(new { message = "No orders found for this user." });
       }
 
@@ -54,7 +63,6 @@ namespace KioskAPI.Controllers
     }
 
     // GET logged-in user's orders
-    [Authorize]
     [HttpGet("myOrders")]
     public async Task<IActionResult> GetMyOrders()
     {
@@ -62,20 +70,24 @@ namespace KioskAPI.Controllers
 
       var orders = await this._context.Orders
           .Include(o => o.OrderItems)
-              .ThenInclude(i => i.Product)
+            .ThenInclude(i => i.Product)
           .Where(o => o.UserId == userId)
-          .ToListAsync().ConfigureAwait(true);
+          .ToListAsync()
+          .ConfigureAwait(true);
 
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
-    // POST create new order with transaction
-    [Authorize]
+    // POST create new order
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto newOrderDto)
     {
       if (!this.ModelState.IsValid)
       {
+        this._logger.LogWarning(
+          "CreateOrder failed: Invalid model state for user {UserId}",
+          newOrderDto.UserId);
+
         return this.BadRequest(this.ModelState);
       }
 
@@ -95,14 +107,25 @@ namespace KioskAPI.Controllers
 
         foreach (var itemDto in newOrderDto.Items)
         {
-          var product = await this._context.Products.FindAsync(itemDto.ProductId).ConfigureAwait(true);
+          var product = await this._context.Products
+            .FindAsync(itemDto.ProductId)
+            .ConfigureAwait(true);
+
           if (product == null)
           {
+            this._logger.LogWarning(
+              "CreateOrder failed: Product {ProductId} not found for user {UserId}",
+              itemDto.ProductId, newOrderDto.UserId);
+
             return this.BadRequest(new { message = $"Product ID {itemDto.ProductId} not found." });
           }
 
           if (product.Quantity < itemDto.Quantity)
           {
+            this._logger.LogWarning(
+              "CreateOrder failed: Insufficient stock for product {ProductId}. Requested {Quantity}, Available {Stock}. User {UserId}",
+              product.ProductId, itemDto.Quantity, product.Quantity, newOrderDto.UserId);
+
             return this.BadRequest(new { message = $"Not enough stock for {product.Name}." });
           }
 
@@ -126,7 +149,9 @@ namespace KioskAPI.Controllers
 
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Order {OrderId} created for user {UserId}", order.OrderId, newOrderDto.UserId);
+        this._logger.LogInformation(
+          "Order {OrderId} created for user {UserId}",
+          order.OrderId, newOrderDto.UserId);
 
         return this.Ok(new
         {
@@ -137,13 +162,15 @@ namespace KioskAPI.Controllers
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error creating order for user {UserId}", newOrderDto.UserId);
+        this._logger.LogError(
+          ex, "Error creating order for user {UserId}",
+          newOrderDto.UserId);
+
         return this.StatusCode(500, new { message = "Error creating order" });
       }
     }
 
     // POST complete order
-    [Authorize]
     [HttpPost("complete/{orderId}")]
     public async Task<IActionResult> CompleteOrder(int orderId)
     {
@@ -154,11 +181,15 @@ namespace KioskAPI.Controllers
       {
         var order = await this._context.Orders
             .Include(o => o.OrderItems)
-            .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId).ConfigureAwait(true);
+            .FirstOrDefaultAsync(o => o.OrderId == orderId && o.UserId == userId)
+            .ConfigureAwait(true);
 
         if (order == null)
         {
-          this._logger.LogWarning("Order {OrderId} not found for user {UserId}", orderId, userId);
+          this._logger.LogWarning(
+            "CompleteOrder failed: Order {OrderId} not found for user {UserId}",
+            orderId, userId);
+
           return this.NotFound(new { message = "Order not found" });
         }
 
@@ -168,14 +199,19 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
         await transaction.CommitAsync().ConfigureAwait(true);
 
-        this._logger.LogInformation("Order {OrderId} completed for user {UserId}", orderId, userId);
+        this._logger.LogInformation(
+          "Order {OrderId} completed for user {UserId}",
+          orderId, userId);
 
         return this.Ok(new { message = "Order marked as complete" });
       }
       catch (Exception ex)
       {
         await transaction.RollbackAsync().ConfigureAwait(true);
-        this._logger.LogError(ex, "Error completing order {OrderId} for user {UserId}", orderId, userId);
+        this._logger.LogError(
+          ex, "Error completing order {OrderId} for user {UserId}",
+          orderId, userId);
+
         return this.StatusCode(500, new { message = "Error completing order" });
       }
     }

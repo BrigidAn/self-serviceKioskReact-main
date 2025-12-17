@@ -32,5 +32,7 @@ namespace KioskAPI.Models
     [ForeignKey(nameof(Supplier))]
     public int? SupplierId { get; set; }
     public Supplier? Supplier { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
   }
 }
