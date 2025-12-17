@@ -4,21 +4,14 @@ using FluentAssertions;
 using KioskAPI.Controllers;
 using KioskAPI.Dtos;
 using KioskAPI.Models;
-using KioskAPI.interfaces;
+using KioskAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
 
-// Fake TokenService for testing
-public class FakeTokenService : ITokenService
-{
-  public Task<string> GenerateJwtToken(User user)
-  {
-    return Task.FromResult("fake-jwt-token");
-  }
-}
+// Fake TokenService that inherits from TokenService
 
 public class AuthControllerTests
 {
@@ -39,14 +32,14 @@ public class AuthControllerTests
   }
 
   private static AuthController CreateController(
-      Mock<UserManager<User>> userManager,
-      Mock<SignInManager<User>> signInManager)
+        Mock<UserManager<User>> userManager,
+        Mock<SignInManager<User>> signInManager)
   {
-    var tokenService = new FakeTokenService(); // use fake implementation
+    var tokenService = new TokenService(null, userManager.Object); // real service, null config
     return new AuthController(
         userManager.Object,
         signInManager.Object,
-        null);
+        tokenService);
   }
 
   // ---------------- REGISTER ----------------
