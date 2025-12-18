@@ -3,8 +3,7 @@ import AdminLayout from "../AdminLayout";
 import "./ManageProducts.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Popup from "../components/Popup";
-import DeleteConfirmPopup from "../../components/DeleteConfirmPopup"; 
+import DeleteConfirmPopup from "../../components/DeleteConfirmPopup";
 
 const API_URL = "https://localhost:5016/api";
 
@@ -14,7 +13,7 @@ export default function ManageProducts() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
-
+  const [currentPage, setCurrentPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -34,6 +33,8 @@ export default function ManageProducts() {
 
   const [popup, setPopup] = useState({ show: false, productId: null, productName: "", onConfirm: null });
   const [filterLowStock, setFilterLowStock] = useState(false);
+const PAGE_SIZE = 10;
+
 
   // Fetch products and calculate stats
   const fetchDashboardData = async () => {
@@ -205,6 +206,21 @@ const handleConfirmDelete = async (productId, productName) => {
   }
 };
 
+// Total pages
+const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+
+const paginatedProducts = filteredProducts.slice(
+  (currentPage - 1) * PAGE_SIZE,
+  currentPage * PAGE_SIZE
+  );
+
+  const handlePageChange = (page) => {
+  if (page < 1 || page > totalPages) return;
+  setCurrentPage(page);
+};
+
+
+
   return (
     <AdminLayout>
       <ToastContainer position="top-right" />
@@ -243,30 +259,46 @@ const handleConfirmDelete = async (productId, productName) => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 ? (
+              {paginatedProducts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="empty">No products found</td>
                 </tr>
               ) : (
-                filteredProducts.map((p, idx) => (
-                  <tr key={p.productId ?? p.id ?? idx}>
-                    <td>{idx + 1}</td>
-                    <td><img src={p.imageUrl || p.image || "/placeholder.png"} alt={p.name} /></td>
-                    <td>{p.name}</td>
-                    <td>{p.category}</td>
-                    <td>R {Number(p.price).toFixed(2)}</td>
-                    <td>{p.quantity ?? 0}</td>
-                    <td>{p.supplierId}</td>
-                    <td>
-                      <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn danger small" onClick={() => requestDelete(p.productId ?? p.id, p.name)}>Delete</button>
-                    </td>
-                  </tr>
+              paginatedProducts.map((p, idx) => (
+                <tr key={p.productId ?? p.id ?? idx}>
+                  <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
+                  <td><img src={p.imageUrl || p.image || "/placeholder.png"} alt={p.name} /></td>
+                  <td>{p.name}</td>
+                  <td>{p.category}</td>
+                  <td>R {Number(p.price).toFixed(2)}</td>
+                  <td>{p.quantity ?? 0}</td>
+                  <td>{p.supplierId}</td>
+                  <td>
+                    <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
+                    <button className="btn danger small" onClick={() => requestDelete(p.productId ?? p.id, p.name)}>Delete</button>
+                  </td>
+                </tr>
                 ))
               )}
             </tbody>
           </table>
         </section>
+
+                 {totalPages > 1 && (
+              <div className="p-pagination">
+                <button onClick={() => handlePageChange(currentPage - 1)}>Prev</button>
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    className={currentPage === i + 1 ? "active" : ""}
+                    onClick={() => handlePageChange(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button onClick={() => handlePageChange(currentPage + 1)}>Next</button>
+              </div>
+            )}
 
         {showModal && (
         <div className="modal-overlay">
@@ -390,21 +422,21 @@ const handleConfirmDelete = async (productId, productName) => {
                   Cancel
                 </button>
               </div>
+              </form>
 
-            </form>
           </div>
         </div>
       )}
 
-       {/* Delete confirmation popup */} 
-       <DeleteConfirmPopup 
-       show={popup.show} 
-       message={`Are you sure you want to delete "${popup.productName}"?`} 
-       onDelete={popup.onConfirm} onCancel={() => 
-        setPopup({ 
-          show: false, productId: null, productName: "", onConfirm: null }) } 
-          /> 
-          </div> 
-          </AdminLayout> 
-        ); 
+       {/* Delete confirmation popup */}
+       <DeleteConfirmPopup
+       show={popup.show}
+       message={`Are you sure you want to delete "${popup.productName}"?`}
+       onDelete={popup.onConfirm} onCancel={() =>
+        setPopup({
+          show: false, productId: null, productName: "", onConfirm: null }) }
+          />
+          </div>
+          </AdminLayout>
+        );
       }

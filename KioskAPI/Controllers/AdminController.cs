@@ -195,7 +195,7 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // ===================== TRANSACTIONS =====================
+    //  TRANSACTIONS 
 
     [HttpGet("transactions")]
     public async Task<IActionResult> GetAllTransactions(

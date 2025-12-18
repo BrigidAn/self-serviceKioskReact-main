@@ -17,75 +17,61 @@ export default function AdminDashboard() {
     lowStock: 0,
     totalUsers: 0,
     totalOrders: 0,
-    revenue: 0,
-    pendingOrders: 0,
-    paidOrders: 0,
   });
 
   const [recentOrders, setRecentOrders] = useState([]);
-  const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [recentUsers, setRecentUsers] = useState([]);
-
   const token = localStorage.getItem("token");
   const isMounted = useRef(true);
 
-  const fetchDashboardData = async () => {
-    try {
-      // ---------------- Products ----------------
-      const resProducts = await fetch(`${API_URL}/product`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const products = await resProducts.json();
+const fetchDashboardData = async () => {
+  try {
+    // products
+    const resProducts = await fetch(`${API_URL}/Product?page=1&pageSize=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const totalProducts = products.length;
-      const lowStockList = products.filter(p => p.quantity <= 5);
-      const lowStock = lowStockList.length;
+            if (!resProducts.ok) {
+          throw new Error("Failed to fetch products");
+        }
 
-      // ---------------- Users ----------------
-      const resUsers = await fetch(`${API_URL}/admin/users?page=1&pageSize=50`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const usersData = await resUsers.json();
+    const productsResponse = await resProducts.json();
+    const products = Array.isArray(productsResponse) ? productsResponse : productsResponse.data || [];
 
-      const recentUsersList = (usersData.data || [])
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
+    const totalProducts = productsResponse.total ?? products.length;
+    const lowStock = products.filter(p => p.quantity <= 5).length;
 
-      // ---------------- Orders ----------------
-      const resOrders = await fetch(`${API_URL}/admin/orders?page=1&pageSize=10`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const ordersData = await resOrders.json();
-      const orders = ordersData.data || [];
+    //users
+    const resUsers = await fetch(`${API_URL}/admin/users?page=1&pageSize=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      const revenue = orders.reduce((sum, o) => sum + o.totalAmount, 0);
-      const pendingOrders = orders.filter(o => o.status === "Pending").length;
-      const paidOrders = orders.filter(o => o.paymentStatus === "Paid").length;
+    const usersResponse = await resUsers.json();
+    const totalUsers = usersResponse.total ?? usersResponse.data?.length ?? 0;
 
-      if (!isMounted.current) return;
+    //orders
+    const resOrders = await fetch(`${API_URL}/admin/orders?page=1&pageSize=10`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      setStats({
-        totalProducts,
-        lowStock,
-        totalUsers: usersData.total || usersData.data?.length || 0,
-        totalOrders: ordersData.total || orders.length,
-        revenue,
-        pendingOrders,
-        paidOrders,
-      });
+    const ordersResponse = await resOrders.json();
+    const orders = ordersResponse.data || [];
+    const totalOrders = ordersResponse.total ?? orders.length;
 
-      setRecentOrders(orders);
-      setLowStockProducts(lowStockList.slice(0, 5));
-      setRecentUsers(recentUsersList);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load dashboard data");
-    }
-  };
+    setStats({
+      totalProducts,
+      lowStock,
+      totalUsers,
+      totalOrders,
+    });
+
+    setRecentOrders(orders);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   useEffect(() => {
     fetchDashboardData();
-
     const interval = setInterval(fetchDashboardData, 10000);
 
     return () => {
@@ -100,8 +86,7 @@ export default function AdminDashboard() {
 
       <div className="dashboard-container">
 
-        {/* ================= Stats ================= */}
-        <div className="stats-grid">
+        <div className="stats-grid glass">
           <div className="i-stat-card">
             <FaBox className="stat-icon" />
             <h2>{stats.totalProducts}</h2>
@@ -131,7 +116,7 @@ export default function AdminDashboard() {
         <div className="glass-section">
           <h3>Recent Orders</h3>
           <div className="table-wrapper">
-            <table>
+            <table className="glass-table">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -168,32 +153,6 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* ================= Low Stock ================= */}
-        <div className="glass-section">
-          <h3>Low Stock Alerts</h3>
-          <ul className="simple-list">
-            {lowStockProducts.length === 0
-              ? <li>No low stock products</li>
-              : lowStockProducts.map(p => (
-                  <li key={p.productId}>
-                    {p.name} — <strong>{p.quantity}</strong> left
-                  </li>
-                ))}
-          </ul>
-        </div>
-
-        {/* ================= Recent Users ================= */}
-        <div className="glass-section">
-          <h3>Recent Users</h3>
-          <ul className="simple-list">
-            {recentUsers.length === 0
-              ? <li>No recent signups</li>
-              : recentUsers.map(u => (
-                  <li key={u.id}>{u.name} ({u.email})</li>
-                ))}
-          </ul>
         </div>
 
       </div>

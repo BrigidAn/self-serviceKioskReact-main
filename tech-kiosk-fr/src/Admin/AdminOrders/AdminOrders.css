@@ -40,31 +40,33 @@
 }
 
 /* Buttons */
-.btn {
+.o-btn {
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
-  background-color: #2563eb;
+  background-color: #25cdeb8e;
   color: white;
   cursor: pointer;
   font-size: 0.85rem;
   transition: background-color 0.2s;
+  position: relative;
+  top: 30px;
 }
 
-.btn:hover {
+.o-btn:hover {
   background-color: #1e40af;
 }
 
-.btn.small {
+.o-btn.small {
   padding: 4px 8px;
   font-size: 0.75rem;
 }
 
-.btn.danger {
+.o-btn.danger {
   background-color: #dc2626;
 }
 
-.btn.danger:hover {
+.o-btn.danger:hover {
   background-color: #991b1b;
 }
 
@@ -98,4 +100,81 @@
     font-weight: 600;
     text-align: left;
   }
+}
+
+.o-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #333;
+  position: relative;
+  top: 5px;
+  right: 250px;
+  font-size: 0.95rem;
+}
+
+.o-filter select {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: rgba(255, 255, 255, 0.212);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.o-filter select:hover {
+  border-color: #a6b6c5;
+}
+
+.o-filter select:focus {
+  outline: none;
+  border-color: #8ba9cc;
+  box-shadow: 0 0 4px rgba(74, 144, 226, 0.5);
+}
+
+.o-pagination{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  gap: 10px;
+}
+
+.o-pagination button{
+    padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(0, 255, 245, 0.1);
+  color: #00f5ff;
+  border: 1px solid rgba(0, 255, 245, 0.4);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s ease;
+  backdrop-filter: blur(6px);
+}
+
+.o-pagination button.active{
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2b8285c4, #0099ff60);
+  color: #ffffff;
+  border: 1px solid rgba(0, 255, 245, 0.25);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s;
+  backdrop-filter: blur(6px);
+}
+.o-pagination button.active:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #00f5ff66;
+  transform: translateY(-2px);
+}
+
+.o-pagination button:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #15532866;
+  transform: translateY(-2px);
 }

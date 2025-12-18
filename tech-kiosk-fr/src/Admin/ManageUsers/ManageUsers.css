@@ -100,3 +100,17 @@ h1 {
     font-size: 14px;
   }
 }
+
+.role-dropdown {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #cccccc28;
+  background-color: #abd4da2a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-dropdown:hover {
+  border-color: #888;
+  background-color: #7da9b42d;
+}

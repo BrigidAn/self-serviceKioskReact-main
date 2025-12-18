@@ -91,23 +91,19 @@ namespace KioskAPI.Controllers
     // ASSIGN ROLE (Admin only)
     [HttpPost("assign-role")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AssignRole(string userId, string role)
+    public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
     {
-      var user = await this._userManager.FindByIdAsync(userId).ConfigureAwait(true);
+      var user = await this._userManager.FindByIdAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
       {
         return this.NotFound(new { message = "User not found" });
       }
 
       var existingRoles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
-
       await this._userManager.RemoveFromRolesAsync(user, existingRoles).ConfigureAwait(true);
-      await this._userManager.AddToRoleAsync(user, role).ConfigureAwait(true);
+      await this._userManager.AddToRoleAsync(user, dto.Role).ConfigureAwait(true);
 
-      return this.Ok(new
-      {
-        message = $"Role '{role}' assigned to {user.Email}"
-      });
+      return this.Ok(new { message = $"Role '{dto.Role}' assigned to {user.Email}" });
     }
   }
 }

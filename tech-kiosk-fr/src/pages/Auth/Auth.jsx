@@ -58,7 +58,7 @@ export default function Auth() {
     toast.error(err.message || "Something went wrong");
   }
   };
-  
+
   return (
     <div className="auth-container">
       <ToastContainer />

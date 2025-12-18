@@ -27,7 +27,7 @@
 }
 
 .stat-card {
-  background-color: #fff;
+  background-color: #5f8fa598;
   padding: 20px;
   border-radius: 8px;
   flex: 1;
@@ -46,7 +46,7 @@
 }
 
 .stat-card.clickable.active {
-  border: 2px solid #007bff;
+  border: 2px solid #00aeff;
 }
 
 .stat-num {
@@ -264,4 +264,51 @@
   font-size: 13px;
   margin-top: 4px;
   display: block;
+}
+
+.p-pagination{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  gap: 10px;
+}
+
+.p-pagination button{
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(0, 255, 245, 0.1);
+  color: #00f5ff;
+  border: 1px solid rgba(0, 255, 245, 0.4);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s ease;
+  backdrop-filter: blur(6px);
+  position: relative;
+  top: 20px;
+}
+
+.p-pagination button.active{
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2b8285c4, #0099ff60);
+  color: #ffffff;
+  border: 1px solid rgba(0, 255, 245, 0.25);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s;
+  backdrop-filter: blur(6px);
+}
+.p-pagination button.active:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #00f5ff66;
+  transform: translateY(-2px);
+}
+
+.p-pagination button:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #15532866;
+  transform: translateY(-2px);
 }

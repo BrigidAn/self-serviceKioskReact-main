@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import ProductsPage from "./pages/Products/ProductsPage";
@@ -16,7 +15,6 @@ import ManageProducts from "./admin/ManageProducts/ManageProducts";
 import AdminLogs from "./admin/AdminLog/AdminLogs";
 import UserRoute from "./components/UserRoute";
 import AdminRoute from "./components/AdminRoute";
-import AdminLayout from "./admin/AdminLayout";
 import AdminOrders from "./admin/AdminOrders/AdminOrders";
 import ShopForUser from "./admin/ShopforUsers/ShopforUsers";
 

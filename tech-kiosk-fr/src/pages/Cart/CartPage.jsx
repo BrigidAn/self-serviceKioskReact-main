@@ -91,7 +91,6 @@ export default function CartPage() {
       <div className="cart-page empty-cart">
         <div className="cart-message">
           <h2>Your cart is empty 😔</h2>
-          <p>Looks like you haven't added any items yet.</p>
           <button className="cart-back-btn" onClick={() => navigate("/products")}>
             ← Browse Products
           </button>

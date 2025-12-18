@@ -3,6 +3,7 @@ namespace KioskAPI.Dtos
   using System;
   using System.Collections.Generic;
   using System.ComponentModel.DataAnnotations;
+  using KioskAPI.Models;
 
   public class OrderDto
   {
@@ -12,6 +13,7 @@ namespace KioskAPI.Dtos
     public string? DeliveryMethod { get; set; }
     public string? Status { get; set; } // e.g., "Pending", "Completed"
     public string? PaymentStatus { get; set; } // e.g., "Paid", "Unpaid"
+    // public User? User { get; set; }
     public List<OrderItemDto>? Items { get; set; }
   }
 
