@@ -1,6 +1,7 @@
 .shop-users-container {
   padding: 25px;
   color: #fff;
+  overflow-x: auto;
 }
 
 .user-dropdown,

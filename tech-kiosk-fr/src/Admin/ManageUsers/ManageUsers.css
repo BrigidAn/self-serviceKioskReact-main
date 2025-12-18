@@ -26,6 +26,11 @@ h1 {
   font-size: 16px;
 }
 
+.admin-table-container {
+  width: 100%;
+  overflow-x: auto; /* Make table scrollable on small screens */
+}
+
 .admin-table tbody tr {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
