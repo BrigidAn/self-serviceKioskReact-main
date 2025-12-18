@@ -8,6 +8,7 @@ using KioskAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Xunit;
 
@@ -32,10 +33,23 @@ public class AuthControllerTests
   }
 
   private static AuthController CreateController(
-        Mock<UserManager<User>> userManager,
-        Mock<SignInManager<User>> signInManager)
+      Mock<UserManager<User>> userManager,
+      Mock<SignInManager<User>> signInManager)
   {
-    var tokenService = new TokenService(null, userManager.Object); // real service, null config
+    // Mock IConfiguration
+    var configMock = new Mock<IConfiguration>();
+
+    configMock.Setup(c => c["Jwt:Key"])
+        .Returns("THIS_IS_A_VERY_SECRET_TEST_KEY_123456789");
+
+    configMock.Setup(c => c["Jwt:Issuer"])
+        .Returns("TestIssuer");
+
+    configMock.Setup(c => c["Jwt:Audience"])
+        .Returns("TestAudience");
+
+    var tokenService = new TokenService(configMock.Object, userManager.Object);
+
     return new AuthController(
         userManager.Object,
         signInManager.Object,

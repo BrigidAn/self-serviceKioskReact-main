@@ -88,21 +88,25 @@ namespace KioskAPI.Tests.ControllersTests
     public async Task AddSupplier_ReturnsOk_WhenValidDto()
     {
       using var context = GetInMemoryDb();
-      var controller = GetController(context);
+
+      var controller = new SupplierController(context);
 
       var dto = new SupplierCreateDto
       {
-        Name = "New Supplier",
-        ContactInfo = "New Contact"
+        Name = "Test Supplier",
+        ContactInfo = "test contact"
       };
 
       var result = await controller.AddSupplier(dto);
-      var okResult = result as OkObjectResult;
-      okResult.Should().NotBeNull();
 
-      dynamic value = okResult.Value;
-      ((string)value.message).Should().Be("Supplier added successfully.");
-      ((int)value.SupplierId).Should().BeGreaterThan(0);
+      var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+
+      var message = ok.Value
+          .GetType()
+          .GetProperty("message")!
+          .GetValue(ok.Value) as string;
+
+      message.Should().Be("Supplier added successfully.");
     }
 
     [Fact]

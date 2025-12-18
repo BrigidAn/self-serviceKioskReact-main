@@ -55,24 +55,24 @@ namespace KioskAPI.Tests.ControllersTests
         UserId = userId,
         IsCheckedOut = false,
         CartItems = new List<CartItem>
+        {
+            new CartItem
+            {
+                CartItemId = 1,
+                ProductId = 1,
+                Quantity = 2,
+                UnitPrice = 50,
+                Product = new Product
                 {
-                    new CartItem
-                    {
-                        CartItemId = 1,
-                        ProductId = 1,
-                        Quantity = 2,
-                        UnitPrice = 50,
-                        Product = new Product
-                        {
-                            ProductId = 1,
-                            Name = "Test Product",
-                            Category = "Test",
-                            Description = "Test Desc",
-                            Price = 50,
-                            Quantity = 10
-                        }
-                    }
+                    ProductId = 1,
+                    Name = "Test Product",
+                    Category = "Test",
+                    Description = "Test Desc",
+                    Price = 50,
+                    Quantity = 10
                 }
+            }
+        }
       };
 
       context.Carts.Add(cart);
@@ -81,12 +81,20 @@ namespace KioskAPI.Tests.ControllersTests
       var controller = GetController(context, userId);
 
       var result = await controller.GetCheckoutSummary();
-      var okResult = result as OkObjectResult;
-      okResult.Should().NotBeNull();
+      var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
 
-      dynamic summary = okResult.Value;
-      ((int)summary.cartId).Should().Be(1);
-      ((decimal)summary.itemsTotal).Should().Be(100);
+      var value = okResult.Value;
+
+      var cartId = (int)value.GetType()
+          .GetProperty("cartId")!
+          .GetValue(value)!;
+
+      var itemsTotal = (decimal)value.GetType()
+          .GetProperty("itemsTotal")!
+          .GetValue(value)!;
+
+      cartId.Should().Be(1);
+      itemsTotal.Should().Be(100);
     }
 
     [Fact]

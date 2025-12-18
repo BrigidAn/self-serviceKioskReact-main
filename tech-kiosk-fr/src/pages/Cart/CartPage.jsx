@@ -86,7 +86,6 @@ export default function CartPage() {
     );
   }
 
-  // Empty cart state
   if (!cart || cart.length === 0) {
     return (
       <div className="cart-page empty-cart">

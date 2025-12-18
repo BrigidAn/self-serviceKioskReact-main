@@ -93,7 +93,7 @@ namespace KioskAPI.Controllers
         [FromQuery] string sortBy = "Price",
         [FromQuery] string sortOrder = "asc")
     {
-      this._logger.LogInformation("Admin requested all products. Page: {Page}, PageSize: {PageSize}, Search: {Search}", page, pageSize, search);
+      this._logger.LogInformation("Admin requested all products.");
       var query = this._context.Products.Include(p => p.Supplier).AsQueryable();
 
       if (!string.IsNullOrEmpty(search))
@@ -146,7 +146,7 @@ namespace KioskAPI.Controllers
         [FromQuery] string? search = null,
         [FromQuery] string? status = null)
     {
-      this._logger.LogInformation("Admin requested all orders. Page: {Page}, PageSize: {PageSize}, Search: {Search}", page, pageSize, search);
+      this._logger.LogInformation("Admin requested all orders");
 
       var query = this._context.Orders
           .Include(o => o.User)
@@ -171,7 +171,7 @@ namespace KioskAPI.Controllers
       var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync().ConfigureAwait(true);
       this._logger.LogInformation("{Count} orders retrieved from database");
 
-      this._logger.LogInformation("Returning user data to client");
+      this._logger.LogInformation("Returning order data");
       return this.Ok(new
       {
         total,
@@ -203,6 +203,7 @@ namespace KioskAPI.Controllers
         [FromQuery] int pageSize = 10,
         [FromQuery] string? type = null)
     {
+      this._logger.LogInformation("Admin fetching transactions");
       var query = this._context.Transactions
           .Include(t => t.Account)
           .ThenInclude(a => a.User)
@@ -236,7 +237,7 @@ namespace KioskAPI.Controllers
     [HttpPost("topup")]
     public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
     {
-      this._logger.LogInformation("Admin attempting to top up user {UserId} with amount {Amount}", dto.UserId, dto.Amount);
+      this._logger.LogInformation("Admin attempting to top up | {UserId} with amount {Amount}", dto.UserId, dto.Amount);
       if (!this.ModelState.IsValid)
       {
         this._logger.LogWarning("Invalid model state for top-up: {@ModelState}", ModelState);
@@ -302,6 +303,7 @@ namespace KioskAPI.Controllers
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddToUserCart([FromBody] AdminAddToCartDto dto)
     {
+      this._logger.LogInformation("Admin adding to cart | UserId={UserId}, ProductId={ProductId}, Qty={Qty}", dto.UserId, dto.ProductId, dto.Quantity);
       var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
       {
@@ -311,11 +313,13 @@ namespace KioskAPI.Controllers
       var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
       if (product == null)
       {
+        this._logger.LogInformation("Product Not Found | ProductId ={ProductId}", dto.ProductId);
         return this.BadRequest(new { message = "Product not found" });
       }
 
       if (dto.Quantity < 1 || product.Quantity < dto.Quantity)
       {
+        this._logger.LogWarning("Add to cart failed: insufficent stock");
         return this.BadRequest(new { message = "Invalid quantity" });
       }
 
@@ -342,6 +346,7 @@ namespace KioskAPI.Controllers
       product.Quantity -= dto.Quantity;
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
+      this._logger.LogInformation("Item added to cart succesfully");
       return this.Ok(new { message = "Item added to user's cart" });
     }
 
@@ -356,6 +361,7 @@ namespace KioskAPI.Controllers
 
       if (cart == null || !cart.CartItems.Any())
       {
+        this._logger.LogWarning("Cart is empty");
         return this.NotFound(new { message = "Cart is empty" });
       }
 
@@ -387,7 +393,10 @@ namespace KioskAPI.Controllers
           .ConfigureAwait(true);
 
       if (cart == null || !cart.CartItems.Any())
+      {
+        this._logger.LogWarning("Cart is empty");
         return NotFound(new { message = "Cart is empty" });
+      }
 
       // Create order
       var order = new Order
@@ -419,10 +428,9 @@ namespace KioskAPI.Controllers
 
       // Mark cart as checked out
       cart.IsCheckedOut = true;
-      await _context.SaveChangesAsync().ConfigureAwait(true);
-
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+      _logger.LogInformation("Checkout completed | OrderId={OrderId}", order.OrderId);
       return Ok(new { message = "Checkout successful", orderId = order.OrderId });
     }
-
   }
 }
