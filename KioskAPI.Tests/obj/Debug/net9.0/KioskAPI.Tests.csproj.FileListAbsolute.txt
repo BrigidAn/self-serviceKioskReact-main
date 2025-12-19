@@ -1,3 +1,11 @@
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\bin\Debug\net9.0\.msCoverageSourceRootsMapping_KioskAPI.Tests
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\bin\Debug\net9.0\CoverletSourceRootsMapping_KioskAPI.Tests
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.csproj.AssemblyReference.cache
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.AssemblyInfoInputs.cache
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.AssemblyInfo.cs
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.csproj.CoreCompileInputs.cache
+C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.sourcelink.json
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\bin\Debug\net9.0\.msCoverageSourceRootsMapping_KioskAPI.Tests
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\bin\Debug\net9.0\CoverletSourceRootsMapping_KioskAPI.Tests
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\bin\Debug\net9.0\testhost.dll
@@ -269,11 +277,3 @@ C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\obj\Debug\ne
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.pdb
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.genruntimeconfig.cache
 C:\Users\BAnyawu\source\repos\self-serviceKioskReact\KioskAPI.Tests\obj\Debug\net9.0\ref\KioskAPI.Tests.dll
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\bin\Debug\net9.0\.msCoverageSourceRootsMapping_KioskAPI.Tests
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\bin\Debug\net9.0\CoverletSourceRootsMapping_KioskAPI.Tests
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.csproj.AssemblyReference.cache
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.AssemblyInfoInputs.cache
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.AssemblyInfo.cs
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.csproj.CoreCompileInputs.cache
-C:\Users\ochim\.vscode\self-serviceKioskReact-main\KioskAPI.Tests\obj\Debug\net9.0\KioskAPI.Tests.sourcelink.json

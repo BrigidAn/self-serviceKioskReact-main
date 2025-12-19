@@ -195,7 +195,11 @@ public class AuthControllerTests
 
     var controller = CreateController(userManager, signInManager);
 
-    var result = await controller.AssignRole("1", "Admin");
+    var result = await controller.AssignRole(new AssignRoleDto
+    {
+      UserId = "1",
+      Role = "Admin"
+    });
 
     result.Should().BeOfType<NotFoundObjectResult>();
   }
@@ -222,7 +226,11 @@ public class AuthControllerTests
 
     var controller = CreateController(userManager, signInManager);
 
-    var result = await controller.AssignRole("1", "Admin");
+    var result = await controller.AssignRole(new AssignRoleDto
+    {
+      UserId = "1",
+      Role = "Admin"
+    });
 
     result.Should().BeOfType<OkObjectResult>();
   }

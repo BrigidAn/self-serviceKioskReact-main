@@ -88,22 +88,23 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "JWT logout = delete token on client." });
     }
 
-    // ASSIGN ROLE (Admin only)
     [HttpPost("assign-role")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
     {
-      var user = await this._userManager.FindByIdAsync(dto.UserId).ConfigureAwait(true);
+      if (dto == null || string.IsNullOrEmpty(dto.UserId) || string.IsNullOrEmpty(dto.Role))
+        return BadRequest(new { message = "UserId and Role are required." });
+
+      var user = await _userManager.FindByIdAsync(dto.UserId);
       if (user == null)
-      {
-        return this.NotFound(new { message = "User not found" });
-      }
+        return NotFound(new { message = "User not found" });
 
-      var existingRoles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
-      await this._userManager.RemoveFromRolesAsync(user, existingRoles).ConfigureAwait(true);
-      await this._userManager.AddToRoleAsync(user, dto.Role).ConfigureAwait(true);
+      var existingRoles = await _userManager.GetRolesAsync(user);
+      await _userManager.RemoveFromRolesAsync(user, existingRoles);
+      await _userManager.AddToRoleAsync(user, dto.Role);
 
-      return this.Ok(new { message = $"Role '{dto.Role}' assigned to {user.Email}" });
+      return Ok(new { message = $"Role '{dto.Role}' assigned to {user.Email}" });
     }
+
   }
 }

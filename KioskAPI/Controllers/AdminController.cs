@@ -12,7 +12,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize(Roles = "Admin")] // ALL routes protected
+  [Authorize(Roles = "Admin")]
   public class AdminController : ControllerBase
   {
     private readonly UserManager<User> _usermanager;
@@ -25,8 +25,6 @@ namespace KioskAPI.Controllers
       this._context = context;
       this._logger = logger;
     }
-
-    // ===================== USERS =====================
 
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers(
@@ -58,7 +56,6 @@ namespace KioskAPI.Controllers
       {
         var roles = await this._usermanager.GetRolesAsync(u).ConfigureAwait(true); // List<string>
 
-        // Get user's balance
         var account = await this._context.Accounts.FirstOrDefaultAsync(a => a.UserId == u.Id).ConfigureAwait(true);
         var balance = account?.Balance ?? 0;
 
@@ -82,8 +79,6 @@ namespace KioskAPI.Controllers
         data = userRolesList
       });
     }
-
-    // ===================== PRODUCTS =====================
 
     [HttpGet("products")]
     public async Task<IActionResult> GetAllProducts(
@@ -136,8 +131,6 @@ namespace KioskAPI.Controllers
         })
       });
     }
-
-    // ===================== ORDERS =====================
 
     [HttpGet("orders")]
     public async Task<IActionResult> GetAllOrders(
@@ -195,8 +188,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    //  TRANSACTIONS 
-
     [HttpGet("transactions")]
     public async Task<IActionResult> GetAllTransactions(
         [FromQuery] int page = 1,
@@ -240,11 +231,10 @@ namespace KioskAPI.Controllers
       this._logger.LogInformation("Admin attempting to top up | {UserId} with amount {Amount}", dto.UserId, dto.Amount);
       if (!this.ModelState.IsValid)
       {
-        this._logger.LogWarning("Invalid model state for top-up: {@ModelState}", ModelState);
+        this._logger.LogWarning("Invalid model state for top-up: {@ModelState}", this.ModelState);
         return this.BadRequest(this.ModelState);
       }
 
-      // Check if user exists
       var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
       {
@@ -252,7 +242,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "User not found" });
       }
 
-      // Find or create account
       var account = await this._context.Accounts
           .FirstOrDefaultAsync(a => a.UserId == dto.UserId).ConfigureAwait(true);
 
@@ -265,7 +254,7 @@ namespace KioskAPI.Controllers
           LastUpdated = DateTime.UtcNow
         };
         this._context.Accounts.Add(account);
-        await this._context.SaveChangesAsync().ConfigureAwait(true); // Save to get AccountId
+        await this._context.SaveChangesAsync().ConfigureAwait(true);
         this._logger.LogInformation("Created new account for user {UserId}", dto.UserId);
       }
 
@@ -275,11 +264,9 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
       }
 
-      // Top up
       account.Balance += dto.Amount;
       account.LastUpdated = DateTime.UtcNow;
 
-      // Log transaction
       var transaction = new Transaction
       {
         AccountId = account.AccountId,
@@ -303,7 +290,6 @@ namespace KioskAPI.Controllers
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddToUserCart([FromBody] AdminAddToCartDto dto)
     {
-      this._logger.LogInformation("Admin adding to cart | UserId={UserId}, ProductId={ProductId}, Qty={Qty}", dto.UserId, dto.ProductId, dto.Quantity);
       var user = await this._context.Users.FindAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
       {
@@ -313,19 +299,18 @@ namespace KioskAPI.Controllers
       var product = await this._context.Products.FindAsync(dto.ProductId).ConfigureAwait(true);
       if (product == null)
       {
-        this._logger.LogInformation("Product Not Found | ProductId ={ProductId}", dto.ProductId);
         return this.BadRequest(new { message = "Product not found" });
       }
 
       if (dto.Quantity < 1 || product.Quantity < dto.Quantity)
       {
-        this._logger.LogWarning("Add to cart failed: insufficent stock");
         return this.BadRequest(new { message = "Invalid quantity" });
       }
 
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
-          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut).ConfigureAwait(true);
+          .FirstOrDefaultAsync(c => c.UserId == dto.UserId && !c.IsCheckedOut)
+          .ConfigureAwait(true);
 
       if (cart == null)
       {
@@ -334,19 +319,25 @@ namespace KioskAPI.Controllers
         await this._context.SaveChangesAsync().ConfigureAwait(true);
       }
 
-      var cartItem = new CartItem
+      var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == dto.ProductId);
+      if (existingCartItem != null)
       {
-        CartId = cart.CartId,
-        ProductId = product.ProductId,
-        Quantity = dto.Quantity,
-        UnitPrice = product.Price
-      };
+        existingCartItem.Quantity += dto.Quantity;
+      }
+      else
+      {
+        var cartItem = new CartItem
+        {
+          CartId = cart.CartId,
+          ProductId = product.ProductId,
+          Quantity = dto.Quantity,
+          UnitPrice = product.Price
+        };
+        this._context.CartItems.Add(cartItem);
+      }
 
-      this._context.CartItems.Add(cartItem);
-      product.Quantity -= dto.Quantity;
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      this._logger.LogInformation("Item added to cart succesfully");
       return this.Ok(new { message = "Item added to user's cart" });
     }
 
@@ -382,11 +373,12 @@ namespace KioskAPI.Controllers
         itemsTotal
       });
     }
+
     [HttpPost("cart/checkout/{userId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CheckoutUserCart(int userId)
     {
-      var cart = await _context.Carts
+      var cart = await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(ci => ci.Product)
           .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
@@ -395,10 +387,9 @@ namespace KioskAPI.Controllers
       if (cart == null || !cart.CartItems.Any())
       {
         this._logger.LogWarning("Cart is empty");
-        return NotFound(new { message = "Cart is empty" });
+        return this.NotFound(new { message = "Cart is empty" });
       }
 
-      // Create order
       var order = new Order
       {
         UserId = userId,
@@ -408,13 +399,12 @@ namespace KioskAPI.Controllers
         TotalAmount = cart.CartItems.Sum(ci => ci.UnitPrice * ci.Quantity)
       };
 
-      _context.Orders.Add(order);
-      await _context.SaveChangesAsync().ConfigureAwait(true);
+      this._context.Orders.Add(order);
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
 
-      // Create order items
       foreach (var ci in cart.CartItems)
       {
-        _context.OrderItems.Add(new OrderItem
+        this._context.OrderItems.Add(new OrderItem
         {
           OrderId = order.OrderId,
           ProductId = ci.ProductId,
@@ -422,15 +412,35 @@ namespace KioskAPI.Controllers
           PriceAtPurchase = ci.UnitPrice
         });
 
-        // Reduce product stock
         ci.Product.Quantity -= ci.Quantity;
       }
 
-      // Mark cart as checked out
       cart.IsCheckedOut = true;
       await this._context.SaveChangesAsync().ConfigureAwait(true);
-      _logger.LogInformation("Checkout completed | OrderId={OrderId}", order.OrderId);
-      return Ok(new { message = "Checkout successful", orderId = order.OrderId });
+      this._logger.LogInformation("Checkout completed | OrderId={OrderId}", order.OrderId);
+      return this.Ok(new { message = "Checkout successful", orderId = order.OrderId });
     }
+
+    [HttpDelete("cart/remove/{cartItemId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> RemoveCartItem(int cartItemId)
+    {
+      var cartItem = await this._context.CartItems
+          .Include(ci => ci.Product)
+          .Include(ci => ci.Cart)
+          .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId && !ci.Cart.IsCheckedOut)
+          .ConfigureAwait(true);
+
+      if (cartItem == null)
+      {
+        return this.NotFound(new { message = "Cart item not found" });
+      }
+
+      this._context.CartItems.Remove(cartItem);
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { message = "Item removed from cart" });
+    }
+
   }
 }
