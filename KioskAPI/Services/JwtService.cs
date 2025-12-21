@@ -36,7 +36,6 @@ namespace KioskAPI.Services
       new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
     };
 
-      // Add role claims
       var roles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
       foreach (var role in roles)
       {

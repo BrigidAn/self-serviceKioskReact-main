@@ -14,30 +14,21 @@ namespace KioskAPI.Services
       this._context = context;
     }
 
-    public async Task<string> RegisterAsync(string name, string email) //string password
+    public async Task<string> RegisterAsync(string name, string email)
     {
-      // Check if user already exists
       if (await this._context.Users.AnyAsync(u => u.Email == email).ConfigureAwait(true))
       {
         return "User already exists";
       }
-
-      // Hash password
-      // var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-
-      // Create user (no RoleId anymore)
       var user = new User
       {
         Name = name,
         Email = email,
-        // PasswordHash = passwordHash,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow
       };
 
       this._context.Users.Add(user);
-
-      // Create zero-balance account
       var account = new Account
       {
         User = user,
@@ -52,9 +43,8 @@ namespace KioskAPI.Services
       return "Registered successfully.";
     }
 
-    public async Task<User?> LoginAsync(string email) //, string password
+    public async Task<User?> LoginAsync(string email)
     {
-      // No more role include
       var user = await this._context.Users
           .FirstOrDefaultAsync(u => u.Email == email).ConfigureAwait(true);
 
@@ -62,8 +52,6 @@ namespace KioskAPI.Services
       {
         return null;
       }
-
-      // bool valid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
 
       return user;
     }

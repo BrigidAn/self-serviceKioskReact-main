@@ -107,7 +107,7 @@ export default function ShopForUser() {
     toast.success("Added to cart");
     setQuantityMap((prev) => ({ ...prev, [productId]: 1 }));
     fetchCartAndAccount(selectedUserId);
-    fetchProducts(); // update stock
+    fetchProducts();
   };
 
 const removeFromCart = async (cartItemId) => {
@@ -119,7 +119,7 @@ const removeFromCart = async (cartItemId) => {
     });
     toast.info("Item removed from cart");
     fetchCartAndAccount(selectedUserId);
-    fetchProducts(); // optional: update stock if needed
+    fetchProducts();
   } catch {
     toast.error("Failed to remove item");
   }

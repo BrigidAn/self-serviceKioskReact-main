@@ -13,7 +13,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize] // All endpoints require authentication unless overridden
+  [Authorize]
   public class TransactionController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -23,7 +23,6 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // ADMIN: Get ALL transactions
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllTransactions()
@@ -46,13 +45,10 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
-    // USER: Get transactions for specific Identity User Id
-    // GET: api/transaction/user/{id}
     [HttpGet("mytrasactions")]
-    [Authorize] // Must be logged in
+    [Authorize]
     public async Task<IActionResult> GetMyTransactions()
     {
-      // Get the logged-in user's ID from the JWT
       var userIdClaim = this.User.FindFirst("id")?.Value ?? this.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
       if (string.IsNullOrEmpty(userIdClaim))
@@ -62,7 +58,6 @@ namespace KioskAPI.Controllers
 
       int userId = int.Parse(userIdClaim);
 
-      // Load the user + account + transactions
       var user = await this._context.Users
           .Include(u => u.Account)
           .ThenInclude(a => a.Transactions)
@@ -94,7 +89,6 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
-    // Create (credit or debit)
     [HttpPost]
     public async Task<IActionResult> CreateTransaction([FromBody] TransactionDto dto)
     {
@@ -149,8 +143,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-
-    // Delete Transaction (Admin only)
     [HttpDelete("{transactionId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteTransaction(int transactionId)

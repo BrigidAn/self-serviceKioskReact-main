@@ -10,7 +10,6 @@ namespace KioskAPI.Data
     {
     }
 
-    // DbSets map to tables
     public DbSet<Account> Accounts { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Order> Orders { get; set; }

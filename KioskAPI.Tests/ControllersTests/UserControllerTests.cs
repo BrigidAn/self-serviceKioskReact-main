@@ -17,7 +17,6 @@ namespace KioskAPI.Tests.ControllersTests
 
   public class UserControllerTests
   {
-    // ---------------- DB SETUP ----------------
     private static AppDbContext GetInMemoryDb()
     {
       var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -29,7 +28,6 @@ namespace KioskAPI.Tests.ControllersTests
       return new AppDbContext(options);
     }
 
-    // ---------------- CONTROLLER SETUP ----------------
     private static UserController GetController(
       AppDbContext context,
       int userId,
@@ -58,7 +56,6 @@ namespace KioskAPI.Tests.ControllersTests
       return controller;
     }
 
-    // ---------------- GET PROFILE ----------------
     [Fact]
     public async Task GetProfile_ReturnsOk_WhenUserExists()
     {
@@ -93,7 +90,6 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    //  GET ACCOUNT
     [Fact]
     public async Task GetAccount_ReturnsOk_WhenAccountExists()
     {
@@ -150,7 +146,6 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    //  TOP UP
     [Fact]
     public async Task TopUp_IncreasesBalance_AndCreatesTransaction()
     {
@@ -231,7 +226,6 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    //  ADMIN: GET USER PROFILE
     [Fact]
     public async Task GetUserProfileAdmin_ReturnsOk_ForAdmin()
     {
@@ -254,7 +248,6 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<OkObjectResult>();
     }
 
-    //  ADMIN: GET ACCOUNT 
     [Fact]
     public async Task GetAccountAdmin_ReturnsOk_WhenAccountExists()
     {

@@ -40,11 +40,9 @@ namespace KioskAPI.Dtos
     [Required]
     [MaxLength(50)]
     public string Category { get; set; } = string.Empty;
-
-    // [Required(ErrorMessage = "ImageUrl is Required")]
-    public string? ImageUrl { get; set; } // will use iformfile cloudinary
+    public string? ImageUrl { get; set; }
     [Required(ErrorMessage = "ImageUrl is Required")]
-    public IFormFile File { get; set; } //uploading file from device
+    public IFormFile File { get; set; }
 
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative.")]
@@ -72,8 +70,7 @@ namespace KioskAPI.Dtos
     [Required]
     [MaxLength(50)]
     public string? Category { get; set; }
-    public string? ImageUrl { get; set; } //use iformfile for cloudinary
-    [Required]
+    public string? ImageUrl { get; set; }
     [Range(0, int.MaxValue, ErrorMessage = "Quantity can not be negative")]
     public int? Quantity { get; set; }
     public int? SupplierId { get; set; }

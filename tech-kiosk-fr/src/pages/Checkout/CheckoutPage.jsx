@@ -88,7 +88,6 @@ export default function CheckoutPage() {
       setBalance(prev => prev + Number(topUpAmount));
       setTopUpAmount("");
 
-      // Close modal if balance is now enough
       if (balance + Number(topUpAmount) >= totalItemsPrice + deliveryFee) {
         setShowInsufficientModal(false);
       }

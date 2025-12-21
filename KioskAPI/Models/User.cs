@@ -11,12 +11,9 @@ namespace KioskAPI.Models
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
-
-    // Navigation
     public Account? Account { get; set; }
     [Column(TypeName = "decimal(18,2)")]
 
     public ICollection<Order>? Orders { get; set; }
-
-  } //depends on if this is a user or an admin
+  }
 }

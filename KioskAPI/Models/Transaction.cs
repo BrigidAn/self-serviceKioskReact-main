@@ -14,9 +14,7 @@ namespace KioskAPI.Models
     public Account? Account { get; set; }
 
     [ForeignKey(nameof(Order))]
-    public int? OrderId { get; set; } // optional link to order
-
-    // "credit" or "debit"
+    public int? OrderId { get; set; }
     public string Type { get; set; } = null!;
 
     [Column(TypeName = "decimal(18,2)")]

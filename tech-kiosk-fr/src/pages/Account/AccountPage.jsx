@@ -19,7 +19,6 @@ function AccountsPage() {
 
   const userId = localStorage.getItem("userId");
 
-  // Fetch balance
   const fetchBalance = async () => {
     try {
       const res = await fetch(`${ACCOUNT_API}/balance`, {
@@ -35,7 +34,6 @@ function AccountsPage() {
     }
   };
 
-  // Fetch transaction history
   const fetchTransactions = async () => {
     try {
       const res = await fetch(`${TX_API}/mytrasactions`, {
@@ -58,7 +56,6 @@ function AccountsPage() {
     fetchTransactions();
   }, []);
 
-  // Validation before confirmation modal
   const validateAmount = () => {
     if (topUpAmount.trim() === "") {
       setPopupMessage("Amount is required.");
@@ -87,13 +84,11 @@ function AccountsPage() {
       return false;
     }
 
-    // Show confirm modal
     setPendingAmount(amount);
     setShowConfirmTopUp(true);
     return true;
   };
 
-  // Top-up handler (NO validation inside!)
   const handleTopUp = async (amount) => {
     try {
       const res = await fetch(`${ACCOUNT_API}/topup`, {
@@ -127,13 +122,11 @@ function AccountsPage() {
       <h1 className="acc-title">My Account</h1>
       <p className="acc-sub">Manage your balance, top-ups & spending</p>
 
-      {/* BALANCE */}
       <div className="acc-card balance-card">
         <h2>Available Balance</h2>
         <div className="acc-balance">R {balance.toFixed(2)}</div>
       </div>
 
-      {/* TOP-UP */}
       <div className="acc-card topup-card">
         <h2>Add Funds</h2>
 
@@ -147,14 +140,13 @@ function AccountsPage() {
           />
           <button
             className="topup-btn"
-            onClick={validateAmount} // FIXED ✔
+            onClick={validateAmount} 
           >
             Top Up
           </button>
         </div>
       </div>
 
-      {/* TRANSACTION HISTORY */}
       <div className="acc-card history-card">
         <h2>Transaction History</h2>
 
@@ -195,7 +187,6 @@ function AccountsPage() {
         )}
       </div>
 
-      {/* CONFIRM TOP UP MODAL */}
       <ConfirmTopUpModal
         show={showConfirmTopUp}
         amount={pendingAmount}
@@ -206,7 +197,6 @@ function AccountsPage() {
         onCancel={() => setShowConfirmTopUp(false)}
       />
 
-      {/* Popup */}
       {popupMessage && (
         <div className="popup-overlay" onClick={() => setPopupMessage("")}>
           <div className="popup-box">

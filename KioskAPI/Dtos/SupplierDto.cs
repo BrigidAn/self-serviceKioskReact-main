@@ -12,7 +12,6 @@ namespace KioskAPI.Dtos
     public string? ContactInfo { get; set; }
   }
 
-  // DTO for creating a new supplier
   public class SupplierCreateDto
   {
     [Required]
@@ -21,7 +20,6 @@ namespace KioskAPI.Dtos
     public string? ContactInfo { get; set; }
   }
 
-  // DTO for updating a supplier
   public class SupplierUpdateDto
   {
 

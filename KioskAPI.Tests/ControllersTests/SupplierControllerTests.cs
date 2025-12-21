@@ -37,14 +37,14 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetAllSuppliers_ReturnsOk_WithSuppliers()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       context.Suppliers.AddRange(
           new Supplier { SupplierId = 1, Name = "Supplier A", ContactInfo = "A Contact" },
           new Supplier { SupplierId = 2, Name = "Supplier B", ContactInfo = "B Contact" }
       );
       await context.SaveChangesAsync();
 
-      var controller = GetController(context);
+      var controller = this.GetController(context);
 
       var result = await controller.GetAllSuppliers();
       var okResult = result as OkObjectResult;
@@ -58,11 +58,11 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetSupplierById_ReturnsOk_WhenSupplierExists()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       context.Suppliers.Add(new Supplier { SupplierId = 1, Name = "Supplier A", ContactInfo = "Contact A" });
       await context.SaveChangesAsync();
 
-      var controller = GetController(context);
+      var controller = this.GetController(context);
 
       var result = await controller.GetSupplierById(1);
       var okResult = result as OkObjectResult;
@@ -77,8 +77,8 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetSupplierById_ReturnsNotFound_WhenSupplierDoesNotExist()
     {
-      using var context = GetInMemoryDb();
-      var controller = GetController(context);
+      using var context = this.GetInMemoryDb();
+      var controller = this.GetController(context);
 
       var result = await controller.GetSupplierById(99);
       result.Should().BeOfType<NotFoundObjectResult>();
@@ -87,7 +87,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task AddSupplier_ReturnsOk_WhenValidDto()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
 
       var controller = new SupplierController(context);
 
@@ -112,8 +112,8 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task AddSupplier_ReturnsBadRequest_WhenNameIsMissing()
     {
-      using var context = GetInMemoryDb();
-      var controller = GetController(context);
+      using var context = this.GetInMemoryDb();
+      var controller = this.GetController(context);
 
       var dto = new SupplierCreateDto { Name = "", ContactInfo = "Contact" };
       var result = await controller.AddSupplier(dto);
@@ -124,11 +124,11 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task UpdateSupplier_ReturnsOk_WhenSupplierExists()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       context.Suppliers.Add(new Supplier { SupplierId = 1, Name = "Old Name", ContactInfo = "Old Contact" });
       await context.SaveChangesAsync();
 
-      var controller = GetController(context);
+      var controller = this.GetController(context);
       var dto = new SupplierUpdateDto { Name = "Updated Name", ContactInfo = "Updated Contact" };
 
       var result = await controller.UpdateSupplier(1, dto);
@@ -143,8 +143,8 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task UpdateSupplier_ReturnsNotFound_WhenSupplierDoesNotExist()
     {
-      using var context = GetInMemoryDb();
-      var controller = GetController(context);
+      using var context = this.GetInMemoryDb();
+      var controller = this.GetController(context);
       var dto = new SupplierUpdateDto { Name = "Updated", ContactInfo = "Contact" };
 
       var result = await controller.UpdateSupplier(99, dto);
@@ -154,11 +154,11 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task DeleteSupplier_ReturnsOk_WhenSupplierHasNoProducts()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       context.Suppliers.Add(new Supplier { SupplierId = 1, Name = "Supplier A", ContactInfo = "Contact" });
       await context.SaveChangesAsync();
 
-      var controller = GetController(context);
+      var controller = this.GetController(context);
       var result = await controller.DeleteSupplier(1);
 
       var okResult = result as OkObjectResult;
@@ -169,12 +169,12 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task DeleteSupplier_ReturnsBadRequest_WhenSupplierHasProducts()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       context.Suppliers.Add(new Supplier { SupplierId = 1, Name = "Supplier A", ContactInfo = "Contact" });
       context.Products.Add(new Product { ProductId = 1, Name = "Prod", SupplierId = 1, Category = "Cat", Description = "Desc", Price = 50, Quantity = 5 });
       await context.SaveChangesAsync();
 
-      var controller = GetController(context);
+      var controller = this.GetController(context);
       var result = await controller.DeleteSupplier(1);
 
       var badRequest = result as BadRequestObjectResult;
@@ -186,8 +186,8 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task DeleteSupplier_ReturnsNotFound_WhenSupplierDoesNotExist()
     {
-      using var context = GetInMemoryDb();
-      var controller = GetController(context);
+      using var context = this.GetInMemoryDb();
+      var controller = this.GetController(context);
 
       var result = await controller.DeleteSupplier(99);
       result.Should().BeOfType<NotFoundObjectResult>();

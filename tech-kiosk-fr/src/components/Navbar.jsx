@@ -17,25 +17,21 @@ export default function NavBar({ cartCount = 0 }) {
     <nav className="neo-nav">
       <div className="nav-shell">
 
-        {/* LOGO */}
         <Link to="/landing" className="nav-logo">
           Tech<span className="highlight">Shack</span>
         </Link>
 
-        {/* DESKTOP LINKS */}
         <div className="nav-links">
           <Link to="/products" className="nav-item">Products</Link>
           <Link to="/about" className="nav-item">About</Link>
           <Link to="/support" className="nav-item">Support</Link>
         </div>
 
-        {/* CART */}
         <Link to="/cart" className="nav-cart">
           <FiShoppingCart size={23} />
           {cartCount > 0 && <span className="nav-cart-count">{cartCount}</span>}
         </Link>
 
-        {/* HAMBURGER */}
         <div
           className={`hamburger ${menuOpen ? "open" : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
@@ -45,7 +41,6 @@ export default function NavBar({ cartCount = 0 }) {
           <span></span>
         </div>
 
-        {/* MOBILE SIDE MENU */}
         {menuOpen && <div className="menu-overlay" onClick={() => setMenuOpen(false)}></div>}
         <div className={`side-menu ${menuOpen ? "show" : ""}`}>
           <div className="side-menu-title">Menu</div>

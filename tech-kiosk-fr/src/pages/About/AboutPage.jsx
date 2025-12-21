@@ -9,7 +9,6 @@ function AboutPage() {
 
       <div className="about-container">
 
-        {/* Background Shapes */}
         <div className="about-floating c1"></div>
         <div className="about-floating c2"></div>
         <div className="about-floating c3"></div>

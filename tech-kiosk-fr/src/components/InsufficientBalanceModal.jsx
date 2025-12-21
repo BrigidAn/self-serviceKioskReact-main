@@ -12,7 +12,7 @@ export default function InsufficientBalanceModal({ show, onClose, remainingAmoun
 
         <p>Amount Needed: R {remainingAmount.toFixed(2)}</p>
 
-        {children} {/* Top-up UI goes here */}
+        {children} 
 
         <button onClick={onClose} className="modal-close-btn">Close</button>
       </div>

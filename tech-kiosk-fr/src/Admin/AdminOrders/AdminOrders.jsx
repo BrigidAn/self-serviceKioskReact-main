@@ -12,7 +12,7 @@ export default function AdminOrders() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [filterStatus, setFilterStatus] = useState("All"); // All | Pending | Completed
+  const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
   const token = localStorage.getItem("token");
@@ -54,7 +54,6 @@ export default function AdminOrders() {
 
   useEffect(() => {
     fetchOrders();
-    // eslint-disable-next-line
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -85,13 +84,11 @@ export default function AdminOrders() {
     return prod ? prod.name : `Product #${productId}`;
   };
 
-  // --- Filtering ---
   const filteredOrders =
     filterStatus === "All"
       ? orders
       : orders.filter((o) => o.status === filterStatus);
 
-  // --- Pagination ---
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
   const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * PAGE_SIZE,
@@ -118,7 +115,7 @@ export default function AdminOrders() {
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
-                setCurrentPage(1); // reset page when filter changes
+                setCurrentPage(1);
               }}
             >
               <option value="All">All</option>

@@ -25,7 +25,6 @@ namespace KioskAPI.Controllers
       this._tokenService = tokenService;
     }
 
-    // REGISTER
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
@@ -42,13 +41,11 @@ namespace KioskAPI.Controllers
         return this.BadRequest(result.Errors);
       }
 
-      // Default user role
       await this._userManager.AddToRoleAsync(user, "User").ConfigureAwait(true);
 
       return this.Ok(new { message = "Registered successfully" });
     }
 
-    // LOGIN (JWT)
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
@@ -64,7 +61,6 @@ namespace KioskAPI.Controllers
         return this.Unauthorized(new { message = "Invalid email or password" });
       }
 
-      // Generate JWT token
       var token = await this._tokenService.GenerateJwtToken(user).ConfigureAwait(true);
 
       return this.Ok(new
@@ -81,7 +77,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // LOGOUT (JWT)
     [HttpPost("logout")]
     public IActionResult Logout()
     {
@@ -93,18 +88,21 @@ namespace KioskAPI.Controllers
     public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)
     {
       if (dto == null || string.IsNullOrEmpty(dto.UserId) || string.IsNullOrEmpty(dto.Role))
-        return BadRequest(new { message = "UserId and Role are required." });
+      {
+        return this.BadRequest(new { message = "UserId and Role are required." });
+      }
 
-      var user = await _userManager.FindByIdAsync(dto.UserId);
+      var user = await this._userManager.FindByIdAsync(dto.UserId).ConfigureAwait(true);
       if (user == null)
-        return NotFound(new { message = "User not found" });
+      {
+        return this.NotFound(new { message = "User not found" });
+      }
 
-      var existingRoles = await _userManager.GetRolesAsync(user);
-      await _userManager.RemoveFromRolesAsync(user, existingRoles);
-      await _userManager.AddToRoleAsync(user, dto.Role);
+      var existingRoles = await this._userManager.GetRolesAsync(user).ConfigureAwait(true);
+      await this._userManager.RemoveFromRolesAsync(user, existingRoles).ConfigureAwait(true);
+      await this._userManager.AddToRoleAsync(user, dto.Role).ConfigureAwait(true);
 
-      return Ok(new { message = $"Role '{dto.Role}' assigned to {user.Email}" });
+      return this.Ok(new { message = $"Role '{dto.Role}' assigned to {user.Email}" });
     }
-
   }
 }

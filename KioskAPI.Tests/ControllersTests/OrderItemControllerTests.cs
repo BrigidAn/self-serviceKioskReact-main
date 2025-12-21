@@ -206,7 +206,6 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    // ---------------- DELETE (ADMIN) ----------------
     [Fact]
     public async Task DeleteOrderItem_RemovesItem_AndRestoresStock()
     {
@@ -244,6 +243,5 @@ namespace KioskAPI.Tests.ControllersTests
       context.OrderItems.Should().BeEmpty();
       context.Products.First().Quantity.Should().Be(7);
     }
-
   }
 }

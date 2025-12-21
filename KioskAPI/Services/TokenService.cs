@@ -33,7 +33,6 @@ namespace KioskAPI.Services
                 new Claim(ClaimTypes.Name, user.Name ?? "")
             };
 
-      // Add roles
       foreach (var role in roles)
       {
         claims.Add(new Claim(ClaimTypes.Role, role));

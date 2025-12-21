@@ -11,9 +11,8 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
-// ===== Serilog Logging =====
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information() // changed from Debug to Information for cleaner logs
+    .MinimumLevel.Information()
     .WriteTo.Console()
     .WriteTo.File(
         path: "Logs/kioskapi-.log",
@@ -28,24 +27,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog();
 
-// ===== Controllers + Swagger =====
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ===== Dependency Injection =====
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddSingleton<CloudinaryService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 
 // ===== Database Context =====
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ===== ASP.NET Identity =====
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
+
 builder.Services.AddIdentity<User, Role>(options =>
 {
   options.Password.RequireDigit = true;
@@ -60,7 +56,6 @@ builder.Services.AddIdentity<User, Role>(options =>
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// ===== JWT Authentication =====
 var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 
 builder.Services.AddAuthentication(options =>
@@ -86,10 +81,8 @@ builder.Services.AddAuthentication(options =>
   };
 });
 
-// ===== Authorization =====
 builder.Services.AddAuthorization();
 
-// ===== Swagger JWT =====
 builder.Services.AddSwaggerGen(c =>
 {
   c.SwaggerDoc("v1", new OpenApiInfo { Title = "KioskAPI API", Version = "v1" });
@@ -120,7 +113,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// ===== CORS =====
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowReactApp", policy =>
@@ -132,15 +124,13 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ===== Swagger =====
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
   app.UseSwaggerUI();
 }
 
-// ===== Middleware =====
-app.UseSerilogRequestLogging(); // logs incoming requests
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();

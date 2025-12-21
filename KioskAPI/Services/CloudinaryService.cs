@@ -18,7 +18,6 @@ namespace KioskAPI.Services
       this._cloudinary = new Cloudinary(new Account(cloudName, apiKey, apiSecret));
     }
 
-    // Upload from Base64 string
     public async Task<string> UploadImageAsync(IFormFile file)
     {
       if (file == null || file.Length == 0)
@@ -37,7 +36,7 @@ namespace KioskAPI.Services
 
       if (result.StatusCode == System.Net.HttpStatusCode.OK)
       {
-        return result.SecureUrl.ToString(); // <- full URL
+        return result.SecureUrl.ToString();
       }
 
       return null;

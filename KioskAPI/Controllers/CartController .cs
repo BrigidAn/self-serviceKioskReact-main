@@ -29,7 +29,6 @@ namespace KioskAPI.Controllers
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
-    // GET current cart
     [HttpGet]
     public async Task<IActionResult> GetCart()
     {
@@ -99,7 +98,6 @@ namespace KioskAPI.Controllers
       return this.Ok(cartDto);
     }
 
-    // POST add to cart
     [HttpPost("add")]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDto dto)
     {
@@ -201,7 +199,6 @@ namespace KioskAPI.Controllers
       }
     }
 
-    // POST update quantity
     [HttpPost("item/{itemId}")]
     public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
     {
@@ -264,7 +261,6 @@ namespace KioskAPI.Controllers
       }
     }
 
-    // DELETE cart item
     [HttpDelete("item/{cartItemId}")]
     public async Task<IActionResult> RemoveItem(int cartItemId)
     {
@@ -312,7 +308,6 @@ namespace KioskAPI.Controllers
       }
     }
 
-    // POST expire cart manually
     [HttpPost("expire")]
     public async Task<IActionResult> ExpireCart()
     {

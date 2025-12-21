@@ -26,7 +26,6 @@ namespace KioskAPI.Controllers
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
-    // ------------------- SUMMARY -------------------
     [HttpGet("summary")]
     public async Task<IActionResult> GetCheckoutSummary()
     {
@@ -64,13 +63,10 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // ------------------- CHECKOUT -------------------
     [HttpPost]
     public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
     {
       int userId;
-
-      // Admin acting on behalf of a user
       if (this.User.IsInRole("Admin") && dto.UserId.HasValue)
       {
         userId = dto.UserId.Value;
@@ -84,7 +80,7 @@ namespace KioskAPI.Controllers
       {
         return this.Unauthorized(new { message = "Invalid token" });
       }
-      // BEGIN TRANSACTION
+
       using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
       var cart = await this._context.Carts
           .Include(c => c.CartItems)
@@ -130,14 +126,10 @@ namespace KioskAPI.Controllers
         });
       }
 
-
-
       try
       {
-        // Deduct account balance
         account.Balance -= grandTotal;
 
-        // Create order
         var order = new Order
         {
           UserId = userId,
@@ -168,7 +160,6 @@ namespace KioskAPI.Controllers
 
         this._context.Orders.Add(order);
 
-        // Transactions log
         this._context.Transactions.Add(new Transaction
         {
           AccountId = account.AccountId,
@@ -178,7 +169,6 @@ namespace KioskAPI.Controllers
           CreatedAt = DateTime.UtcNow
         });
 
-        // Mark cart as checked out & clear items
         cart.IsCheckedOut = true;
         this._context.CartItems.RemoveRange(cart.CartItems);
 

@@ -46,7 +46,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetCheckoutSummary_ReturnsOk_WhenCartHasItems()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       int userId = 1;
 
       var cart = new Cart
@@ -78,7 +78,7 @@ namespace KioskAPI.Tests.ControllersTests
       context.Carts.Add(cart);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId);
+      var controller = this.GetController(context, userId);
 
       var result = await controller.GetCheckoutSummary();
       var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -100,10 +100,10 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetCheckoutSummary_ReturnsNotFound_WhenCartEmpty()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       int userId = 1;
 
-      var controller = GetController(context, userId);
+      var controller = this.GetController(context, userId);
 
       var result = await controller.GetCheckoutSummary();
       var notFoundResult = result as NotFoundObjectResult;
@@ -113,7 +113,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task Checkout_ReturnsOk_WhenSufficientBalance()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       int userId = 1;
 
       var product = new Product
@@ -157,7 +157,7 @@ namespace KioskAPI.Tests.ControllersTests
 
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId);
+      var controller = this.GetController(context, userId);
 
       var dto = new CheckoutRequestDto
       {
@@ -177,7 +177,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task Checkout_ReturnsBadRequest_WhenInsufficientBalance()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       int userId = 1;
 
       var product = new Product
@@ -221,7 +221,7 @@ namespace KioskAPI.Tests.ControllersTests
 
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId);
+      var controller = this.GetController(context, userId);
 
       var dto = new CheckoutRequestDto
       {

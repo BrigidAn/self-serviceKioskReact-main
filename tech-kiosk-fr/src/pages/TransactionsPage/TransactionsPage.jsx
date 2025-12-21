@@ -20,8 +20,7 @@ function TransactionsPage() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
-        // Sort newest → oldest
+        
         const sorted = res.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );

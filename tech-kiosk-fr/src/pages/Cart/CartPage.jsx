@@ -11,7 +11,6 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 
-  // Fetch cart from backend
   const fetchCart = async () => {
     try {
       const res = await fetch(`${API_URL}/checkout/summary`, {
@@ -172,7 +171,6 @@ export default function CartPage() {
                 <div className="float-shape fs2"></div>
                 <div className="float-shape fs3"></div>
               </div>
-
     </div>
   );
 }

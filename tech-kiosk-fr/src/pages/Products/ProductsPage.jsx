@@ -13,18 +13,16 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
 
-  // UI state
   const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState("All");
   const [priceMax, setPriceMax] = useState("");
   const [sortBy, setSortBy] = useState("featured");
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   const token = localStorage.getItem("token");
-  // Fetch products
+
   useEffect(() => {
     let mounted = true;
     const fetchProducts = async () => {
@@ -38,7 +36,7 @@ export default function ProductsPage() {
       const availableProducts = (data || [])
       .filter(p => (typeof p.quantity === "number" ? p.quantity : Number(p.qty)) > 0)
       .map(p => ({
-        id: p.id ?? p._id ?? p.productId, // <--- make sure this matches backend
+        id: p.id ?? p._id ?? p.productId,
         name: p.name ?? "Unnamed product",
         price: Number(p.price) || 0,
         category: p.category ?? "Uncategorized",
@@ -50,7 +48,6 @@ export default function ProductsPage() {
 
       setProducts(availableProducts);
 
-        // Fetch cart to get count
         const cartRes = await fetch(CART_API, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -70,13 +67,11 @@ export default function ProductsPage() {
     return () => { mounted = false; };
   }, [token]);
 
-  // Categories
   const categories = useMemo(() => {
     const cats = new Set(products.map((p) => p.category || "Uncategorized"));
     return ["All", ...Array.from(cats)];
   }, [products]);
 
-  // Filter + Sort
   const filtered = useMemo(() => {
     let list = products.slice();
 
@@ -107,7 +102,6 @@ export default function ProductsPage() {
     return list;
   }, [products, searchText, category, priceMax, sortBy]);
 
-  // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
 
   useEffect(() => {
@@ -117,7 +111,6 @@ export default function ProductsPage() {
   const start = (currentPage - 1) * itemsPerPage;
   const paginated = filtered.slice(start, start + itemsPerPage);
 
-  // Add to cart
  const handleAdd = async (product) => {
     try {
       const res = await fetch(`${CART_API}/add`, {
@@ -134,7 +127,6 @@ export default function ProductsPage() {
         throw new Error(err.message || "Failed to add item to cart");
       }
 
-      // Decrease quantity in frontend
       setProducts((prev) =>
         prev.map((p) =>
           p.id === product.id ? { ...p, quantity: p.quantity - 1 } : p
@@ -149,8 +141,6 @@ export default function ProductsPage() {
     }
   };
 
-
-  // Image fallback
   const handleImgError = (e) => {
     if (e.target) e.target.src = PLACEHOLDER;
   };
@@ -161,9 +151,6 @@ export default function ProductsPage() {
 
       <div className="velvety-products-page">
         <div className="vp-container">
-
-
-          {/* MAIN */}
           <main className="vp-main">
 
           <div className="floating-bg">
@@ -173,7 +160,6 @@ export default function ProductsPage() {
             <div className="circle c4"></div>
           </div>
 
-            {/* FUTURISTIC HERO */}
             <section className="vp-hero">
               <div className="vp-hero-glow"></div>
 
@@ -192,8 +178,6 @@ export default function ProductsPage() {
               </div>
             </section>
 
-
-            {/* Top bar */}
             <div className="vp-topbar">
               <div className="vp-top-left">
 
@@ -218,7 +202,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* CATEGORY STRIP */}
             <div className="vp-category-strip">
               {categories.map((c) => (
                 <button
@@ -232,20 +215,17 @@ export default function ProductsPage() {
                   {c}
                 </button>
               ))}
-            </div>
-
-            {/* FILTER & SORT BAR */}
-<div className="vp-filter-sort">
-  <div className="vp-filter-group">
-    <label>Max Price:</label>
-    <input
-      type="number"
-      placeholder="R Max"
-      value={priceMax}
-      onChange={(e) => setPriceMax(e.target.value)}
-    />
-  </div>
-
+            </div>\
+              <div className="vp-filter-sort">
+                <div className="vp-filter-group">
+                  <label>Max Price:</label>
+                  <input
+                    type="number"
+                    placeholder="R Max"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                  />
+                </div>
         <div className="vp-filter-group">
           <label>Sort By:</label>
           <select
@@ -258,8 +238,6 @@ export default function ProductsPage() {
           </select>
         </div>
       </div>
-
-            {/* GRID */}
             <section className="vp-grid">
               {loading ? (
                 Array.from({ length: itemsPerPage }).map((_, i) => (
@@ -316,8 +294,7 @@ export default function ProductsPage() {
                 <div className="vp-empty">No products match your filters.</div>
               )}
             </section>
-
-            {/* PAGINATION */}
+            
             <div className="vp-pagination">
               <button
                 className="vp-page-btn"

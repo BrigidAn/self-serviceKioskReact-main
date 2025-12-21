@@ -26,17 +26,15 @@ namespace KioskAPI.Tests.ControllersTests
 
     public AdminControllerTests()
     {
-      _context = TestDbFactory.Create(Guid.NewGuid().ToString());
-      _userManagerMock = UserManagerMock.Create<User>();
+      this._context = TestDbFactory.Create(Guid.NewGuid().ToString());
+      this._userManagerMock = UserManagerMock.Create<User>();
 
-      _controller = new AdminController(
-          _userManagerMock.Object,
-          _context,
+      this._controller = new AdminController(
+          this._userManagerMock.Object,
+          this._context,
           NullLogger<AdminController>.Instance
       );
     }
-
-    // ===================== HELPER =====================
 
     private static T GetProperty<T>(object obj, string propertyName)
     {
@@ -44,8 +42,6 @@ namespace KioskAPI.Tests.ControllersTests
       prop.Should().NotBeNull($"Property '{propertyName}' should exist");
       return (T)prop.GetValue(obj);
     }
-
-    // ===================== USERS =====================
 
     [Fact]
     public async Task GetAllUsers_ReturnsOk_WithUsers()
@@ -58,25 +54,23 @@ namespace KioskAPI.Tests.ControllersTests
         CreatedAt = DateTime.UtcNow
       };
 
-      _context.Users.Add(user);
-      _context.Accounts.Add(new Account { UserId = 1, Balance = 500 });
-      await _context.SaveChangesAsync();
+      this._context.Users.Add(user);
+      this._context.Accounts.Add(new Account { UserId = 1, Balance = 500 });
+      await this._context.SaveChangesAsync();
 
-      _userManagerMock.Setup(u => u.Users)
-          .Returns(_context.Users);
+      this._userManagerMock.Setup(u => u.Users)
+          .Returns(this._context.Users);
 
-      _userManagerMock.Setup(u => u.GetRolesAsync(user))
+      this._userManagerMock.Setup(u => u.GetRolesAsync(user))
           .ReturnsAsync(new List<string> { "Admin" });
 
-      var result = await _controller.GetAllUsers();
+      var result = await this._controller.GetAllUsers();
 
       var ok = result.Should().BeOfType<OkObjectResult>().Subject;
       var value = ok.Value;
 
       GetProperty<int>(value, "total").Should().Be(1);
     }
-
-    // ===================== PRODUCTS =====================
 
     [Fact]
     public async Task GetAllProducts_ReturnsProducts()
@@ -94,19 +88,17 @@ namespace KioskAPI.Tests.ControllersTests
         Supplier = supplier
       };
 
-      _context.Suppliers.Add(supplier);
-      _context.Products.Add(product);
-      await _context.SaveChangesAsync();
+      this._context.Suppliers.Add(supplier);
+      this._context.Products.Add(product);
+      await this._context.SaveChangesAsync();
 
-      var result = await _controller.GetAllProducts();
+      var result = await this._controller.GetAllProducts();
 
       var ok = result.Should().BeOfType<OkObjectResult>().Subject;
       var value = ok.Value;
 
       GetProperty<int>(value, "total").Should().Be(1);
     }
-
-    // ===================== ORDERS =====================
 
     [Fact]
     public async Task GetAllOrders_ReturnsOrders()
@@ -122,19 +114,17 @@ namespace KioskAPI.Tests.ControllersTests
         TotalAmount = 100
       };
 
-      _context.Users.Add(user);
-      _context.Orders.Add(order);
-      await _context.SaveChangesAsync();
+      this._context.Users.Add(user);
+      this._context.Orders.Add(order);
+      await this._context.SaveChangesAsync();
 
-      var result = await _controller.GetAllOrders();
+      var result = await this._controller.GetAllOrders();
 
       var ok = result.Should().BeOfType<OkObjectResult>().Subject;
       var value = ok.Value;
 
       GetProperty<int>(value, "total").Should().Be(1);
     }
-
-    // ===================== TRANSACTIONS =====================
 
     [Fact]
     public async Task GetAllTransactions_ReturnsTransactions()
@@ -151,12 +141,12 @@ namespace KioskAPI.Tests.ControllersTests
         CreatedAt = DateTime.UtcNow
       };
 
-      _context.Users.Add(user);
-      _context.Accounts.Add(account);
-      _context.Transactions.Add(transaction);
-      await _context.SaveChangesAsync();
+      this._context.Users.Add(user);
+      this._context.Accounts.Add(account);
+      this._context.Transactions.Add(transaction);
+      await this._context.SaveChangesAsync();
 
-      var result = await _controller.GetAllTransactions();
+      var result = await this._controller.GetAllTransactions();
 
       var ok = result.Should().BeOfType<OkObjectResult>().Subject;
       var value = ok.Value;
@@ -164,14 +154,12 @@ namespace KioskAPI.Tests.ControllersTests
       GetProperty<int>(value, "total").Should().Be(1);
     }
 
-    // ===================== TOP UP =====================
-
     [Fact]
     public async Task TopUpUser_AddsBalance_AndCreatesTransaction()
     {
       var user = new User { Id = 1, UserName = "user@test.com" };
-      _context.Users.Add(user);
-      await _context.SaveChangesAsync();
+      this._context.Users.Add(user);
+      await this._context.SaveChangesAsync();
 
       var dto = new AdminTopUpDo
       {
@@ -180,17 +168,15 @@ namespace KioskAPI.Tests.ControllersTests
         Description = "TopUp"
       };
 
-      var result = await _controller.TopUpUser(dto);
+      var result = await this._controller.TopUpUser(dto);
 
       result.Should().BeOfType<OkObjectResult>();
 
-      var account = await _context.Accounts.FirstAsync();
+      var account = await this._context.Accounts.FirstAsync();
       account.Balance.Should().Be(200);
 
-      _context.Transactions.Should().HaveCount(1);
+      this._context.Transactions.Should().HaveCount(1);
     }
-
-    // ===================== CART =====================
 
     [Fact]
     public async Task AddToUserCart_AddsItemAndReducesStock()
@@ -207,9 +193,9 @@ namespace KioskAPI.Tests.ControllersTests
         Quantity = 5
       };
 
-      _context.Users.Add(user);
-      _context.Products.Add(product);
-      await _context.SaveChangesAsync();
+      this._context.Users.Add(user);
+      this._context.Products.Add(product);
+      await this._context.SaveChangesAsync();
 
       var dto = new AdminAddToCartDto
       {
@@ -218,11 +204,11 @@ namespace KioskAPI.Tests.ControllersTests
         Quantity = 2
       };
 
-      var result = await _controller.AddToUserCart(dto);
+      var result = await this._controller.AddToUserCart(dto);
 
       result.Should().BeOfType<OkObjectResult>();
       product.Quantity.Should().Be(3);
-      _context.CartItems.Should().HaveCount(1);
+      this._context.CartItems.Should().HaveCount(1);
     }
 
     [Fact]
@@ -252,19 +238,17 @@ namespace KioskAPI.Tests.ControllersTests
         }
       };
 
-      _context.Products.Add(product);
-      _context.Carts.Add(cart);
-      await _context.SaveChangesAsync();
+      this._context.Products.Add(product);
+      this._context.Carts.Add(cart);
+      await this._context.SaveChangesAsync();
 
-      var result = await _controller.GetUserCartSummary(1);
+      var result = await this._controller.GetUserCartSummary(1);
 
       var ok = result.Should().BeOfType<OkObjectResult>().Subject;
       var value = ok.Value;
 
       GetProperty<decimal>(value, "itemsTotal").Should().Be(20);
     }
-
-    // ===================== CHECKOUT =====================
 
     [Fact]
     public async Task CheckoutUserCart_CreatesOrder()
@@ -293,15 +277,15 @@ namespace KioskAPI.Tests.ControllersTests
         }
       };
 
-      _context.Products.Add(product);
-      _context.Carts.Add(cart);
-      await _context.SaveChangesAsync();
+      this._context.Products.Add(product);
+      this._context.Carts.Add(cart);
+      await this._context.SaveChangesAsync();
 
-      var result = await _controller.CheckoutUserCart(1);
+      var result = await this._controller.CheckoutUserCart(1);
 
       result.Should().BeOfType<OkObjectResult>();
-      _context.Orders.Should().HaveCount(1);
-      _context.OrderItems.Should().HaveCount(1);
+      this._context.Orders.Should().HaveCount(1);
+      this._context.OrderItems.Should().HaveCount(1);
     }
   }
 }

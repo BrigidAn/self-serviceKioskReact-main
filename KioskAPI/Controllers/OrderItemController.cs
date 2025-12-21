@@ -20,14 +20,12 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // Helper: Get userId from JWT
     private int GetUserIdFromToken()
     {
       var id = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
       return id != null ? int.Parse(id) : 0;
     }
 
-    // GET ALL order items (ADMIN ONLY)
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllOrderItems()
@@ -39,8 +37,6 @@ namespace KioskAPI.Controllers
       return this.Ok(items.Select(OrderItemMapper.ToDto));
     }
 
-    // GET items for a SPECIFIC ORDER
-    // Only Admin OR the owner of the order can access
     [HttpGet("order/{orderId}")]
     public async Task<IActionResult> GetItemsByOrder(int orderId)
     {
@@ -54,7 +50,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Order not found." });
       }
 
-      // 🔐 Ensure user owns the order OR is Admin
       var currentUserId = this.GetUserIdFromToken();
       var isAdmin = this.User.IsInRole("Admin");
 
@@ -73,8 +68,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // ADD order item to an existing order
-    // Only Admin OR Order Owner
     [HttpPost("{orderId}")]
     public async Task<IActionResult> AddOrderItem(int orderId, [FromBody] CreateOrderItemDto dto)
     {
@@ -92,7 +85,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Order not found." });
       }
 
-      // 🔐 Only order owner or Admin may modify
       var currentUserId = this.GetUserIdFromToken();
       var isAdmin = this.User.IsInRole("Admin");
 
@@ -112,7 +104,6 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = $"Not enough stock for {product.Name}." });
       }
 
-      // Deduct stock
       product.Quantity -= dto.Quantity;
 
       var orderItem = OrderItemMapper.ToEntity(dto);
@@ -121,7 +112,6 @@ namespace KioskAPI.Controllers
 
       this._context.OrderItems.Add(orderItem);
 
-      // Update order total
       order.TotalAmount = order.OrderItems
           .Sum(i => i.Quantity * i.PriceAtPurchase)
           + (dto.Quantity * product.Price);
@@ -136,7 +126,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // DELETE item from order (Admin only)
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteOrderItem(int id)
@@ -147,7 +136,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Order item not found." });
       }
 
-      // Restore stock
       var product = await this._context.Products.FindAsync(orderItem.ProductId).ConfigureAwait(true);
       if (product != null)
       {
@@ -160,7 +148,6 @@ namespace KioskAPI.Controllers
 
       this._context.OrderItems.Remove(orderItem);
 
-      // Recalculate order total
       if (order != null)
       {
         order.TotalAmount = order.OrderItems

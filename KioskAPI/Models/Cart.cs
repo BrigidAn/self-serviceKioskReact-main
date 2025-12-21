@@ -8,8 +8,8 @@ namespace KioskAPI.Models
     [Key]
     public int CartId { get; set; }
 
-    public int UserId { get; set; }               // Identity User int ID
-    public User? User { get; set; }   // Navigation property
+    public int UserId { get; set; }
+    public User? User { get; set; }
     public bool IsCheckedOut { get; set; } = false;
     public DateTime? ExpiresAt { get; set; }
 

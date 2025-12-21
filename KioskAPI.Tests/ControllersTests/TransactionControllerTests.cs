@@ -53,7 +53,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetAllTransactions_ReturnsOk_WithTransactions_WhenAdmin()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       var user = new User { Id = 1, Name = "John" };
       var account = new Account { AccountId = 1, UserId = 1, User = user, Balance = 100 };
       var transaction = new Transaction { TransactionId = 1, AccountId = 1, Account = account, Type = "Credit", TotalAmount = 50, CreatedAt = DateTime.UtcNow };
@@ -62,7 +62,7 @@ namespace KioskAPI.Tests.ControllersTests
       context.Transactions.Add(transaction);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 1, isAdmin: true);
+      var controller = this.GetController(context, userId: 1, isAdmin: true);
 
       var result = await controller.GetAllTransactions();
       var ok = result as OkObjectResult;
@@ -75,7 +75,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task GetMyTransactions_ReturnsOk_WithUserTransactions()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       var user = new User { Id = 2, Name = "Alice" };
       var account = new Account { AccountId = 2, UserId = 2, User = user, Balance = 100 };
       var transaction = new Transaction { TransactionId = 2, AccountId = 2, Account = account, Type = "Debit", TotalAmount = 20, CreatedAt = DateTime.UtcNow };
@@ -84,7 +84,7 @@ namespace KioskAPI.Tests.ControllersTests
       context.Transactions.Add(transaction);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 2);
+      var controller = this.GetController(context, userId: 2);
 
       var result = await controller.GetMyTransactions();
       var ok = result as OkObjectResult;
@@ -97,7 +97,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task CreateTransaction_AddsCreditTransaction()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
 
       var account = new Account
       {
@@ -108,7 +108,7 @@ namespace KioskAPI.Tests.ControllersTests
       context.Accounts.Add(account);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 1);
+      var controller = this.GetController(context, userId: 1);
 
       var dto = new TransactionDto
       {
@@ -118,10 +118,8 @@ namespace KioskAPI.Tests.ControllersTests
         Description = "Deposit"
       };
 
-      // Act
       var result = await controller.CreateTransaction(dto);
 
-      // Assert response
       result.Should().BeOfType<OkObjectResult>();
 
       var updatedAccount = await context.Accounts.FindAsync(1);
@@ -134,7 +132,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task CreateTransaction_AddsDebitTransaction_WhenSufficientBalance()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
 
       var account = new Account
       {
@@ -145,7 +143,7 @@ namespace KioskAPI.Tests.ControllersTests
       context.Accounts.Add(account);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 1);
+      var controller = this.GetController(context, userId: 1);
 
       var dto = new TransactionDto
       {
@@ -169,12 +167,12 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task CreateTransaction_ReturnsBadRequest_WhenDebitInsufficientBalance()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       var account = new Account { AccountId = 1, UserId = 1, Balance = 30 };
       context.Accounts.Add(account);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 1);
+      var controller = this.GetController(context, userId: 1);
 
       var dto = new TransactionDto { AccountId = 1, Type = "debit", TotalAmount = 50, Description = "Payment" };
       var result = await controller.CreateTransaction(dto);
@@ -185,7 +183,7 @@ namespace KioskAPI.Tests.ControllersTests
     [Fact]
     public async Task DeleteTransaction_AdjustsAccountBalance()
     {
-      using var context = GetInMemoryDb();
+      using var context = this.GetInMemoryDb();
       var user = new User { Id = 1, Name = "John" };
       var account = new Account { AccountId = 1, UserId = 1, User = user, Balance = 100 };
       var transaction = new Transaction { TransactionId = 1, AccountId = 1, Account = account, Type = "credit", TotalAmount = 50, CreatedAt = DateTime.UtcNow };
@@ -194,21 +192,21 @@ namespace KioskAPI.Tests.ControllersTests
       context.Transactions.Add(transaction);
       await context.SaveChangesAsync();
 
-      var controller = GetController(context, userId: 1, isAdmin: true);
+      var controller = this.GetController(context, userId: 1, isAdmin: true);
 
       var result = await controller.DeleteTransaction(1);
       var ok = result as OkObjectResult;
       ok.Should().NotBeNull();
 
       var updatedAccount = await context.Accounts.FindAsync(1);
-      updatedAccount.Balance.Should().Be(100 - 50); // Credit reversed
+      updatedAccount.Balance.Should().Be(100 - 50);
     }
 
     [Fact]
     public async Task DeleteTransaction_ReturnsNotFound_WhenTransactionDoesNotExist()
     {
-      using var context = GetInMemoryDb();
-      var controller = GetController(context, userId: 1, isAdmin: true);
+      using var context = this.GetInMemoryDb();
+      var controller = this.GetController(context, userId: 1, isAdmin: true);
 
       var result = await controller.DeleteTransaction(999);
       result.Should().BeOfType<NotFoundObjectResult>();

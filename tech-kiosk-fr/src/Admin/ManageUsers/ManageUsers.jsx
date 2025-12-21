@@ -35,7 +35,6 @@ function ManageUsers() {
     fetchUsers();
   }, []);
 
-  // Show confirmation popup before top-up
   const requestTopUp = (userId) => {
     const amount = Number(amounts[userId]);
       if (!amount) {

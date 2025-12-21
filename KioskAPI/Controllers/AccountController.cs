@@ -11,7 +11,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize] // Ensure user is authenticated
+  [Authorize]
   public class AccountController : ControllerBase
   {
     private readonly IAccountRepository _accountRepo;
@@ -21,14 +21,12 @@ namespace KioskAPI.Controllers
       this._accountRepo = accountRepo;
     }
 
-    // Helper: Get the logged-in user's Identity Id
     private int GetIdentityUserId()
     {
       var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
-    // GET BALANCE
     [HttpGet("balance")]
     public async Task<IActionResult> GetBalance()
     {
@@ -48,7 +46,6 @@ namespace KioskAPI.Controllers
       return this.Ok(AccountMapper.ToDto(account));
     }
 
-    // TOP-UP onto ACCOUNT
     [HttpPost("topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
     {
@@ -63,22 +60,17 @@ namespace KioskAPI.Controllers
         return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
       }
 
-      // Check if user already has an account
       var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
 
-      // If no account exists, create a new one
       account ??= await this._accountRepo.CreateAccountForUserAsync(userId).ConfigureAwait(true);
 
-      // Update the balance
       await this._accountRepo.UpdateBalanceAsync(userId, request.Amount).ConfigureAwait(true);
 
-      // Reload the account to return updated balance
       account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);
 
       return this.Ok(AccountMapper.ToDto(account));
     }
 
-    // GET USER TRANSACTIONS
     [HttpGet("transactions")]
     public async Task<IActionResult> GetTransactions()
     {
@@ -92,7 +84,6 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions.Select(TransactionMapper.ToDto));
     }
 
-    // GET /api/Account/me
     [HttpGet("myaccount")]
     public async Task<IActionResult> GetCurrentUser()
     {
@@ -102,14 +93,11 @@ namespace KioskAPI.Controllers
         return this.Unauthorized(new { message = "You are not logged in" });
       }
 
-      // Get account (create if it doesn't exist)
       var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(false);
       account ??= await this._accountRepo.CreateAccountForUserAsync(userId).ConfigureAwait(false);
 
-      // Get transactions
       var transactions = await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(false);
 
-      // Compose response
       var response = new
       {
         user = new

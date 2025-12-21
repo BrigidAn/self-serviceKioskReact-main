@@ -35,8 +35,6 @@ export default function ManageProducts() {
   const [filterLowStock, setFilterLowStock] = useState(false);
 const PAGE_SIZE = 10;
 
-
-  // Fetch products and calculate stats
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
@@ -47,11 +45,9 @@ const PAGE_SIZE = 10;
       productList.sort((a, b) => (a.productId ?? a.id ?? 0) - (b.productId ?? b.id ?? 0));
       setProducts(productList);
 
-      // Stats
       const lowStockCount = productList.filter((p) => Number(p.quantity) <= 5).length;
       setStats({ totalProducts: productList.length, lowStock: lowStockCount });
 
-      // Apply current filter
       setFilteredProducts(filterLowStock ? productList.filter((p) => Number(p.quantity) <= 5) : productList);
     } catch (err) {
       console.error(err);
@@ -63,13 +59,10 @@ const PAGE_SIZE = 10;
 
   useEffect(() => {
     fetchDashboardData();
-    // eslint-disable-next-line
   }, [filterLowStock]);
 
-  // Toggle Low Stock filter
   const toggleLowStockFilter = () => setFilterLowStock((prev) => !prev);
 
-  //validation form
   const validateForm = () => {
   const newErrors = {};
 
@@ -92,10 +85,9 @@ const PAGE_SIZE = 10;
     newErrors.image = "Product image is required";
 
   setErrors(newErrors);
-  return Object.keys(newErrors).length === 0; // valid if no errors
+  return Object.keys(newErrors).length === 0; 
 };
 
-  // Add/Edit product modal
   const openAdd = () => {
     setIsEditing(false);
     setEditingId(null);
@@ -206,7 +198,6 @@ const handleConfirmDelete = async (productId, productName) => {
   }
 };
 
-// Total pages
 const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
 
 const paginatedProducts = filteredProducts.slice(
@@ -309,8 +300,6 @@ const paginatedProducts = filteredProducts.slice(
             </header>
 
             <form className="modal-form" onSubmit={handleSubmit}>
-
-              {/* NAME */}
               <label>
                 Name
                 <input
@@ -320,8 +309,7 @@ const paginatedProducts = filteredProducts.slice(
                 />
                 {errors.name && <span className="error">{errors.name}</span>}
               </label>
-
-              {/* DESCRIPTION */}
+ 
               <label>
                 Description
                 <textarea
@@ -332,7 +320,6 @@ const paginatedProducts = filteredProducts.slice(
                 {errors.description && <span className="error">{errors.description}</span>}
               </label>
 
-              {/* PRICE */}
               <label>
                 Price
                 <input
@@ -345,7 +332,6 @@ const paginatedProducts = filteredProducts.slice(
                 {errors.price && <span className="error">{errors.price}</span>}
               </label>
 
-              {/* QUANTITY */}
               <label>
                 Quantity
                 <input
@@ -356,8 +342,6 @@ const paginatedProducts = filteredProducts.slice(
                 />
                 {errors.quantity && <span className="error">{errors.quantity}</span>}
               </label>
-
-              {/* CATEGORY */}
               <label>
                 Category
                 <select
@@ -375,8 +359,6 @@ const paginatedProducts = filteredProducts.slice(
                 </select>
                 {errors.category && <span className="error">{errors.category}</span>}
               </label>
-
-              {/* SUPPLIER */}
               <label>
                 Supplier
                 <select
@@ -396,7 +378,6 @@ const paginatedProducts = filteredProducts.slice(
                 {errors.supplierId && <span className="error">{errors.supplierId}</span>}
               </label>
 
-              {/* IMAGE UPLOAD */}
               <label>
                 Product Image
                 <input
@@ -428,7 +409,6 @@ const paginatedProducts = filteredProducts.slice(
         </div>
       )}
 
-       {/* Delete confirmation popup */}
        <DeleteConfirmPopup
        show={popup.show}
        message={`Are you sure you want to delete "${popup.productName}"?`}

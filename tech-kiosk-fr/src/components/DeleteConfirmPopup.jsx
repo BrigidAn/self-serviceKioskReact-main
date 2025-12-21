@@ -1,5 +1,5 @@
 import React from "react";
-import "./ConfirmTopUpModal.css"; // reuse same styles if you want
+import "./ConfirmTopUpModal.css"; 
 
 export default function DeleteConfirmPopup({
   show,

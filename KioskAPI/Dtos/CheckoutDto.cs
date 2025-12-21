@@ -7,21 +7,21 @@ namespace KioskAPI.Dtos
   public class CheckoutDto
   {
     public int CartId { get; set; }
-    public Cart Cart { get; set; }
+    public Cart? Cart { get; set; }
 
-    public User User { get; set; }
+    public User? User { get; set; }
     public decimal TotalAmount { get; set; }
-    public string DeliveryMethod { get; set; } // "Collection" | "Delivery"
+    public string DeliveryMethod { get; set; } = string.Empty;
     public DateTime CheckoutDate { get; set; } = DateTime.Now;
 
-    public bool IsConfirmed { get; set; } = false;  // Final confirmation
+    public bool IsConfirmed { get; set; } = false;
     public bool PaymentValidated { get; set; } = false;
   }
 
   public class CheckoutRequestDto
   {
     [Required]
-    public string DeliveryMethod { get; set; }  // "Collection" or "Delivery"
+    public string DeliveryMethod { get; set; } = string.Empty;
     public decimal DeliveryFee { get; set; }
     public int? UserId { get; set; }
   }
@@ -30,7 +30,7 @@ namespace KioskAPI.Dtos
   {
     public int CheckoutId { get; set; }
     public decimal TotalAmount { get; set; }
-    public string DeliveryMethod { get; set; }
+    public string DeliveryMethod { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public decimal DeliveryFee { get; set; }
   }

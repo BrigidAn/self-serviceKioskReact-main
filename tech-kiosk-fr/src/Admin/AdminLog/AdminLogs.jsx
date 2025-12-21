@@ -8,9 +8,8 @@ export default function AdminLogs() {
   const [filter, setFilter] = useState("all");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token"); // JWT token
+  const token = localStorage.getItem("token");
 
-  // ---------------- FETCH TRANSACTIONS ----------------
   const fetchTransactions = async () => {
     try {
       setLoading(true);
@@ -19,7 +18,6 @@ export default function AdminLogs() {
       });
       if (!res.ok) throw new Error("Failed to fetch transactions");
       const data = await res.json();
-      // Assuming your API returns { total, page, pageSize, data: [...] }
       setTransactions(data.data || []);
       setLoading(false);
     } catch (err) {
@@ -33,10 +31,8 @@ export default function AdminLogs() {
     fetchTransactions();
   }, []);
 
-  // ---------------- FILTERED TRANSACTIONS ----------------
   const filtered = transactions.filter((t) => {
     if (filter === "all") return true;
-    // Map filter names to your API types
     if (filter === "purchase") return t.type === "Purchase";
     if (filter === "deposit") return t.type === "Deposit";
     if (filter === "admin_topup") return t.type === "TopUp";

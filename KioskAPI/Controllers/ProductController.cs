@@ -22,7 +22,6 @@ namespace KioskAPI.Controllers
       this._cloudinary = cloudinary;
     }
 
-    // GET ALL PRODUCTS
     [HttpGet]
     public async Task<IActionResult> GetProducts()
     {
@@ -34,7 +33,6 @@ namespace KioskAPI.Controllers
       return this.Ok(productDtos);
     }
 
-    // GET PRODUCT BY ID
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProduct(int id)
     {
@@ -56,7 +54,6 @@ namespace KioskAPI.Controllers
       return this.Ok(dto);
     }
 
-    // ADD NEW PRODUCT (ADMIN)
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddProduct([FromForm] CreateProductDto dto)
@@ -73,7 +70,7 @@ namespace KioskAPI.Controllers
       {
         return this.BadRequest("Image URL is required for a product.");
       }
-      //this is to view existing products dontforget
+
       var existingProduct = await this._context.Products
       .FirstOrDefaultAsync(p => p.Name.ToLower() == dto.Name.ToLower()
       && p.Category.ToLower() == dto.Category.ToLower() && p.ImageUrl.ToLower() == dto.ImageUrl.ToLower()).ConfigureAwait(true);
@@ -94,7 +91,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // UPDATE PRODUCT (ADMIN)
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(int id, [FromForm] UpdateProductDto dto)
@@ -126,13 +122,12 @@ namespace KioskAPI.Controllers
         }
       }
 
-      ProductMapper.UpdateEntity(product, dto);  // Only updates non-null fields
+      ProductMapper.UpdateEntity(product, dto);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product updated successfully" });
     }
 
-    // DELETE PRODUCT (ADMIN)
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct(int id)
@@ -160,10 +155,8 @@ namespace KioskAPI.Controllers
         [FromQuery] string? sortBy,
         [FromQuery] bool desc = false)
     {
-      // Start query from products including supplier
       var query = this._context.Products.Include(p => p.Supplier).AsQueryable();
 
-      // SEARCH: name, description, category
       if (!string.IsNullOrWhiteSpace(search))
       {
         string s = search.ToLower();
@@ -174,13 +167,11 @@ namespace KioskAPI.Controllers
         );
       }
 
-      // CATEGORY FILTER
       if (!string.IsNullOrWhiteSpace(category))
       {
         query = query.Where(p => (p.Category ?? "").ToLower() == category.ToLower());
       }
 
-      // AVAILABILITY
       if (isAvailable.HasValue)
       {
         query = isAvailable.Value
@@ -188,7 +179,6 @@ namespace KioskAPI.Controllers
             : query.Where(p => p.Quantity == 0);
       }
 
-      // PRICE RANGE
       if (minPrice.HasValue)
       {
         query = query.Where(p => p.Price >= minPrice.Value);
@@ -199,7 +189,6 @@ namespace KioskAPI.Controllers
         query = query.Where(p => p.Price <= maxPrice.Value);
       }
 
-      // SORTING
       if (!string.IsNullOrWhiteSpace(sortBy))
       {
         query = sortBy.ToLower() switch
@@ -210,11 +199,9 @@ namespace KioskAPI.Controllers
         };
       }
 
-      // Fetch products
       var products = await query.ToListAsync().ConfigureAwait(true);
       var productDtos = products.Select(ProductMapper.ToDto).ToList();
 
-      // Fetch distinct categories
       var categories = await this._context.Products
           .Select(p => p.Category)
           .Distinct()

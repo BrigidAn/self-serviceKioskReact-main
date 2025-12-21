@@ -13,7 +13,7 @@ namespace KioskAPI.Controllers
 
   [ApiController]
   [Route("api/[controller]")]
-  [Authorize] // All endpoints require authentication
+  [Authorize]
   public class UserController : ControllerBase
   {
     private readonly AppDbContext _context;
@@ -23,13 +23,11 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // Helper: get current user's ID from JWT
     private int GetJwtUserId()
     {
       return int.Parse(this.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
     }
 
-    // GET: /api/user/profile
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
@@ -49,7 +47,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // GET: /api/user/account
     [HttpGet("account")]
     public async Task<IActionResult> GetAccount()
     {
@@ -80,7 +77,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // POST: /api/user/account/topup
     [HttpPost("account/topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpDto data)
     {
@@ -122,7 +118,6 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Balance topped up successfully", balance = account.Balance });
     }
 
-    // ADMIN: Get any user's profile by userId
     [HttpGet("profile/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUserProfileAdmin(int id)
@@ -142,7 +137,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-    // ADMIN: Get any user's account by userId
     [HttpGet("account/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAccountAdmin(int id)

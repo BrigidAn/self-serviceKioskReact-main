@@ -54,7 +54,7 @@ namespace KioskAPI.Controllers
       var userRolesList = new List<object>();
       foreach (var u in users)
       {
-        var roles = await this._usermanager.GetRolesAsync(u).ConfigureAwait(true); // List<string>
+        var roles = await this._usermanager.GetRolesAsync(u).ConfigureAwait(true);
 
         var account = await this._context.Accounts.FirstOrDefaultAsync(a => a.UserId == u.Id).ConfigureAwait(true);
         var balance = account?.Balance ?? 0;

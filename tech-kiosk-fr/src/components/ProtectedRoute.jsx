@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { isLoggedIn } from "../utils/auth";
 
 function ProtectedRoute({ children }) {
-  if (!isLoggedIn()) {   // FIXED
+  if (!isLoggedIn()) {  
     return <Navigate to="/" replace />;
   }
   return children;

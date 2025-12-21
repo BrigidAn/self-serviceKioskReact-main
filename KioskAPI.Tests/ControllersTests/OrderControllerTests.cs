@@ -136,12 +136,11 @@ namespace KioskAPI.Tests.ControllersTests
 
       result.Should().BeOfType<OkObjectResult>();
 
-      // ✅ Assert database state
       context.Orders.Should().HaveCount(1);
       context.OrderItems.Should().HaveCount(1);
 
       var product = await context.Products.FindAsync(1);
-      product!.Quantity.Should().Be(8); // 10 - 2
+      product!.Quantity.Should().Be(8);
     }
 
     [Fact]

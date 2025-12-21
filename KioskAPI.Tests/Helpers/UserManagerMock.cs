@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Moq;
-
 namespace KioskAPI.Tests.Helpers
 {
+  using System;
+  using System.Collections.Generic;
+  using System.Linq;
+  using System.Threading.Tasks;
+  using Microsoft.AspNetCore.Identity;
+  using Moq;
+
   public class UserManagerMock
   {
     public static Mock<UserManager<TUser>> Create<TUser>() where TUser : class

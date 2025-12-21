@@ -15,7 +15,6 @@ export default function SupportPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // TODO: submit to API or localStorage
     alert("Support request submitted");
     setFormData({ name: "", email: "", issue: "", message: "" });
   };
@@ -33,7 +32,6 @@ export default function SupportPage() {
       question: "How to troubleshoot my restaurant robot?",
       answer: "Check the troubleshooting section in the manual or contact support."
     },
-    // add more to test scrolling
   ];
 
   return (
@@ -46,8 +44,6 @@ export default function SupportPage() {
         </button>
 
         <h2>Customer Support</h2>
-
-        {/* SCROLLABLE AREA */}
         <div className="support-content">
           <section className="faq-section">
             <h3>Frequently Asked Questions</h3>
@@ -92,7 +88,6 @@ export default function SupportPage() {
                 required
               />
 
-              {/* Submit row sticky at viewport bottom on small screens */}
               <div className="submit-row">
                 <button type="submit">Submit</button>
               </div>

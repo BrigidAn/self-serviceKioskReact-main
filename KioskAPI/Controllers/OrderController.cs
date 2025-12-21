@@ -23,7 +23,6 @@ namespace KioskAPI.Controllers
       this._logger = logger;
     }
 
-    // GET all orders (Admin)
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
@@ -38,7 +37,6 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
-    // GET orders by user (Admin)
     [Authorize(Roles = "Admin")]
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetOrdersByUser(int userId)
@@ -62,7 +60,6 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
-    // GET logged-in user's orders
     [HttpGet("myOrders")]
     public async Task<IActionResult> GetMyOrders()
     {
@@ -78,7 +75,6 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
-    // POST create new order
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto newOrderDto)
     {
@@ -170,7 +166,6 @@ namespace KioskAPI.Controllers
       }
     }
 
-    // POST complete order
     [HttpPost("complete/{orderId}")]
     public async Task<IActionResult> CompleteOrder(int orderId)
     {

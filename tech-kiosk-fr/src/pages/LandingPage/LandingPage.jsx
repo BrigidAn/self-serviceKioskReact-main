@@ -9,8 +9,8 @@ import product4 from "../../assests/illustrations/robot-right.png";
 
 function LandingPage() {
   const [animateCards, setAnimateCards] = useState(false);
-  const [showForm, setShowForm] = useState(false); // Sign In modal
-  const [activeTab, setActiveTab] = useState("signin"); // Signin / Register
+  const [showForm, setShowForm] = useState(false);
+  const [activeTab, setActiveTab] = useState("signin");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,7 +29,6 @@ function LandingPage() {
     <div className="landing-page">
       <Navbar onSignInClick={() => setShowForm(true)} />
 
-      {/* Floating Tech Shapes */}
       <div className="floating-bg">
         <div className="circle c1"></div>
         <div className="circle c2"></div>
@@ -37,7 +36,6 @@ function LandingPage() {
         <div className="circle c4"></div>
       </div>
 
-      {/* Hero Section */}
       <div className="hero-section">
         <div className="hero-text">
           <h1 className="title">Smart Tech for Modern Living</h1>
@@ -45,7 +43,6 @@ function LandingPage() {
           <button className="view-products-btn" onClick={() => navigate("/products")}>View All Products</button>
         </div>
 
-        {/* Floating Product Cards */}
         {products.map((p, idx) => (
           <div
             key={p.id}
@@ -66,7 +63,6 @@ function LandingPage() {
     ))}
   </div>
 
-  {/* Sign In / Register Modal */}
       {showForm && (
         <div className="form-overlay">
           <div className="auth-form">

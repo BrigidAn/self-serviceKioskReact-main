@@ -21,7 +21,7 @@ namespace KioskAPI.Repository
       return await this._context.Carts
           .Include(c => c.CartItems)
           .ThenInclude(i => i.Product)
-          .FirstOrDefaultAsync(c => c.UserId == userId);
+          .FirstOrDefaultAsync(c => c.UserId == userId).ConfigureAwait(true);
     }
 
     public async Task<Cart> CreateCartForUser(int userId)

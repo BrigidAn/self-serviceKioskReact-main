@@ -26,7 +26,6 @@ namespace KioskAPI.Mappers
       {
         UserId = dto.UserId,
         DeliveryMethod = dto.DeliveryMethod
-        // other fields filled by service logic
       };
     }
   }

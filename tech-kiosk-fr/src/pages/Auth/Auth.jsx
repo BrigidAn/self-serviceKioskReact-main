@@ -36,7 +36,6 @@ export default function Auth() {
 
       const data = await response.json();
 
-      // Save JWT + Role
       localStorage.setItem("token", data.token);
       const role = data.user.roles[0];
       localStorage.setItem("role", role);

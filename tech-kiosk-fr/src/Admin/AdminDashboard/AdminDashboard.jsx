@@ -25,7 +25,6 @@ export default function AdminDashboard() {
 
 const fetchDashboardData = async () => {
   try {
-    // products
     const resProducts = await fetch(`${API_URL}/Product?page=1&pageSize=50`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -40,7 +39,6 @@ const fetchDashboardData = async () => {
     const totalProducts = productsResponse.total ?? products.length;
     const lowStock = products.filter(p => p.quantity <= 5).length;
 
-    //users
     const resUsers = await fetch(`${API_URL}/admin/users?page=1&pageSize=50`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -48,7 +46,6 @@ const fetchDashboardData = async () => {
     const usersResponse = await resUsers.json();
     const totalUsers = usersResponse.total ?? usersResponse.data?.length ?? 0;
 
-    //orders
     const resOrders = await fetch(`${API_URL}/admin/orders?page=1&pageSize=10`, {
       headers: { Authorization: `Bearer ${token}` },
     });

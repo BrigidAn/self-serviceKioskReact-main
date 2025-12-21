@@ -11,12 +11,12 @@ namespace KioskAPI.Models
     public int CartId { get; set; }
     public Cart Cart { get; set; }
 
-    public int UserId { get; set; }  // Identity user ID
+    public int UserId { get; set; }
     public IdentityUser User { get; set; }
 
     public decimal TotalAmount { get; set; }
 
-    public string DeliveryMethod { get; set; } // "Collection" | "Delivery"
+    public string DeliveryMethod { get; set; }
     public DateTime CheckoutDate { get; set; } = DateTime.UtcNow;
 
     public bool IsConfirmed { get; set; } = false;

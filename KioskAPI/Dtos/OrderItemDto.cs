@@ -9,15 +9,13 @@ namespace KioskAPI.Dtos
     public int ProductId { get; set; }
     public int OrderItemId { get; set; }
 
-    public string Name { get; set; } = string.Empty; // expose product name only
+    public string Name { get; set; } = string.Empty;
     public Product? Product { get; set; }
     public int Quantity { get; set; }
     public decimal PriceAtPurchase { get; set; }
     public decimal Total => this.Quantity * this.PriceAtPurchase;
     public DateTime AddedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
-
-    // New: Time remaining (calculated)
     public double SecondsRemaining =>
         (this.ExpiresAt - DateTime.UtcNow).TotalSeconds;
   }

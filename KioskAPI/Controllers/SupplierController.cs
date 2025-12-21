@@ -19,7 +19,6 @@ namespace KioskAPI.Controllers
       this._context = context;
     }
 
-    // GET: api/supplier
     [HttpGet]
     public async Task<IActionResult> GetAllSuppliers()
     {
@@ -35,7 +34,6 @@ namespace KioskAPI.Controllers
       return this.Ok(suppliers);
     }
 
-    // GET: api/supplier/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSupplierById(int id)
     {
@@ -57,7 +55,6 @@ namespace KioskAPI.Controllers
       return this.Ok(supplier);
     }
 
-    // POST: api/supplier
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddSupplier([FromBody] SupplierCreateDto dto)
@@ -79,7 +76,6 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Supplier added successfully.", supplier.SupplierId });
     }
 
-    // PUT: api/supplier/{id}
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateSupplier(int id, [FromBody] SupplierUpdateDto dto)
@@ -97,7 +93,6 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Supplier updated successfully." });
     }
 
-    // DELETE: api/supplier/{id}
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteSupplier(int id)
@@ -108,7 +103,6 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Supplier not found." });
       }
 
-      // Prevent deletion if linked to products
       bool hasProducts = await this._context.Products.AnyAsync(p => p.SupplierId == id).ConfigureAwait(true);
       if (hasProducts)
       {
