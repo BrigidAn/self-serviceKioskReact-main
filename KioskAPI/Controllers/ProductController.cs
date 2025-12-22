@@ -125,7 +125,6 @@ namespace KioskAPI.Controllers
       });
     }
 
-
     /// <summary>
     /// Updates an existing product’s details.
     /// Allows optional image replacement via Cloudinary.
@@ -168,7 +167,7 @@ namespace KioskAPI.Controllers
         }
       }
 
-      ProductMapper.UpdateEntity(product, dto);
+    ProductMapper.UpdateEntity(product, dto);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product updated successfully" });

@@ -17,8 +17,6 @@ html, body {
   height: 100%;      /* Ensure full height for scroll */
 }
 
-
-/* GLOBAL PAGE */
 .velvety-products-page {
   background: var(--bg);
   min-height: 100vh;
@@ -31,15 +29,10 @@ html, body {
   overflow-y: visible;
 }
 
-/* Smooth fun scroll */
 html, body {
   scroll-behavior: smooth;
   overflow-x: hidden;
 }
-
-/* ============================================
-   🔵 FLOATING CIRCLES (from landing page)
-   ============================================ */
 
 .tech-orbs {
   position: fixed;
