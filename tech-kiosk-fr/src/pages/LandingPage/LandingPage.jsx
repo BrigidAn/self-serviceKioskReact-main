@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import "./LandingPage.css"
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import product1 from "../../assests/illustrations/dogrobot.png";
-import product2 from "../../assests/illustrations/21.png";
-import product3 from "../../assests/illustrations/robot-left.png";
-import product4 from "../../assests/illustrations/robot-right.png";
+import product1 from "../../assests/botball.png";
+import product2 from "../../assests/robodog.png";
+import product3 from "../../assests/bot.png";
+import product4 from "../../assests/lego.png";
 
 function LandingPage() {
   const [animateCards, setAnimateCards] = useState(false);
@@ -18,10 +18,10 @@ function LandingPage() {
   }, []);
 
   const products = [
-    { id: 1, name: "Smart Robot", price: "$499", img: product1, style: { top: "10%", left: "15%", rotate: "-3deg" } },
-    { id: 2, name: "AI Assistant", price: "$299", img: product2, style: { top: "30%", left: "55%", rotate: "2deg" } },
-    { id: 3, name: "Smart Light", price: "$99", img: product3, style: { top: "55%", left: "25%", rotate: "-1deg" } },
-    { id: 4, name: "Smart Speaker", price: "$149", img: product4, style: { top: "60%", left: "65%", rotate: "4deg" } },
+    { id: 1, name: "Sphero Bolt", price: "R250", img: product1, style: { top: "10%", left: "15%", rotate: "-3deg" } },
+    { id: 2, name: "Robot Dog", price: "R1000", img: product2, style: { top: "30%", left: "55%", rotate: "2deg" } },
+    { id: 3, name: "Love Bot mini", price: "R12000", img: product3, style: { top: "55%", left: "25%", rotate: "-1deg" } },
+    { id: 4, name: "Lego Mindstorms", price: "R450", img: product4, style: { top: "60%", left: "65%", rotate: "4deg" } },
   ];
 
 

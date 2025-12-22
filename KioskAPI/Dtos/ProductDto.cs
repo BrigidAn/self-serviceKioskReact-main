@@ -71,6 +71,7 @@ namespace KioskAPI.Dtos
     [MaxLength(50)]
     public string? Category { get; set; }
     public string? ImageUrl { get; set; }
+
     [Range(0, int.MaxValue, ErrorMessage = "Quantity can not be negative")]
     public int? Quantity { get; set; }
     public int? SupplierId { get; set; }

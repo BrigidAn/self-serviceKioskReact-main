@@ -215,7 +215,7 @@ export default function ProductsPage() {
                   {c}
                 </button>
               ))}
-            </div>\
+            </div>
               <div className="vp-filter-sort">
                 <div className="vp-filter-group">
                   <label>Max Price:</label>

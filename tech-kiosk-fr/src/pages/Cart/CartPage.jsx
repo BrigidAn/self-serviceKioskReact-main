@@ -73,6 +73,7 @@ export default function CartPage() {
  if (loading) {
     return (
       <div className="cart-page empty-cart">
+         <div class="cart-container">
         <div className="cart-message">
           <h2>Loading your cart...</h2>
         </div>
@@ -80,6 +81,7 @@ export default function CartPage() {
           <div className="float-shape fs1"></div>
           <div className="float-shape fs2"></div>
           <div className="float-shape fs3"></div>
+        </div>
         </div>
       </div>
     );
@@ -105,7 +107,7 @@ export default function CartPage() {
 
   return (
     <div className="cart-page">
-
+ <div class="cart-container">
       <button className="cart-back-btn" onClick={() => navigate("/products")}>
         ← Back
       </button>
@@ -171,6 +173,7 @@ export default function CartPage() {
                 <div className="float-shape fs2"></div>
                 <div className="float-shape fs3"></div>
               </div>
+    </div>
     </div>
   );
 }
