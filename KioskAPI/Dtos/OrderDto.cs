@@ -1,12 +1,27 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace KioskAPI.Dtos
 {
-    public class OrderDto
-    {
-        
-    }
+  using System;
+  using System.Collections.Generic;
+  using System.ComponentModel.DataAnnotations;
+  using KioskAPI.Models;
+
+  public class OrderDto
+  {
+    public int OrderId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string? DeliveryMethod { get; set; }
+    public string? Status { get; set; }
+    public string? PaymentStatus { get; set; }
+    public List<OrderItemDto>? Items { get; set; }
+  }
+
+  public class CreateOrderDto
+  {
+    public int UserId { get; set; }
+    [Required]
+    [MinLength(1, ErrorMessage = "Order must contain at least one item.")]
+    public List<CreateOrderItemDto> Items { get; set; } = new();
+    public string? DeliveryMethod { get; set; }
+  }
 }

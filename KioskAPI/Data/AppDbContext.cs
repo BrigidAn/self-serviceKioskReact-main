@@ -1,39 +1,52 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using KioskAPI.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace KioskAPI.Data
 {
-    public class AppDbContext : DbContext
+  using KioskAPI.Models;
+  using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+  using Microsoft.EntityFrameworkCore;
+
+
+  /// <summary>
+  /// Represents the application's database context.
+  /// Inherits from <see cref="IdentityDbContext{User, Role, int}"/>
+  /// to provide Identity support for user authentication and roles.
+  /// </summary>
+  public class AppDbContext : IdentityDbContext<User, Role, int>
+  {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppDbContext"/> class.
+    /// </summary>
+    /// <param name="options">Database context options</param>
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-        {
-        }
-        
-        // DbSets map to tables
-        public DbSet<Role> Roles => Set<Role>();//public DbSet<Roel> Roles {get; set;}
-        public DbSet<User> Users => Set<User>();
-        public DbSet<Account> Accounts => Set<Account>();
-        public DbSet<Transaction> Transactions => Set<Transaction>();
-        public DbSet<Order> Orders => Set<Order>();
-        public DbSet<OrderItem> OrderItems => Set<OrderItem>();
-        public DbSet<Product> Products => Set<Product>();
-        public DbSet<Supplier> Suppliers => Set<Supplier>();
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-
-            // Seed roles and an initial admin user for convenience
-            modelBuilder.Entity<Role>().HasData(
-                new Role { RoleId = 1, RoleName = "Admin", Description = "Full access" },
-                new Role { RoleId = 2, RoleName = "User",  Description = "Regular user" }
-            );
-
-            // NOTE: We'll seed admin user at runtime in Program.cs (so we can hash password properly).
-        }
     }
+
+    public DbSet<Account> Accounts { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Supplier> Suppliers { get; set; }
+    public DbSet<Cart> Carts { get; set; }
+    public DbSet<CartItem> CartItems { get; set; }
+    public DbSet<Checkout> Checkouts { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+      base.OnModelCreating(builder);
+
+      List<Role> roles = new List<Role>()
+      {
+
+            new Role { Id = 1,
+            Name = "Admin",
+            NormalizedName = "ADMIN" },
+
+            new Role
+            { Id = 2,
+            Name = "User",
+            NormalizedName = "USER" }
+      };
+      builder.Entity<Role>().HasData(roles);
+    }
+  }
 }

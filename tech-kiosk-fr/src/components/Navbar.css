@@ -1,0 +1,232 @@
+.neo-nav {
+  width: 100%;
+  padding: 14px 0;
+  background: linear-gradient(90deg, #607d7d, #40a295a1);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.12);
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 0 18px rgba(0, 255, 255, 0.12);
+}
+
+/* INNER CONTAINER */
+.nav-shell {
+  width: 90%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* LOGO */
+.nav-logo {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e6f4ff;
+  text-decoration: none;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.nav-logo:hover {
+  transform: scale(1.05);
+  text-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+}
+
+.nav-logo .highlight {
+  color: #00eaff;
+}
+
+/* DESKTOP LINKS */
+/* DESKTOP LINKS - Centered */
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center horizontally */
+  gap: 50px; /* Slightly bigger gap for bigger font */
+  flex: 1; /* Take available space to help centering */
+}
+
+.nav-item {
+  text-decoration: none;
+  color: #cfe8ff;
+  font-size: 20px; /* Updated font size */
+  letter-spacing: 0.5px;
+  transition: 0.25s ease;
+  position: relative;
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: #00eaff;
+  transition: 0.3s ease;
+  box-shadow: 0 0 8px #00eaff;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+.nav-item:hover {
+  color: #00eaff;
+}
+
+
+/* CART */
+.nav-cart {
+  position: relative;
+  color: #e6f7ff;
+  transition: 0.25s ease;
+  left: -1%;
+}
+
+.nav-cart:hover {
+  color: #00eaff;
+  transform: scale(1.08);
+}
+
+.nav-cart-count {
+  position: absolute;
+  top: -6px;
+  right: -9px;
+  background: #00eaff;
+  color: #02131f;
+  padding: 2px 6px;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  box-shadow: 0 0 10px #00eaff;
+}
+
+/* MOBILE MENU */
+@media (max-width: 850px) {
+  .nav-links {
+    display: none;
+  }
+}
+
+/* Hamburger Icon */
+.hamburger {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 0;
+  position: relative; /* relative to navbar */
+  margin-left: 20px;
+  z-index: 500;
+}
+
+.hamburger span {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background: rgb(110, 75, 75);
+  border-radius: 2px;
+  transition: all 0.4s ease;
+}
+
+/* Open / Close Animation */
+.hamburger.open span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Side Menu */
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 280px; /* slightly wider to fit content better */
+  height: 100vh;
+  background: linear-gradient(
+    180deg,
+    rgba(96, 125, 125, 0.95),
+    rgba(64, 162, 149, 0.85)
+  );
+
+  box-shadow: -3px 0 20px rgba(0, 0, 0, 0.25);
+  transition: 0.35s ease;
+  z-index: 400;
+  padding: 90px 25px 25px; /* more padding at top for spacing */
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(0, 255, 255, 0.2); /* subtle border */
+  backdrop-filter: blur(10px); /* slight blur for depth */
+  border-radius: 0 10px 10px 0; /* rounded right edges */
+}
+
+
+
+.side-menu.show {
+  right: 0;
+}
+
+/* Menu Title */
+.side-menu-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: black;
+}
+
+/* Menu Links */
+.side-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.side-menu ul li {
+  margin: 20px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.side-menu ul li a {
+  color: #e6f4ff; /* matches navbar text */
+  text-decoration: none;
+  display: block;
+  padding: 6px 0;
+  transition: 0.25s ease;
+  font-size: 18px;
+}
+
+.side-menu ul li a:hover {
+  color: #00eaff;
+  transform: translateX(5px);
+}
+
+/* Logout Button */
+.side-menu ul li.logout {
+  color: #ff4b4b;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.side-menu ul li.logout:hover {
+  color: #ff8383;
+  transform: translateX(5px);
+}
+
+/* Overlay */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25); /* slight dark overlay for contrast */
+  z-index: 350;
+}

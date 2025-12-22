@@ -1,12 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace KioskAPI.Dtos
 {
-    public class AdminDto
-    {
-        
-    }
+  using System.ComponentModel.DataAnnotations;
+
+  public class AdminDto
+  {
+    [Required]
+    public string UserName { get; set; } = string.Empty;
+    [Required]
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = "Admin";
+  }
+
+  public class AdminTopUpDo
+  {
+    [Required(ErrorMessage = "UserId is required")]
+    public int UserId { get; set; }
+
+    [Required]
+    [Range(0.01, 1500, ErrorMessage = "Amount must be greater than zero")]
+    public decimal Amount { get; set; }
+    public string Description { get; set; } = string.Empty;
+  }
+
+  public class AdminAddToCartDto
+  {
+    [Required(ErrorMessage = "UserId is required")]
+    public int UserId { get; set; }
+    [Required(ErrorMessage = "ProductId is required")]
+    public int ProductId { get; set; }
+    [Required]
+    [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1")]
+    public int Quantity { get; set; }
+  }
 }

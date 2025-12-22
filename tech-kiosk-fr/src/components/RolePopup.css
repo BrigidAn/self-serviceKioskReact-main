@@ -1,0 +1,70 @@
+.role-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.role-popup {
+  background: #fff;
+  width: 420px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.role-popup h2 {
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.role-popup-info p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.role-label {
+  display: block;
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+.role-select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.role-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn.cancel {
+  background: #e0e0e0;
+}
+
+.btn.save {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.btn.save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

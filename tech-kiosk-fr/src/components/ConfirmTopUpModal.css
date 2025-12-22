@@ -1,0 +1,76 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  width: 380px;
+  background: #ffffffdd;
+  padding: 2rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+  animation: popIn 0.25s ease-out;
+  font-family: "Poppins", sans-serif;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.modal-message {
+  font-size: 1rem;
+  margin-bottom: 25px;
+}
+
+.modal-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.modal-confirm-btn {
+  background: #39dca5;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal-confirm-btn:hover {
+  background: #2bb78a;
+}
+
+.modal-cancel-btn {
+  background: #ff5656;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.modal-cancel-btn:hover {
+  background: #d84646;
+}

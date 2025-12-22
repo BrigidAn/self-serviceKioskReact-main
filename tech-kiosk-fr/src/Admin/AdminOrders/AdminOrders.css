@@ -1,0 +1,180 @@
+
+.admin-orders {
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff23;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e052;
+}
+
+.orders-table th {
+  background-color: #97baff36;
+  font-weight: 600;
+}
+
+.orders-table tbody tr:hover {
+  background-color: #f9f9f931;
+}
+
+.orders-table tbody td div {
+  margin-bottom: 3px;
+}
+
+/* Buttons */
+.o-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #25cdeb8e;
+  color: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+  position: relative;
+  top: 30px;
+}
+
+.o-btn:hover {
+  background-color: #1e40af;
+}
+
+.o-btn.small {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+}
+
+.o-btn.danger {
+  background-color: #dc2626;
+}
+
+.o-btn.danger:hover {
+  background-color: #991b1b;
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+  .orders-table thead {
+    display: none;
+  }
+
+  .orders-table, .orders-table tbody, .orders-table tr, .orders-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .orders-table tr {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .orders-table td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  .orders-table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 45%;
+    font-weight: 600;
+    text-align: left;
+  }
+}
+
+.o-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #333;
+  position: relative;
+  top: 5px;
+  right: 250px;
+  font-size: 0.95rem;
+}
+
+.o-filter select {
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: rgba(255, 255, 255, 0.212);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.o-filter select:hover {
+  border-color: #a6b6c5;
+}
+
+.o-filter select:focus {
+  outline: none;
+  border-color: #8ba9cc;
+  box-shadow: 0 0 4px rgba(74, 144, 226, 0.5);
+}
+
+.o-pagination{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  gap: 10px;
+}
+
+.o-pagination button{
+    padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(0, 255, 245, 0.1);
+  color: #00f5ff;
+  border: 1px solid rgba(0, 255, 245, 0.4);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s ease;
+  backdrop-filter: blur(6px);
+}
+
+.o-pagination button.active{
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2b8285c4, #0099ff60);
+  color: #ffffff;
+  border: 1px solid rgba(0, 255, 245, 0.25);
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.25s;
+  backdrop-filter: blur(6px);
+}
+.o-pagination button.active:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #00f5ff66;
+  transform: translateY(-2px);
+}
+
+.o-pagination button:hover{
+  background: rgba(21, 125, 133, 0.692);
+  color: white;
+  box-shadow: 0 0 8px #15532866;
+  transform: translateY(-2px);
+}

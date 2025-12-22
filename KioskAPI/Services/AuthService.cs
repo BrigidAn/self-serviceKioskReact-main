@@ -1,60 +1,66 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace KioskAPI.Services
 {
-    public class AuthService
+  using System.Threading.Tasks;
+  using KioskAPI.Data;
+  using KioskAPI.Models;
+  using Microsoft.EntityFrameworkCore;
+
+  /// <summary>
+  /// Provides authentication-related services such as user registration and login.
+  /// </summary>
+  public class AuthService
+  {
+    private readonly AppDbContext _context;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthService"/> class.
+    /// </summary>
+    /// <param name="context">The database context used for authentication operations.</param>
+    public AuthService(AppDbContext context)
     {
-        private readonly AppDbContext _context;
-        private readonly IConfiguration _config;
-
-        public AuthService(AppDbContext context, ICIConfiguration config)
-        {
-            _context = context;
-            _config = config;
-        }
-
-        public async Task<string> Register(User user, string password)
-        {
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email)) //when everything matches a user stored in the database 
-                return "User already exists";
-
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password); //hide password
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync(); // adding a new user onto the platform 
-            return "User has been registered succesfully";
-        }
-
-        public async Task<string?> Login(string email, string password)
-        {
-            var user = await _context.Users.FirstorDefaultAsync(u => u.Email == email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) //confirm password matches user
-                return null;
-
-            return GenerateJwtToken(user);
-        }
-        
-        public string GenerateJwtToken(User user)
-        {
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var tokens = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.Now.AddHours(3),
-            signingCredentials: creds);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+      this._context = context;
     }
+
+    public async Task<string> RegisterAsync(string name, string email)
+    {
+      if (await this._context.Users.AnyAsync(u => u.Email == email).ConfigureAwait(true))
+      {
+        return "User already exists";
+      }
+      var user = new User
+      {
+        Name = name,
+        Email = email,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+      };
+
+      this._context.Users.Add(user);
+      var account = new Account
+      {
+        User = user,
+        Balance = 0m,
+        LastUpdated = DateTime.UtcNow
+      };
+
+      this._context.Accounts.Add(account);
+
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return "Registered successfully.";
+    }
+
+    public async Task<User?> LoginAsync(string email)
+    {
+      var user = await this._context.Users
+          .FirstOrDefaultAsync(u => u.Email == email).ConfigureAwait(true);
+
+      if (user == null)
+      {
+        return null;
+      }
+
+      return user;
+    }
+  }
 }
