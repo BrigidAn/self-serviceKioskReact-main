@@ -10,17 +10,30 @@ namespace KioskAPI.Services
   using Microsoft.AspNetCore.Identity;
   using Microsoft.IdentityModel.Tokens;
 
+  /// <summary>
+  /// Service responsible for generating JSON Web Tokens (JWT) for authenticated users.
+  /// </summary>
   public class JwtService
   {
     private readonly IConfiguration _config;
     private readonly UserManager<User> _userManager;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JwtService"/> class.
+    /// </summary>
+    /// <param name="config">Application configuration containing JWT settings.</param>
+    /// <param name="userManager">The UserManager instance for retrieving user roles.</param>
     public JwtService(IConfiguration config, UserManager<User> userManager)
     {
       this._config = config;
       this._userManager = userManager;
     }
 
+    /// <summary>
+    /// Generates a JWT token for a specified user including their roles.
+    /// </summary>
+    /// <param name="user">The user for whom the token is generated.</param>
+    /// <returns>A JWT as a <see cref="string"/> representing the user's identity and roles.</returns>
     public async Task<string> GenerateTokenAsync(User user)
     {
       var jwtSettings = this._config.GetSection("Jwt");

@@ -10,6 +10,10 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Identity;
   using KioskAPI.Models;
 
+  /// <summary>
+  /// Controller that Admin can only access
+  /// provides endpoints that can manage users, products, transaction
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize(Roles = "Admin")]
@@ -19,6 +23,12 @@ namespace KioskAPI.Controllers
     private readonly AppDbContext _context;
     private readonly ILogger<AdminController> _logger;
 
+    /// <summary>
+    /// Intializes new instance of the adminController classs
+    /// </summary>
+    /// <param name="userManager">injected usermanager for user management operations</param>
+    /// <param name="context">injected AppDbContext for data access</param>
+    /// <param name="logger">Injected logging for logging actions</param>
     public AdminController(UserManager<User> userManager, AppDbContext context, ILogger<AdminController> logger)
     {
       this._usermanager = userManager;
@@ -26,6 +36,14 @@ namespace KioskAPI.Controllers
       this._logger = logger;
     }
 
+    /// <summary>
+    /// Retrives data for current admin
+    /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="search"></param>
+    /// <returns> 200 OK with user data
+    /// 401 Unauthorized user not logged in / not admin</returns>
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers(
     [FromQuery] int page = 1,
@@ -80,6 +98,16 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Retrieves products data for current admin
+    /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="search"></param>
+    /// <param name="sortBy"></param>
+    /// <param name="sortOrder"></param>
+    /// <returns>200 OK with products data,
+    /// 401 unauthorized user/ not logged in</returns>
     [HttpGet("products")]
     public async Task<IActionResult> GetAllProducts(
         [FromQuery] int page = 1,
@@ -132,6 +160,16 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    ///Retrives orders data for current admin
+    /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="search"></param>
+    /// <param name="status"></param>
+    /// <returns>200 OK with orders data
+    /// 404 orders not found
+    /// 401 unauthorized user</returns>
     [HttpGet("orders")]
     public async Task<IActionResult> GetAllOrders(
         [FromQuery] int page = 1,
@@ -188,6 +226,14 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Retrieves transaction data for current logged in admin
+    /// </summary>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="type"></param>
+    /// <returns>200OK with all users transaction data
+    /// 401 unauthorized user</returns>
     [HttpGet("transactions")]
     public async Task<IActionResult> GetAllTransactions(
         [FromQuery] int page = 1,
@@ -225,6 +271,13 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Current admin can top up use account with specified amount
+    /// </summary>
+    /// <param name="dto">DTO containing UserId, Amount, and optional Description.</param>
+    /// <returns>200 OK updates specified users account
+    /// 401 unauthorized user
+    /// 404 user account not found</returns>
     [HttpPost("topup")]
     public async Task<IActionResult> TopUpUser([FromBody] AdminTopUpDo dto)
     {
@@ -286,6 +339,13 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    ///Adds product to user's cart
+    /// </summary>
+    /// <param name="dto">DTO containing UserId, ProductId, and Quantity.</param>
+    /// <returns>200 OK if items add successfully,
+    /// 404 User not found,
+    /// 400 Badrequest if product doesnt exist or not found</returns>
     [HttpPost("cart/add")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddToUserCart([FromBody] AdminAddToCartDto dto)
@@ -341,6 +401,12 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Item added to user's cart" });
     }
 
+    /// <summary>
+    /// Retrives the cart summary for specific users
+    /// </summary>
+    /// <param name="userId">id of the user whose cart is retrieved.</param>
+    /// <returns>200 OK with cart items and total,
+    /// 404 if cart is not found </returns>
     [HttpGet("cart/summary/{userId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUserCartSummary(int userId)
@@ -374,6 +440,13 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Removes items from specific user carts
+    /// </summary>
+    /// <param name="userId">Id of user whose cart is being checked out</param>
+    /// <returns>200 Ok remove item from cart
+    /// 401 if cart item is not found
+    /// 404 unauthorized user if not admin</returns>
     [HttpPost("cart/checkout/{userId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CheckoutUserCart(int userId)
@@ -421,6 +494,15 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Checkout successful", orderId = order.OrderId });
     }
 
+    /// <summary>
+    /// Removes an item from a user's cart.
+    /// </summary>
+    /// <param name="cartItemId">ID of the cart item to remove.</param>
+    /// <returns>
+    /// 200 OK if removed successfully,
+    /// 404 if cart item not found,
+    /// 401 Unauthorized if not admin.
+    /// </returns>
     [HttpDelete("cart/remove/{cartItemId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RemoveCartItem(int cartItemId)

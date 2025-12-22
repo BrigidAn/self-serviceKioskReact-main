@@ -3,8 +3,16 @@ namespace KioskAPI.Mappers
   using KioskAPI.Dtos;
   using KioskAPI.Models;
 
+  /// <summary>
+  /// Provides mapping methods between <see cref="Product"/> entities and related DTOs.
+  /// </summary>
   public class ProductMapper
   {
+    /// <summary>
+    /// Maps a <see cref="Product"/> entity to a <see cref="ProductDto"/>.
+    /// </summary>
+    /// <param name="product">The product entity to map.</param>
+    /// <returns>A <see cref="ProductDto"/> representing the product.</returns>
     public static ProductDto ToDto(Product product)
     {
       return new ProductDto
@@ -22,6 +30,11 @@ namespace KioskAPI.Mappers
       };
     }
 
+    /// <summary>
+    /// Maps a <see cref="CreateProductDto"/> to a <see cref="Product"/> entity.
+    /// </summary>
+    /// <param name="dto">The DTO containing product creation data.</param>
+    /// <returns>A new <see cref="Product"/> entity.</returns>
     public static Product ToEntity(CreateProductDto dto)
     {
       return new Product
@@ -37,6 +50,12 @@ namespace KioskAPI.Mappers
       };
     }
 
+    /// <summary>
+    /// Updates an existing <see cref="Product"/> entity with values from an <see cref="UpdateProductDto"/>.
+    /// Only non-null properties in the DTO will update the entity.
+    /// </summary>
+    /// <param name="product">The product entity to update.</param>
+    /// <param name="dto">The DTO containing updated product data.</param>
     public static void UpdateEntity(Product product, UpdateProductDto dto)
     {
       if (dto.Name != null)

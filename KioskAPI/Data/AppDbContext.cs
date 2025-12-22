@@ -4,8 +4,18 @@ namespace KioskAPI.Data
   using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
   using Microsoft.EntityFrameworkCore;
 
+
+  /// <summary>
+  /// Represents the application's database context.
+  /// Inherits from <see cref="IdentityDbContext{User, Role, int}"/>
+  /// to provide Identity support for user authentication and roles.
+  /// </summary>
   public class AppDbContext : IdentityDbContext<User, Role, int>
   {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AppDbContext"/> class.
+    /// </summary>
+    /// <param name="options">Database context options</param>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }

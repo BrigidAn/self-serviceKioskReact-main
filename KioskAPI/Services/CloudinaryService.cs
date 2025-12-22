@@ -5,10 +5,18 @@ namespace KioskAPI.Services
   using CloudinaryDotNet.Actions;
   using KioskAPI.interfaces;
 
+  /// <summary>
+  /// Service responsible for uploading images to Cloudinary.
+  /// </summary>
   public class CloudinaryService : ICloudinaryService
   {
     private readonly Cloudinary _cloudinary;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CloudinaryService"/> class.
+    /// Configures Cloudinary using provided application settings.
+    /// </summary>
+    /// <param name="config">The application configuration containing Cloudinary credentials.</param>
     public CloudinaryService(IConfiguration config)
     {
       var cloudName = config["Cloudinary:CloudName"];
@@ -18,6 +26,13 @@ namespace KioskAPI.Services
       this._cloudinary = new Cloudinary(new Account(cloudName, apiKey, apiSecret));
     }
 
+    /// <summary>
+    /// Uploads an image file to Cloudinary.
+    /// </summary>
+    /// <param name="file">The image file to upload.</param>
+    /// <returns>
+    /// The secure URL of the uploaded image if successful; otherwise, <c>null</c>.
+    /// </returns>
     public async Task<string> UploadImageAsync(IFormFile file)
     {
       if (file == null || file.Length == 0)

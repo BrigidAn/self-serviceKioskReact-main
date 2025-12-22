@@ -3,8 +3,16 @@ using KioskAPI.Models;
 
 public static class CartMapper
 {
+  /// <summary>
+  /// Provides mapping methods between <see cref="Cart"/> entities and <see cref="CartDto"/> data transfer objects.
+  /// </summary>
   public static CartDto ToDto(Cart cart)
   {
+    /// <summary>
+    /// Converts a <see cref="Cart"/> entity to a <see cref="CartDto"/>.
+    /// </summary>
+    /// <param name="cart">The cart entity to map.</param>
+    /// <returns>A <see cref="CartDto"/> representing the provided cart, including all items and total amount.</returns>
     return new CartDto
     {
       CartId = cart.CartId,

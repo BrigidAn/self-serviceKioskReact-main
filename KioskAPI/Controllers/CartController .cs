@@ -9,6 +9,10 @@ namespace KioskAPI.Controllers
   using System.Security.Claims;
   using Microsoft.Extensions.Logging;
 
+  /// <summary>
+  /// Handles shopping cart operations for authenticated users
+  /// Includes cart retrieval, item management, stock handling, and cart expiration.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -17,18 +21,36 @@ namespace KioskAPI.Controllers
     private readonly AppDbContext _context;
     private readonly ILogger<CartController> _logger;
 
+    /// <summary>
+    /// Intializes a new instance of the <see cref="CartController"/>
+    /// </summary>
+    /// <param name="context">Inject database context</param>
+    /// <param name="logger">Inject logger instance</param>
     public CartController(AppDbContext context, ILogger<CartController> logger)
     {
       this._context = context;
       this._logger = logger;
     }
 
+    /// <summary>
+    /// Extracts the authenticated user's Id from JWT claim
+    /// </summary>
+    /// <returns>User Id if avaliable, otherwise 0.</returns>
     private int GetIdentityUserId()
     {
       var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
+    /// <summary>
+    /// Retrieves the current active cart for the logged-in user.
+    /// Automatically clears expired carts.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with cart details,
+    /// 404 Not Found if cart does not exist or expired,
+    /// 401 Unauthorized if user is not authenticated.
+    /// </returns>
     [HttpGet]
     public async Task<IActionResult> GetCart()
     {
@@ -98,6 +120,16 @@ namespace KioskAPI.Controllers
       return this.Ok(cartDto);
     }
 
+    /// <summary>
+    /// Adds a product to the authenticated user's cart.
+    /// Automatically creates a new cart if one does not exist.
+    /// </summary>
+    /// <param name="dto">Product ID and quantity.</param>
+    /// <returns>
+    /// 200 OK if item added,
+    /// 400 Bad Request if invalid input or insufficient stock,
+    /// 401 Unauthorized if user not authenticated.
+    /// </returns>
     [HttpPost("add")]
     public async Task<IActionResult> AddToCart([FromBody] AddToCartDto dto)
     {
@@ -199,6 +231,16 @@ namespace KioskAPI.Controllers
       }
     }
 
+    /// <summary>
+    /// Updates the quantity of an existing cart item.
+    /// </summary>
+    /// <param name="itemId">Cart item ID.</param>
+    /// <param name="dto">New quantity.</param>
+    /// <returns>
+    /// 200 OK if updated,
+    /// 400 Bad Request if quantity invalid or insufficient stock,
+    /// 404 Not Found if cart item does not exist.
+    /// </returns>
     [HttpPost("item/{itemId}")]
     public async Task<IActionResult> UpdateQuantity(int itemId, [FromBody] UpdateQuantityDto dto)
     {
@@ -261,6 +303,14 @@ namespace KioskAPI.Controllers
       }
     }
 
+    /// <summary>
+    /// Removes an item from the cart and restores product stock.
+    /// </summary>
+    /// <param name="cartItemId">Cart item ID.</param>
+    /// <returns>
+    /// 200 OK if removed,
+    /// 404 Not Found if item does not exist.
+    /// </returns>
     [HttpDelete("item/{cartItemId}")]
     public async Task<IActionResult> RemoveItem(int cartItemId)
     {
@@ -308,6 +358,13 @@ namespace KioskAPI.Controllers
       }
     }
 
+    /// <summary>
+    /// Manually expires the user's cart and returns all items to stock.
+    /// </summary>
+    /// <returns>
+    /// 200 OK when cart is cleared,
+    /// 500 Internal Server Error if operation fails.
+    /// </returns>
     [HttpPost("expire")]
     public async Task<IActionResult> ExpireCart()
     {

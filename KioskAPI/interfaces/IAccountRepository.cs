@@ -4,6 +4,10 @@ namespace KioskAPI.interfaces
   using System.Threading.Tasks;
   using KioskAPI.Models;
 
+  /// <summary>
+  ///  Repository interface for managing user accounts and transactions.
+  /// Defines methods for retrieving accounts, transactions, and updating balances.
+  /// </summary>
   public interface IAccountRepository
   {
     Task<Account?> GetAccountByUserIdAsync(int userId);

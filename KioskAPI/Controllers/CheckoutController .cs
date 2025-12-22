@@ -8,6 +8,11 @@ namespace KioskAPI.Controllers
   using KioskAPI.Models;
   using System.Security.Claims;
 
+  /// <summary>
+  ///Handles checkout operations for the self-service kiosk.
+  /// Responsible for validating carts, calculating totals
+  /// deducting balances, creating orders, and recording transactions
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -15,17 +20,36 @@ namespace KioskAPI.Controllers
   {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CheckoutController"/>.
+    /// </summary>
+    /// <param name="context">Injected application database context.</param>
     public CheckoutController(AppDbContext context)
     {
       this._context = context;
     }
 
+    /// <summary>
+    /// Extracts the authenticated user's ID from the JWT claims.
+    /// </summary>
+    /// <returns>
+    /// The authenticated user's ID, or 0 if the claim is missing.
+    /// </returns>
     private int GetIdentityUserId()
     {
       var claim = this.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
       return claim != null ? int.Parse(claim.Value) : 0;
     }
 
+    /// <summary>
+    /// Retrieves a checkout summary for the currently authenticated user.
+    /// Includes cart items, quantities, prices, and the total item cost.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with checkout summary,
+    /// 404 Not Found if the cart is empty,
+    /// 401 Unauthorized if token is invalid.
+    /// </returns>
     [HttpGet("summary")]
     public async Task<IActionResult> GetCheckoutSummary()
     {
@@ -63,6 +87,21 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Performs checkout for the current user or, if the requester is an Admin,
+    /// for a specified user. Validates cart, balance, stock availability,
+    /// deducts account balance, creates an order, and records a transaction.
+    /// </summary>
+    /// <param name="dto">
+    /// Checkout request containing delivery method and optional user ID
+    /// (Admin-only override).
+    /// </param>
+    /// <returns>
+    /// 200 OK if checkout succeeds,
+    /// 400 Bad Request if cart is empty, expired, or balance is insufficient,
+    /// 401 Unauthorized if token is invalid,
+    /// 500 Internal Server Error if checkout fails.
+    /// </returns>
     [HttpPost]
     public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto dto)
     {

@@ -8,6 +8,10 @@ namespace KioskAPI.Controllers
   using Microsoft.EntityFrameworkCore;
   using System.Security.Claims;
 
+  /// <summary>
+  /// Manages individual order items within orders in the self-service kiosk system.
+  /// Handles viewing, adding, and removing items while enforcing stock and access rules.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -15,17 +19,34 @@ namespace KioskAPI.Controllers
   {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrderItemController"/>.
+    /// </summary>
+    /// <param name="context">Injected database context.</param>
     public OrderItemController(AppDbContext context)
     {
       this._context = context;
     }
 
+    /// <summary>
+    /// Extracts the authenticated user's ID from the JWT token.
+    /// </summary>
+    /// <returns>
+    /// The authenticated user's ID, or 0 if not available.
+    /// </returns>
     private int GetUserIdFromToken()
     {
       var id = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
       return id != null ? int.Parse(id) : 0;
     }
 
+    /// <summary>
+    /// Retrieves all order items in the system.
+    /// Admin-only endpoint used for audits and reporting.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with a list of all order items.
+    /// </returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllOrderItems()
@@ -37,6 +58,13 @@ namespace KioskAPI.Controllers
       return this.Ok(items.Select(OrderItemMapper.ToDto));
     }
 
+    /// <summary>
+    /// Retrieves all order items in the system.
+    /// Admin-only endpoint used for audits and reporting.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with a list of all order items.
+    /// </returns>
     [HttpGet("order/{orderId}")]
     public async Task<IActionResult> GetItemsByOrder(int orderId)
     {
@@ -68,6 +96,18 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Adds a new item to an existing order.
+    /// Validates stock availability and order ownership.
+    /// </summary>
+    /// <param name="orderId">The order identifier.</param>
+    /// <param name="dto">Order item creation data.</param>
+    /// <returns>
+    /// 200 OK if item is added successfully,
+    /// 400 Bad Request for validation or stock issues,
+    /// 401 Unauthorized if access is denied,
+    /// 404 Not Found if order or product does not exist.
+    /// </returns>
     [HttpPost("{orderId}")]
     public async Task<IActionResult> AddOrderItem(int orderId, [FromBody] CreateOrderItemDto dto)
     {
@@ -126,6 +166,15 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Deletes an order item and restores the associated product stock.
+    /// Admin-only operation.
+    /// </summary>
+    /// <param name="id">The order item identifier.</param>
+    /// <returns>
+    /// 200 OK if item is deleted,
+    /// 404 Not Found if item does not exist.
+    /// </returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteOrderItem(int id)

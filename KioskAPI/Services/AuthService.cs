@@ -5,10 +5,17 @@ namespace KioskAPI.Services
   using KioskAPI.Models;
   using Microsoft.EntityFrameworkCore;
 
+  /// <summary>
+  /// Provides authentication-related services such as user registration and login.
+  /// </summary>
   public class AuthService
   {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthService"/> class.
+    /// </summary>
+    /// <param name="context">The database context used for authentication operations.</param>
     public AuthService(AppDbContext context)
     {
       this._context = context;

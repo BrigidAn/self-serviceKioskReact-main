@@ -11,6 +11,11 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
+  /// <summary>
+  /// Manages financial transactions for kiosk user accounts.
+  /// Supports viewing transactions, creating credits/debits,
+  /// and administrative transaction management.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -18,11 +23,20 @@ namespace KioskAPI.Controllers
   {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes the TransactionController with database context.
+    /// </summary>
+    /// <param name="context">Application database context</param>
     public TransactionController(AppDbContext context)
     {
       this._context = context;
     }
 
+    /// <summary>
+    /// Retrieves all transactions in the system.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <returns>List of all transactions with account and user details</returns>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllTransactions()
@@ -45,6 +59,10 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
+    /// <summary>
+    /// Retrieves transactions belonging to the currently authenticated user.
+    /// </summary>
+    /// <returns>User’s transaction history</returns>
     [HttpGet("mytrasactions")]
     [Authorize]
     public async Task<IActionResult> GetMyTransactions()
@@ -89,6 +107,12 @@ namespace KioskAPI.Controllers
       return this.Ok(transactions);
     }
 
+    /// <summary>
+    /// Creates a new financial transaction (credit or debit).
+    /// Automatically updates the account balance.
+    /// </summary>
+    /// <param name="dto">Transaction data transfer object</param>
+    /// <returns>Transaction confirmation and updated balance</returns>
     [HttpPost]
     public async Task<IActionResult> CreateTransaction([FromBody] TransactionDto dto)
     {
@@ -143,6 +167,12 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Deletes a transaction and reverses its effect on the account balance.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <param name="transactionId">Transaction identifier</param>
+    /// <returns>Deletion confirmation</returns>
     [HttpDelete("{transactionId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteTransaction(int transactionId)

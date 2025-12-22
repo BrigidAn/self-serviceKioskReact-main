@@ -9,6 +9,10 @@ namespace KioskAPI.Controllers
   using KioskAPI.Mappers;
   using System.Security.Claims;
 
+  /// <summary>
+  /// Managers order-related operations within the self-service kiosk system
+  /// Supports order creation, retrieval, and completion for both users and administrators.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -17,12 +21,24 @@ namespace KioskAPI.Controllers
     private readonly AppDbContext _context;
     private readonly ILogger<OrderController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="OrderController"/>.
+    /// </summary>
+    /// <param name="context">Inject database context</param>
+    /// <param name="logger">Inject logger instance</param>
     public OrderController(AppDbContext context, ILogger<OrderController> logger)
     {
       this._context = context;
       this._logger = logger;
     }
 
+    /// <summary>
+    /// Retrieves all orders in the system.
+    /// Accessible only to administrators.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with a list of all orders.
+    /// </returns>
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> GetAllOrders()
@@ -37,6 +53,15 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
+    /// <summary>
+    /// Retrieves all orders for a specific user.
+    /// Admin-only operation used for customer support and audits.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>
+    /// 200 OK with user orders,
+    /// 404 Not Found if no orders exist.
+    /// </returns>
     [Authorize(Roles = "Admin")]
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetOrdersByUser(int userId)
@@ -60,6 +85,12 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
+    /// <summary>
+    /// Retrieves all orders belonging to the currently authenticated user.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with the user's order history.
+    /// </returns>
     [HttpGet("myOrders")]
     public async Task<IActionResult> GetMyOrders()
     {
@@ -75,6 +106,19 @@ namespace KioskAPI.Controllers
       return this.Ok(orders.Select(OrderMapper.ToDto));
     }
 
+
+    /// <summary>
+    /// Creates a new order for a user.
+    /// Validates product availability and reserves stock.
+    /// </summary>
+    /// <param name="newOrderDto">
+    /// Order creation data including user ID and ordered items.
+    /// </param>
+    /// <returns>
+    /// 200 OK if order is created successfully,
+    /// 400 Bad Request for validation or stock issues,
+    /// 500 Internal Server Error on failure.
+    /// </returns>
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto newOrderDto)
     {
@@ -166,6 +210,16 @@ namespace KioskAPI.Controllers
       }
     }
 
+    /// <summary>
+    /// Marks an existing order as completed and paid.
+    /// Accessible only to the order owner.
+    /// </summary>
+    /// <param name="orderId">The order identifier.</param>
+    /// <returns>
+    /// 200 OK if order is completed,
+    /// 404 Not Found if order does not exist,
+    /// 500 Internal Server Error on failure.
+    /// </returns>
     [HttpPost("complete/{orderId}")]
     public async Task<IActionResult> CompleteOrder(int orderId)
     {

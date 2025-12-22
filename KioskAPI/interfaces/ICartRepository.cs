@@ -3,6 +3,9 @@ namespace KioskAPI.interfaces
   using System.Threading.Tasks;
   using KioskAPI.Models;
 
+  /// <summary>
+  /// Repository interface for handling cart operations for users.
+  /// </summary>
   public interface ICartRepository
   {
     Task<Cart> GetUserCart(int userId);

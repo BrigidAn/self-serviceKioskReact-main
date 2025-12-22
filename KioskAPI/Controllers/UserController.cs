@@ -11,6 +11,11 @@ namespace KioskAPI.Controllers
   using Microsoft.EntityFrameworkCore;
   using System.Security.Claims;
 
+  /// <summary>
+  /// Handles user profile and account operations.
+  /// Supports viewing profile, account details, top-ups,
+  /// and admin-level user/account management.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   [Authorize]
@@ -18,16 +23,28 @@ namespace KioskAPI.Controllers
   {
     private readonly AppDbContext _context;
 
+    /// <summary>
+    /// Initializes the UserController with the database
+    /// </summary>
+    /// <param name="context">Application database context</param>
     public UserController(AppDbContext context)
     {
       this._context = context;
     }
 
+    /// <summary>
+    /// Extracts the authenticated user's ID from JWT claims.
+    /// </summary>
+    /// <returns>User Id as integer</returns>
     private int GetJwtUserId()
     {
       return int.Parse(this.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
     }
 
+    /// <summary>
+    /// Retrieves the authenticated user's profile.
+    /// </summary>
+    /// <returns>User profile information</returns>
     [HttpGet("profile")]
     public async Task<IActionResult> GetProfile()
     {
@@ -47,6 +64,10 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    ///  Retrieves the authenticated user's account and transaction history.
+    /// </summary>
+    /// <returns>Account details including transactions</returns>
     [HttpGet("account")]
     public async Task<IActionResult> GetAccount()
     {
@@ -77,6 +98,11 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Tops up the authenticated user's account balance.
+    /// </summary>
+    /// <param name="data">Top-up amount</param>
+    /// <returns>Confirmation and updated balance</returns>
     [HttpPost("account/topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpDto data)
     {
@@ -118,6 +144,11 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Balance topped up successfully", balance = account.Balance });
     }
 
+    /// <summary>
+    /// Retrieves a specific user's profile (Admin-only).
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <returns>User profile information</returns>
     [HttpGet("profile/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetUserProfileAdmin(int id)
@@ -137,6 +168,11 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Retrieves a specific user's account and transactions (Admin-only).
+    /// </summary>
+    /// <param name="id">User ID</param>
+    /// <returns>Account details and transaction history</returns>
     [HttpGet("account/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAccountAdmin(int id)

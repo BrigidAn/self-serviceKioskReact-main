@@ -7,6 +7,10 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Authorization;
   using KioskAPI.Services;
 
+  /// <summary>
+  /// Controller responsible for authentication such as
+  /// user registration, login, logout , and role assign
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   public class AuthController : ControllerBase
@@ -15,6 +19,12 @@ namespace KioskAPI.Controllers
     private readonly SignInManager<User> _signInManager;
     private readonly TokenService _tokenService;
 
+    /// <summary>
+    /// Initializes a new instance of the authcontroller
+    /// </summary>
+    /// <param name="userManager">Injected UserManager for user management</param>
+    /// <param name="signInManager">Injected SignInMAnager fro authentication</param>
+    /// <param name="tokenService">Injected TokenService to generate JWT token</param>
     public AuthController(
         UserManager<User> userManager,
         SignInManager<User> signInManager,
@@ -25,6 +35,14 @@ namespace KioskAPI.Controllers
       this._tokenService = tokenService;
     }
 
+    /// <summary>
+    /// Registers a new user with email, name, and password
+    /// </summary>
+    /// <param name="dto">register dto containing Email, name, and password</param>
+    /// <returns>
+    /// 200 OK if registration succeeded,
+    /// 400 Bad Request if registration failed due to validation errors.
+    /// </returns>
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
@@ -46,6 +64,14 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Registered successfully" });
     }
 
+    /// <summary>
+    /// Authenticates a user with email and password, returning a JWT token if successful.
+    /// </summary>
+    /// <param name="dto">LoginDto containing Email and Password.</param>
+    /// <returns>
+    /// 200 OK with token and user info if successful,
+    /// 401 Unauthorized if email or password is invalid.
+    /// </returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
@@ -77,12 +103,26 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Logs out a user by instructing client to delete JWT token.
+    /// </summary>
+    /// <returns>200 OK with message about logout.</returns>
     [HttpPost("logout")]
     public IActionResult Logout()
     {
       return this.Ok(new { message = "JWT logout = delete token on client." });
     }
 
+    /// <summary>
+    /// Assigns a role to a user. Only accessible by Admins.
+    /// </summary>
+    /// <param name="dto">AssignRoleDto containing UserId and Role.</param>
+    /// <returns>
+    /// 200 OK if role assigned successfully,
+    /// 400 Bad Request if UserId or Role is missing,
+    /// 404 Not Found if user does not exist,
+    /// 401 Unauthorized if the requester is not an Admin.
+    /// </returns>
     [HttpPost("assign-role")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto dto)

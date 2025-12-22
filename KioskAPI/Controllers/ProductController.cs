@@ -10,18 +10,35 @@ namespace KioskAPI.Controllers
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
 
+  /// <summary>
+  /// Manages products available in the self-service kiosk system.
+  /// Supports browsing, filtering, and full CRUD operations for administrators.
+  /// </summary>
   [ApiController]
   [Route("api/[controller]")]
   public class ProductController : ControllerBase
   {
     private readonly AppDbContext _context;
     private readonly CloudinaryService _cloudinary;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProductController"/>.
+    /// </summary>
+    /// <param name="context">Database context.</param>
+    /// <param name="cloudinary">Cloudinary service for image uploads.</param>
     public ProductController(AppDbContext context, CloudinaryService cloudinary)
     {
       this._context = context;
       this._cloudinary = cloudinary;
     }
 
+    /// <summary>
+    /// Retrieves all products including their supplier information.
+    /// Publicly accessible endpoint for product listing.
+    /// </summary>
+    /// <returns>
+    /// 200 OK with a list of products.
+    /// </returns>
     [HttpGet]
     public async Task<IActionResult> GetProducts()
     {
@@ -33,6 +50,14 @@ namespace KioskAPI.Controllers
       return this.Ok(productDtos);
     }
 
+    /// <summary>
+    /// Retrieves a single product by its identifier.
+    /// </summary>
+    /// <param name="id">The product identifier.</param>
+    /// <returns>
+    /// 200 OK with the product,
+    /// 404 Not Found if the product does not exist.
+    /// </returns>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProduct(int id)
     {
@@ -54,6 +79,15 @@ namespace KioskAPI.Controllers
       return this.Ok(dto);
     }
 
+    /// <summary>
+    /// Creates a new product with an uploaded image.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <param name="dto">Product creation data including image file.</param>
+    /// <returns>
+    /// 200 OK if the product is created successfully,
+    /// 400 Bad Request for validation or duplication errors.
+    /// </returns>
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddProduct([FromForm] CreateProductDto dto)
@@ -91,6 +125,18 @@ namespace KioskAPI.Controllers
       });
     }
 
+
+    /// <summary>
+    /// Updates an existing product’s details.
+    /// Allows optional image replacement via Cloudinary.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <param name="id">The product identifier.</param>
+    /// <param name="dto">Updated product data.</param>
+    /// <returns>
+    /// 200 OK if update succeeds,
+    /// 404 Not Found if product does not exist.
+    /// </returns>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(int id, [FromForm] UpdateProductDto dto)
@@ -128,6 +174,15 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Product updated successfully" });
     }
 
+    /// <summary>
+    /// Deletes a product from the system.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <param name="id">The product identifier.</param>
+    /// <returns>
+    /// 200 OK if deleted,
+    /// 404 Not Found if product does not exist.
+    /// </returns>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct(int id)
@@ -145,6 +200,20 @@ namespace KioskAPI.Controllers
       return this.Ok(new { message = "Product deleted successfully" });
     }
 
+    /// <summary>
+    /// Retrieves products using advanced filtering, searching, and sorting options.
+    /// Used by kiosk UI for browsing and category filtering.
+    /// </summary>
+    /// <param name="search">Text search across name, description, and category.</param>
+    /// <param name="category">Exact category match.</param>
+    /// <param name="isAvailable">Filters by stock availability.</param>
+    /// <param name="minPrice">Minimum price filter.</param>
+    /// <param name="maxPrice">Maximum price filter.</param>
+    /// <param name="sortBy">Sort field (price or name).</param>
+    /// <param name="desc">Sort descending if true.</param>
+    /// <returns>
+    /// 200 OK with filtered products and available categories.
+    /// </returns>
     [HttpGet("FilterProducts")]
     public async Task<IActionResult> GetProducts(
         [FromQuery] string? search,
@@ -214,6 +283,16 @@ namespace KioskAPI.Controllers
       });
     }
 
+    /// <summary>
+    /// Updates the availability status of a product.
+    /// Admin-only endpoint.
+    /// </summary>
+    /// <param name="id">The product identifier.</param>
+    /// <param name="dto">Availability update data.</param>
+    /// <returns>
+    /// 200 OK if updated,
+    /// 404 Not Found if product does not exist.
+    /// </returns>
     [HttpPatch("{id}/availability")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateAvailability(int id, [FromBody] UpdateProductAvailabilityDto dto)
