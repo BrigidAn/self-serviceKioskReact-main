@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CheckoutPage.css";
 import InsufficientBalanceModal from "../../components/InsufficientBalanceModal";
+import toast, { Toaster } from "react-hot-toast";
 
 const API_URL = "https://localhost:5016/api";
 const token = localStorage.getItem("token");
@@ -70,7 +71,7 @@ export default function CheckoutPage() {
   }, [deliveryMethod]);
 
   const handleTopUp = async () => {
-    if (!topUpAmount || topUpAmount <= 0) return alert("Enter a valid amount");
+    if (!topUpAmount || topUpAmount <= 0) return toast("Enter a valid amount");
 
     try {
       const res = await fetch(`${API_URL}/Account/topup`, {
@@ -92,10 +93,10 @@ export default function CheckoutPage() {
         setShowInsufficientModal(false);
       }
 
-      alert("Top-up successful!");
+      toast.success("Top-up successful!");
     } catch (err) {
       console.error(err);
-      alert("Top-up failed.");
+      toast.error("Top-up failed.");
     }
   };
 
@@ -104,13 +105,13 @@ export default function CheckoutPage() {
 
   const totalCost = totalItemsPrice + deliveryFee;
 
-
     if (balance < totalCost) {
       setAmountNeeded(totalCost - balance);
       setShowInsufficientModal(true);
       return;
     }
 
+     const toastId = toast.loading("Processing checkout...");
 
     try {
       const res = await fetch(`${API_URL}/checkout`, {
@@ -125,6 +126,8 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Checkout failed");
 
+    toast.success("Order placed successfully!", { id: toastId });
+
       setOrderSummary({
         items: cart,
         total: data.totalAmount,
@@ -135,11 +138,17 @@ export default function CheckoutPage() {
       setBalance((prev) => prev - data.totalAmount);
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
   return (
+    <>
+    <Toaster toastOptions={{
+    duration: 4000,}}
+  className="toaster"
+/>
+
     <div className="checkout-container">
       <button
         className="checkout-back-btn"
@@ -250,6 +259,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

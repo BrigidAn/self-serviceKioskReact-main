@@ -36,11 +36,11 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 
 // ===== Database Context =====
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
 
 builder.Services.AddIdentity<User, Role>(options =>
 {

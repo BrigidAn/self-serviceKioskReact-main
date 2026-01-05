@@ -3,13 +3,15 @@ import "./TransactionsPage.css";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const ITEMS_PER_PAGE = 8;
+
 function TransactionsPage() {
   const [search, setSearch] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -20,7 +22,7 @@ function TransactionsPage() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        
+
         const sorted = res.data.sort(
           (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
         );
@@ -37,8 +39,17 @@ function TransactionsPage() {
     fetchTransactions();
   }, []);
 
+  /* ---------------- Filter ---------------- */
   const filtered = transactions.filter((t) =>
     t.type.toLowerCase().includes(search.toLowerCase())
+  );
+
+  /* ---------------- Pagination ---------------- */
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginated = filtered.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
   );
 
   return (
@@ -55,7 +66,10 @@ function TransactionsPage() {
           className="tx-search"
           placeholder="Search transactions..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1); // reset page on search
+          }}
         />
       </div>
 
@@ -64,42 +78,71 @@ function TransactionsPage() {
       ) : filtered.length === 0 ? (
         <p className="tx-empty">No matching transactions...</p>
       ) : (
-        <div className="tx-table">
-          <div className="tx-header">
-            <span>Type</span>
-            <span>Amount</span>
-            <span>Date</span>
-            <span>Status</span>
+        <>
+          <div className="tx-table">
+            <div className="tx-header">
+              <span>Type</span>
+              <span>Amount</span>
+              <span>Date</span>
+              <span>Status</span>
+            </div>
+
+            {paginated.map((t) => {
+              const isCheckout =
+                t.type.toLowerCase() === "checkout" ||
+                t.type.toLowerCase() === "debit";
+
+              return (
+                <div key={t.transactionId} className="tx-row">
+                  <span className="tx-type">{t.type}</span>
+
+                  <span
+                    className={`tx-amount ${
+                      isCheckout ? "neg" : "pos"
+                    }`}
+                  >
+                    {isCheckout
+                      ? `- R${t.totalAmount.toFixed(2)}`
+                      : `+ R${t.totalAmount.toFixed(2)}`}
+                  </span>
+
+                  <span>
+                    {new Date(t.createdAt).toLocaleDateString()}
+                  </span>
+
+                  <span
+                    className={`tx-status ${
+                      isCheckout ? "failed" : "completed"
+                    }`}
+                  >
+                    {isCheckout ? "Checkout" : "Top-up"}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          {filtered.map((t) => (
-            <div key={t.transactionId} className="tx-row">
-              <span className="tx-type">{t.type}</span>
+          {/* ---------------- Pagination Controls ---------------- */}
+          <div className="tx-pagination">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              Previous
+            </button>
 
-              <span
-                className={`tx-amount ${
-                  t.type.toLowerCase() === "debit" ? "neg" : "pos"
-                }`}
-              >
-                {t.type.toLowerCase() === "debit"
-                  ? `- R${t.totalAmount.toFixed(2)}`
-                  : `+ R${t.totalAmount.toFixed(2)}`}
-              </span>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
 
-              <span>{new Date(t.createdAt).toLocaleDateString()}</span>
-
-              <span
-                className={`tx-status ${
-                  t.type.toLowerCase() === "debit" ? "failed" : "completed"
-                }`}
-              >
-                {t.type.toLowerCase() === "debit"
-                  ? "Payment"
-                  : "Top-up"}
-              </span>
-            </div>
-          ))}
-        </div>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
