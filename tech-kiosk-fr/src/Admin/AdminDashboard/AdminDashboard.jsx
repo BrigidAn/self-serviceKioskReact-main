@@ -55,7 +55,7 @@ export default function AdminDashboard() {
       const totalUsers = usersResponse.total ?? usersResponse.data?.length ?? 0;
 
       // ORDERS
-      const resOrders = await fetch(`${API_URL}/admin/orders?page=1&pageSize=50`, {
+      const resOrders = await fetch(`${API_URL}/admin/orders?page=1&pageSize=100`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const ordersResponse = await resOrders.json();
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       const totalOrders = ordersResponse.total ?? orders.length;
 
       setStats({ totalProducts, lowStock, totalUsers, totalOrders });
-      setAllOrders(orders);
+      setAllOrders(orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate)));
 
       const grouped = {};
       orders.forEach(o => {
@@ -93,7 +93,8 @@ export default function AdminDashboard() {
       if (orderFilter === "completed") return o.status.toLowerCase() === "completed";
       return true;
     })
-    .slice(0, 6); 
+    .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+    .slice(0, 6);
 
   return (
     <AdminLayout>

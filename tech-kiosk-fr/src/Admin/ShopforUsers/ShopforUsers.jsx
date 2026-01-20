@@ -12,13 +12,13 @@ export default function ShopForUser() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [account, setAccount] = useState(null);
-
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [search, setSearch] = useState("");
   const [quantityMap, setQuantityMap] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [cartExpiry, setCartExpiry] = useState(null); // NEW: cart expiration timer
 
   const token = localStorage.getItem("token");
 
@@ -45,6 +45,7 @@ export default function ShopForUser() {
     }
   };
 
+  // Fetch cart and account
   const fetchCartAndAccount = async (userId) => {
     if (!userId) return;
 
@@ -52,7 +53,9 @@ export default function ShopForUser() {
       headers: { Authorization: `Bearer ${token}` },
     });
     const cartTxt = await cartRes.text();
-    setCart(cartTxt ? JSON.parse(cartTxt).items || [] : []);
+    const cartData = cartTxt ? JSON.parse(cartTxt) : { items: [], expiry: null };
+    setCart(cartData.items || []);
+    setCartExpiry(cartData.expiry ? new Date(cartData.expiry) : null);
 
     const accRes = await fetch(`${API_URL}/user/account/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -69,6 +72,24 @@ export default function ShopForUser() {
   useEffect(() => {
     if (selectedUserId) fetchCartAndAccount(selectedUserId);
   }, [selectedUserId]);
+
+  // Cart countdown timer
+  const [countdown, setCountdown] = useState(null);
+  useEffect(() => {
+    if (!cartExpiry) {
+      setCountdown(null);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const diff = Math.max(0, Math.floor((cartExpiry - now) / 1000)); // seconds
+      setCountdown(diff);
+      if (diff === 0) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [cartExpiry]);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -89,66 +110,80 @@ export default function ShopForUser() {
     if (!selectedUserId) return toast.warning("Select a user first");
 
     const product = products.find((p) => p.productId === productId);
-    if (!product || product.quantity === 0)
-      return toast.error("Product out of stock");
+    if (!product || product.quantity === 0) return toast.error("Product out of stock");
 
     const qty = quantityMap[productId] || 1;
     if (qty > product.quantity) return toast.error("Exceeds stock");
 
     await fetch(`${API_URL}/admin/cart/add`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ userId: selectedUserId, productId, quantity: qty }),
     });
 
     toast.success("Added to cart");
     setQuantityMap((prev) => ({ ...prev, [productId]: 1 }));
-    fetchCartAndAccount(selectedUserId);
+    await fetchCartAndAccount(selectedUserId);
     fetchProducts();
   };
 
-const removeFromCart = async (cartItemId) => {
-  if (!selectedUserId) return;
-  try {
-    await fetch(`${API_URL}/admin/cart/remove/${cartItemId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    toast.info("Item removed from cart");
-    fetchCartAndAccount(selectedUserId);
-    fetchProducts();
-  } catch {
-    toast.error("Failed to remove item");
-  }
-};
+  const removeFromCart = async (cartItemId) => {
+    if (!selectedUserId) return;
+    try {
+      await fetch(`${API_URL}/admin/cart/remove/${cartItemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.info("Item removed from cart");
+      await fetchCartAndAccount(selectedUserId);
+      fetchProducts();
+    } catch {
+      toast.error("Failed to remove item");
+    }
+  };
 
-
+  // Checkout
   const handleCheckout = async () => {
-    if (!cart.length || checkoutLoading) return;
+    if (!selectedUserId) return toast.warning("Select a user first");
+    if (!cart.length) return toast.warning("Cart is empty");
+    if (countdown === 0) return toast.error("Cart has expired ⏰");
 
     setCheckoutLoading(true);
 
-    const res = await fetch(`${API_URL}/checkout`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ userId: selectedUserId, deliveryMethod: "delivery" }),
-    });
+    // Always fetch latest cart before checkout
+    await fetchCartAndAccount(selectedUserId);
 
-    const data = await res.json();
-    setCheckoutLoading(false);
+    const latestCartTotal = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
-    if (res.ok) {
-      toast.success(data.message || "Checkout successful");
-      fetchCartAndAccount(selectedUserId);
-      fetchProducts();
-    } else {
-      toast.error(data.message || "Checkout failed");
+    if (!account || account.balance < latestCartTotal) {
+      toast.error("User does not have enough balance");
+      setCheckoutLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/checkout`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: selectedUserId, deliveryMethod: "delivery" }),
+      });
+
+      const data = await res.json();
+      setCheckoutLoading(false);
+
+      if (res.ok) {
+        toast.success(data.message || "Checkout successful");
+        fetchCartAndAccount(selectedUserId);
+        fetchProducts();
+      } else {
+        toast.error(data.message || "Checkout failed");
+      }
+    } catch (err) {
+      toast.error("Checkout failed: " + err.message);
+      setCheckoutLoading(false);
     }
   };
 
@@ -201,9 +236,7 @@ const removeFromCart = async (cartItemId) => {
         {selectedUserId && account && (
           <div className="checkout-panel">
             <p>
-              <strong>
-                {users.find((u) => u.id === selectedUserId)?.name}'s Balance:
-              </strong>{" "}
+              <strong>{users.find((u) => u.id === selectedUserId)?.name}'s Balance:</strong>{" "}
               R {account.balance.toFixed(2)}
             </p>
 
@@ -211,8 +244,14 @@ const removeFromCart = async (cartItemId) => {
               <strong>Cart Total:</strong> R {cartTotal.toFixed(2)}
             </p>
 
+            {countdown !== null && (
+              <p>
+                <strong>Cart expires in:</strong> {Math.floor(countdown / 60)}m {countdown % 60}s
+              </p>
+            )}
+
             <button
-              disabled={checkoutLoading || !cart.length || account.balance < cartTotal}
+              disabled={checkoutLoading || !cart.length || account.balance < cartTotal || countdown === 0}
               onClick={handleCheckout}
             >
               {checkoutLoading ? "Processing..." : "Checkout for User"}

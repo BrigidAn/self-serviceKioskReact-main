@@ -32,7 +32,7 @@ export default function ManageProducts() {
 
   const [popup, setPopup] = useState({ show: false, productId: null, productName: "", onConfirm: null });
   const [filterLowStock, setFilterLowStock] = useState(false);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 8;
 
   const fetchDashboardData = async () => {
     setLoading(true);

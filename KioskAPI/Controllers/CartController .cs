@@ -72,6 +72,10 @@ namespace KioskAPI.Controllers
       {
         try
         {
+          foreach (var item in cart.CartItems)
+          {
+            item.Product.Quantity += item.Quantity; // ✅ restore stock
+          }
           this._context.CartItems.RemoveRange(cart.CartItems);
           this._context.Carts.Remove(cart);
           await this._context.SaveChangesAsync().ConfigureAwait(true);
@@ -191,14 +195,14 @@ namespace KioskAPI.Controllers
           cart = new Cart
           {
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddHours(24)
+            ExpiresAt = DateTime.UtcNow.AddMinutes(2)
           };
           this._context.Carts.Add(cart);
           await this._context.SaveChangesAsync().ConfigureAwait(true);
         }
         else
         {
-          cart.ExpiresAt = DateTime.UtcNow.AddHours(24);
+          cart.ExpiresAt = DateTime.UtcNow.AddMinutes(2);
         }
 
         var cartItem = new CartItem

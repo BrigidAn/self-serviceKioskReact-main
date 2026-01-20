@@ -6,9 +6,14 @@ import ConfirmTopUpModal from "../../components/ConfirmTopUpModal";
 
 const ACCOUNT_API = "https://localhost:5016/api/account";
 const TX_API = "https://localhost:5016/api/Transaction";
-const token = localStorage.getItem("token");
 
 function AccountsPage() {
+  // 🔐 AUTH STATE (FIXED LOCATION)
+  const [authReady, setAuthReady] = useState(false);
+  const [authToken, setAuthToken] = useState(null);
+  const [authUserId, setAuthUserId] = useState(null);
+
+  // 💰 ACCOUNT STATE
   const [balance, setBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState("");
   const [transactions, setTransactions] = useState([]);
@@ -17,13 +22,28 @@ function AccountsPage() {
   const [showConfirmTopUp, setShowConfirmTopUp] = useState(false);
   const [pendingAmount, setPendingAmount] = useState(0);
 
-  const userId = localStorage.getItem("userId");
+  /* ---------------- AUTH INITIALIZATION ---------------- */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
 
+    if (!token || !userId) {
+      toast.error("Session expired. Please log in again.");
+      return;
+    }
+
+    setAuthToken(token);
+    setAuthUserId(userId);
+    setAuthReady(true);
+  }, []);
+
+  /* ---------------- FETCH BALANCE ---------------- */
   const fetchBalance = async () => {
     try {
       const res = await fetch(`${ACCOUNT_API}/balance`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
+
       if (!res.ok) throw new Error("Failed to fetch balance");
 
       const data = await res.json();
@@ -34,10 +54,11 @@ function AccountsPage() {
     }
   };
 
+  /* ---------------- FETCH TRANSACTIONS ---------------- */
   const fetchTransactions = async () => {
     try {
       const res = await fetch(`${TX_API}/mytrasactions`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (!res.ok) throw new Error("Could not load transactions");
@@ -51,51 +72,49 @@ function AccountsPage() {
     }
   };
 
+  /* ---------------- AUTO LOAD ON LOGIN ---------------- */
   useEffect(() => {
+    if (!authReady) return;
+
+    setBalance(0);
+    setTransactions([]);
+    setLoadingTx(true);
+
     fetchBalance();
     fetchTransactions();
-  }, []);
+  }, [authReady, authUserId]);
 
+  /* ---------------- VALIDATE TOP UP ---------------- */
   const validateAmount = () => {
     if (topUpAmount.trim() === "") {
       setPopupMessage("Amount is required.");
-      return false;
-    }
-
-    if (/[^0-9.]/.test(topUpAmount)) {
-      setPopupMessage("Amount cannot contain letters.");
-      return false;
+      return;
     }
 
     const amount = parseFloat(topUpAmount);
 
-    if (isNaN(amount)) {
-      setPopupMessage("Invalid amount entered.");
-      return false;
-    }
-
-    if (amount <= 0) {
-      setPopupMessage("Amount must be greater than zero.");
-      return false;
+    if (isNaN(amount) || amount <= 0) {
+      setPopupMessage("Enter a valid amount.");
+      return;
     }
 
     if (amount > 1500) {
       setPopupMessage("You cannot top up more than R1500 at once.");
-      return false;
+      return;
     }
 
     setPendingAmount(amount);
     setShowConfirmTopUp(true);
-    return true;
   };
 
+  /* ---------------- HANDLE TOP UP ---------------- */
   const handleTopUp = async (amount) => {
     try {
       const res = await fetch(`${ACCOUNT_API}/topup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ amount }),
       });
@@ -113,6 +132,7 @@ function AccountsPage() {
     }
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="acc-container">
       <button className="back-btn" onClick={() => window.history.back()}>
@@ -124,12 +144,17 @@ function AccountsPage() {
 
       <div className="acc-card balance-card">
         <h2>Available Balance</h2>
-        <div className="acc-balance">R {balance.toFixed(2)}</div>
+        <div
+          className={`acc-balance ${
+            balance < 0 ? "neg" : "pos"
+          }`}
+        >
+          R {balance.toFixed(2)}
+        </div>
       </div>
 
       <div className="acc-card topup-card">
         <h2>Add Funds</h2>
-
         <div className="topup-input-wrap">
           <input
             type="number"
@@ -138,10 +163,7 @@ function AccountsPage() {
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
           />
-          <button
-            className="topup-btn"
-            onClick={validateAmount} 
-          >
+          <button className="topup-btn" onClick={validateAmount}>
             Top Up
           </button>
         </div>
@@ -166,10 +188,15 @@ function AccountsPage() {
                 </div>
 
                 <span
-                  className={
-                    tx.totalAmount < 0 ? "tx-amount neg" : "tx-amount pos"
-                  }
-                >
+                    className={`tx-amount ${
+                      tx.type?.toLowerCase() === "checkout"
+                        ? "neg"
+                        : tx.totalAmount < 0
+                        ? "neg"
+                        : "pos"
+                    }`}
+                  >
+
                   {tx.totalAmount < 0
                     ? `- R${Math.abs(tx.totalAmount).toFixed(2)}`
                     : `+ R${tx.totalAmount.toFixed(2)}`}

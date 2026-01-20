@@ -198,6 +198,26 @@
   background: #e53935;
 }
 
+.tx-amount.pos {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.tx-amount.neg {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.balance-positive {
+  color: #1eaa6e; /* green */
+}
+
+.balance-negative {
+  color: #e63946; /* red */
+}
+
+
+
 /* ANIMATIONS */
 @keyframes overlayFade {
   from { opacity: 0; }

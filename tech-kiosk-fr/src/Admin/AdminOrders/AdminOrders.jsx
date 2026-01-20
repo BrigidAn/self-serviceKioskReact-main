@@ -38,7 +38,7 @@ export default function AdminOrders() {
       const prodList = await fetchProducts();
       setProducts(prodList);
 
-      const res = await fetch(`${API_URL}/Admin/orders?page=1&pageSize=70`, {
+      const res = await fetch(`${API_URL}/Admin/orders?page=1&pageSize=100`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error("Failed to fetch orders");
