@@ -11,6 +11,7 @@ export default function CartPage() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [expiredMessage, setExpiredMessage] = useState("");
 
   // ✅ NEW: expiry + countdown
   const [expiresAt, setExpiresAt] = useState(null);
@@ -95,9 +96,17 @@ export default function CartPage() {
         setTotal(0);
         setTimeLeft("");
 
-        alert("Your cart has expired ⏰");
-        navigate("/products");
+      setExpiredMessage("⏰ Your cart has expired. Redirecting to products...");
+        setCart([]);
+        setTotal(0);
+        setTimeLeft("");
+
+        setTimeout(() => {
+          navigate("/products");
+        }, 3000);
+
         return;
+
       }
 
       const minutes = Math.floor(diff / 60000);
@@ -189,6 +198,13 @@ export default function CartPage() {
         </button>
 
         <h2 className="cart-title">Your Cart</h2>
+
+        {expiredMessage && (
+          <div className="cart-expired-message">
+            {expiredMessage}
+          </div>
+        )}
+
 
         {/* ✅ COUNTDOWN DISPLAY */}
         {timeLeft && (
