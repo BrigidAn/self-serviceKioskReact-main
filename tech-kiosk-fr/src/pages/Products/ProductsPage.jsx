@@ -34,8 +34,9 @@ export default function ProductsPage() {
         if (!mounted) return;
 
       const availableProducts = (data || [])
-      .filter(p => (typeof p.quantity === "number" ? p.quantity : Number(p.qty)) > 0)
-      .map(p => ({
+      .filter(p => (typeof p.quantity === "number" ? p.quantity : Number(p.qty)) > 0 )
+      .filter(p => p.isAvailable)
+        .map(p => ({
         id: p.id ?? p._id ?? p.productId,
         name: p.name ?? "Unnamed product",
         price: Number(p.price) || 0,
@@ -294,7 +295,7 @@ export default function ProductsPage() {
                 <div className="vp-empty">No products match your filters.</div>
               )}
             </section>
-            
+
             <div className="vp-pagination">
               <button
                 className="vp-page-btn"

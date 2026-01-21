@@ -34,29 +34,39 @@ export default function ManageProducts() {
   const [filterLowStock, setFilterLowStock] = useState(false);
   const PAGE_SIZE = 8;
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/product`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
-      const productList = Array.isArray(data) ? data : data?.data ?? [];
-      productList.sort((a, b) => (a.productId ?? a.id ?? 0) - (b.productId ?? b.id ?? 0));
-      setProducts(productList);
+     // Fetch products from backend
+      const fetchDashboardData = async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`${API_URL}/product`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
+          if (!res.ok) throw new Error("Failed to fetch products");
 
-      const lowStockCount = productList.filter((p) => Number(p.quantity) <= 5).length;
-      setStats({ totalProducts: productList.length, lowStock: lowStockCount });
+          const data = await res.json();
+          const productList = Array.isArray(data) ? data : data?.data ?? [];
 
-      setFilteredProducts(filterLowStock ? productList.filter((p) => Number(p.quantity) <= 5) : productList);
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Failed to fetch products");
-    } finally {
-      setLoading(false);
-    }
-  };
+          // ⚡ IMPORTANT: don't override isAvailable — use exactly what backend returns
+          const sortedProducts = productList.sort(
+            (a, b) => (a.productId ?? a.id ?? 0) - (b.productId ?? b.id ?? 0)
+          );
+
+          setProducts(sortedProducts);
+          setFilteredProducts(filterLowStock ? sortedProducts.filter(p => Number(p.quantity) <= 5) : sortedProducts);
+
+          // Update stats
+          const lowStockCount = sortedProducts.filter(p => Number(p.quantity) <= 5).length;
+          setStats({ totalProducts: sortedProducts.length, lowStock: lowStockCount });
+
+        } catch (err) {
+          console.error(err);
+          toast.error(err.message || "Failed to fetch products");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+
 
   useEffect(() => {
     fetchDashboardData();
@@ -127,7 +137,6 @@ export default function ManageProducts() {
       if (isEditing && editingId) {
         // Editing
         if (form.file) {
-          // New file selected
           const fd = new FormData();
           fd.append("Name", form.name.trim());
           fd.append("Description", form.description || "");
@@ -143,7 +152,6 @@ export default function ManageProducts() {
             body: fd,
           });
         } else {
-          // No new file -> JSON with existing image
           const payload = {
             Name: form.name.trim(),
             Description: form.description || "",
@@ -206,6 +214,40 @@ export default function ManageProducts() {
       onConfirm: () => handleConfirmDelete(productId, productName),
     });
   };
+
+     const toggleAvailability = async (productId, currentStatus) => {
+        try {
+          const res = await fetch(`${API_URL}/product/${productId}/availability`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ isAvailable: !currentStatus }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data?.message || "Failed to update availability");
+          }
+
+          toast.success(!currentStatus ? "Product enabled" : "Product disabled");
+
+          // Update local state without defaulting
+          setProducts(prev =>
+            prev.map(p => (p.productId ?? p.id) === productId ? { ...p, isAvailable: !currentStatus } : p)
+          );
+          setFilteredProducts(prev =>
+            prev.map(p => (p.productId ?? p.id) === productId ? { ...p, isAvailable: !currentStatus } : p)
+          );
+
+        } catch (err) {
+          console.error(err);
+          toast.error(err.message || "Update failed");
+        }
+      };
+
+
 
   const handleConfirmDelete = async (productId, productName) => {
     try {
@@ -271,27 +313,58 @@ export default function ManageProducts() {
                 <th>Price</th>
                 <th>Quantity</th>
                 <th>Supplier</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="empty">No products found</td>
+                  <td colSpan={9} className="empty">No products found</td>
                 </tr>
               ) : (
                 paginatedProducts.map((p, idx) => (
-                  <tr key={p.productId ?? p.id ?? idx}>
+                  <tr
+                    key={p.productId ?? p.id ?? idx}
+                    className={p.quantity === 0 ? "row-disabled" : ""}
+                  >
                     <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
-                    <td><img src={p.imageUrl || p.image || "/placeholder.png"} alt={p.name} /></td>
+                    <td>
+                      <img
+                        src={p.imageUrl || p.image || "/placeholder.png"}
+                        alt={p.name}
+                        className={p.quantity === 0 ? "img-disabled" : ""}
+                      />
+                    </td>
                     <td>{p.name}</td>
                     <td>{p.category}</td>
                     <td>R {Number(p.price).toFixed(2)}</td>
                     <td>{p.quantity ?? 0}</td>
                     <td>{p.supplierId}</td>
                     <td>
-                      <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
-                      <button className="btn danger small" onClick={() => requestDelete(p.productId ?? p.id, p.name)}>Delete</button>
+                      <span className={p.isAvailable ? "status active" : "status inactive"}>
+                        {p.isAvailable ? "Available" : "Unavailable"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="btn small"
+                        onClick={() => openEdit(p)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className={`btn small ${p.isAvailable ? "warning" : "success"}`}
+                        onClick={() => toggleAvailability(p.productId ?? p.id, p.isAvailable)}
+                      >
+                        {p.isAvailable ? "Disable" : "Enable"}
+                      </button>
+                      <button
+                        className="btn danger small"
+                        onClick={() => requestDelete(p.productId ?? p.id, p.name)}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -310,6 +383,7 @@ export default function ManageProducts() {
                 onClick={() => handlePageChange(i + 1)}
               >
                 {i + 1}
+
               </button>
             ))}
             <button onClick={() => handlePageChange(currentPage + 1)}>Next</button>

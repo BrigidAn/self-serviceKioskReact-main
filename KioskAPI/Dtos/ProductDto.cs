@@ -22,6 +22,7 @@ namespace KioskAPI.Dtos
     public string? SupplierName { get; set; }
 
     public bool IsAvailable { get; set; }
+    public bool DisplayAvailable => IsAvailable && Quantity > 0;
   }
 
   public class CreateProductDto
@@ -77,10 +78,6 @@ namespace KioskAPI.Dtos
     public int? SupplierId { get; set; }
     public IFormFile File { get; set; }
 
-    public bool IsAvailable { get; set; }
-  }
-  public class UpdateProductAvailabilityDto
-  {
     public bool IsAvailable { get; set; }
   }
 }

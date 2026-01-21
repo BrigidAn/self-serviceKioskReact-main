@@ -310,3 +310,20 @@
   box-shadow: 0 0 8px #15532866;
   transform: translateY(-2px);
 }
+
+
+.row-disabled {
+  opacity: 0.5;
+  pointer-events: none; /* optional: prevent clicking cells/buttons if you want */
+  background-color: #f5f5f5;
+}
+
+.img-disabled {
+  filter: grayscale(100%);
+}
+
+.status.inactive {
+  color: red;
+  font-weight: bold;
+}
+

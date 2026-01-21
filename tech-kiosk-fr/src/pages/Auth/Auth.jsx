@@ -14,8 +14,34 @@ export default function Auth() {
 
   const toggleMode = () => setIsLogin(!isLogin);
 
+  // ✅ simple validators
+  const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validateForm = () => {
+    if (!isLogin && fullName.trim().length < 3) {
+      toast.error("Full name must be at least 3 characters");
+      return false;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ stop if validation fails
+    if (!validateForm()) return;
 
     const url = isLogin
       ? "https://localhost:5016/api/Auth/login"
@@ -32,7 +58,10 @@ export default function Auth() {
         body: JSON.stringify(body),
       });
 
-      if (!response.ok) throw new Error("Authentication failed");
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || "Authentication failed");
+      }
 
       const data = await response.json();
 
@@ -46,16 +75,15 @@ export default function Auth() {
       );
 
       setTimeout(() => {
-      if (role === "Admin") {
-        navigate("/admin/dashboard", { replace: true });
-      } else {
-        navigate("/landing", { replace: true });
-      }
-    }, 2200);
-
-  } catch (err) {
-    toast.error(err.message || "Something went wrong");
-  }
+        if (role === "Admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else {
+          navigate("/landing", { replace: true });
+        }
+      }, 2200);
+    } catch (err) {
+      toast.error(err.message || "Something went wrong");
+    }
   };
 
   return (
@@ -82,7 +110,6 @@ export default function Auth() {
               placeholder="Full Name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              required
             />
           )}
 
@@ -91,16 +118,13 @@ export default function Auth() {
             placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
 
           <input
             type="password"
             placeholder="Password"
-            minLength="6"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
 
           <button type="submit" className="auth-btn">

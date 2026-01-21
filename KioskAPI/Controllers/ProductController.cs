@@ -39,14 +39,20 @@ namespace KioskAPI.Controllers
     /// <returns>
     /// 200 OK with a list of products.
     /// </returns>
+    // KioskAPI/Controllers/ProductController.cs
     [HttpGet]
-    public async Task<IActionResult> GetProducts()
+    public async Task<IActionResult> GetProducts([FromQuery] bool adminView = false)
     {
-      var products = await this._context.Products
-          .Include(p => p.Supplier)
-          .ToListAsync().ConfigureAwait(true);
+      var query = this._context.Products.Include(p => p.Supplier).AsQueryable();
 
+      if (!adminView) // normal users
+      {
+        query = query.Where(p => p.IsAvailable);
+      }
+
+      var products = await query.ToListAsync().ConfigureAwait(true);
       var productDtos = products.Select(ProductMapper.ToDto).ToList();
+
       return this.Ok(productDtos);
     }
 
@@ -167,7 +173,7 @@ namespace KioskAPI.Controllers
         }
       }
 
-    ProductMapper.UpdateEntity(product, dto);
+      ProductMapper.UpdateEntity(product, dto);
 
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product updated successfully" });
@@ -312,5 +318,21 @@ namespace KioskAPI.Controllers
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product availability updated" });
     }
+
+    [HttpPut("{id}/availability")]
+    public async Task<IActionResult> ToggleAvailability(int id, [FromBody] UpdateProductAvailabilityDto dto)
+    {
+      var product = await this._context.Products.FindAsync(id).ConfigureAwait(true);
+      if (product == null)
+      {
+        return this.NotFound();
+      }
+
+      product.IsAvailable = dto.IsAvailable;
+      await this._context.SaveChangesAsync().ConfigureAwait(true);
+
+      return this.Ok(new { product.ProductId, product.IsAvailable });
+    }
+
   }
 }
