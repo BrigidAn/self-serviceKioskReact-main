@@ -314,7 +314,6 @@
 
 .row-disabled {
   opacity: 0.5;
-  pointer-events: none; /* optional: prevent clicking cells/buttons if you want */
   background-color: #f5f5f5;
 }
 
@@ -327,3 +326,10 @@
   font-weight: bold;
 }
 
+.empty-row {
+  height: 72px;
+}
+
+.empty-row td {
+  border: none;
+}    

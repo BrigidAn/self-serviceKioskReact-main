@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CartPage.css";
+import { toast } from "react-toastify";
+
 
 const API_URL = "https://localhost:5016/api";
 const token = localStorage.getItem("token");
@@ -17,7 +19,7 @@ export default function CartPage() {
   const [expiresAt, setExpiresAt] = useState(null);
   const [timeLeft, setTimeLeft] = useState("");
   const [expired, setExpired] = useState(false);
-
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   /* ---------------- FETCH CART ---------------- */
   const fetchCart = async () => {
@@ -136,6 +138,25 @@ export default function CartPage() {
     }
   };
 
+ /* ---------------- CLEAR ALL ITEMS ---------------- */
+const handleClearCart = async () => {
+  try {
+    await Promise.all(
+      cart.map((item) =>
+        fetch(`${API_URL}/cart/item/${item.cartItemId}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
+    );
+
+    setCart([]);
+    setTotal(0);
+  } catch (err) {
+    console.error("Failed to clear cart:", err);
+  }
+};
+
   /* ---------------- UPDATE QUANTITY ---------------- */
   const handleQuantityChange = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
@@ -205,13 +226,26 @@ export default function CartPage() {
           </div>
         )}
 
-
         {/* ✅ COUNTDOWN DISPLAY */}
         {timeLeft && (
           <div className="cart-expiry">
             ⏳ Cart expires in <span>{timeLeft}</span>
           </div>
         )}
+
+        <div className="cart-actions">
+          <button className="cart-back-btn" onClick={() => navigate("/products")}>
+            ← Back
+          </button>
+
+          <button
+            className="cart-clear-btn"
+            onClick={() => setShowClearConfirm(true)}
+          >
+            Clear All
+          </button>
+
+        </div>
 
         <div className="cart-items">
           {cart.map((item) => (
@@ -273,6 +307,30 @@ export default function CartPage() {
           Checkout
         </button>
       </div>
+      {showClearConfirm && (
+        <div className="clear-cart-popup">
+          <div className="clear-cart-popup-content">
+            <p>Are you sure you want to clear your entire cart?</p>
+            <div className="clear-cart-popup-actions">
+              <button
+                className="confirm-btn"
+                onClick={() => {
+                  handleClearCart(); // your existing clear function
+                  setShowClearConfirm(false);
+                }}
+              >
+                Yes
+              </button>
+              <button
+                className="cancel-btn"
+                onClick={() => setShowClearConfirm(false)}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -208,3 +208,32 @@
   position: relative;
   left: 750px;
 }
+
+/* Placeholder rows when loading */
+.placeholder-row td {
+  height: 50px;
+}
+
+/* Grey out unavailable products */
+.unavailable-product {
+  background-color: #e0e0e0;
+  color: #888;
+}
+
+.unavailable-product input,
+.unavailable-product button {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Grey out unavailable products */
+.unavailable-product {
+  background-color: #e0e0e0;
+  color: #888;
+}
+
+.unavailable-product input,
+.unavailable-product button {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

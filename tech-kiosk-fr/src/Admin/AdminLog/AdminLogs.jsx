@@ -9,9 +9,9 @@ export default function AdminLogs() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // change this to show more/less per page
+  const itemsPerPage = 15;
   const token = localStorage.getItem("token");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const fetchTransactions = async () => {
     try {
       setLoading(true);
@@ -36,20 +36,30 @@ export default function AdminLogs() {
     fetchTransactions();
   }, []);
 
-  const filtered = transactions.filter((t) => {
-    switch (filter) {
-      case "credit":
-        return t.type.toLowerCase() === "deposit";
-      case "topup":
-        return t.type.toLowerCase() === "topup";
-      case "checkout":
-        return t.type.toLowerCase() === "checkout" || t.type.toLowerCase() === "purchase";
-      case "admin_topup":
-        return t.type.toLowerCase() === "admin_topup";
-      default:
-        return true;
-    }
-  });
+const filtered = transactions.filter((t) => {
+
+  let matchesFilter;
+  switch (filter) {
+    case "credit":
+      matchesFilter = t.type.toLowerCase() === "deposit";
+      break;
+    case "topup":
+      matchesFilter = t.type.toLowerCase() === "topup";
+      break;
+    case "checkout":
+      matchesFilter = t.type.toLowerCase() === "checkout" || t.type.toLowerCase() === "purchase";
+      break;
+    case "admin_topup":
+      matchesFilter = t.type.toLowerCase() === "admin_topup";
+      break;
+    default:
+      matchesFilter = true;
+  }
+
+  const matchesSearch = t.accountOwner?.toLowerCase().includes(searchTerm.toLowerCase());
+
+  return matchesFilter && (!searchTerm || matchesSearch);
+});
 
   // --- PAGINATION LOGIC ---
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -65,12 +75,19 @@ export default function AdminLogs() {
     <AdminLayout>
       <h1>Transaction Logs</h1>
 
+    <div className="search-bar">
+      <input
+        type="text"
+        placeholder="Search by user..."
+        value={searchTerm}
+        onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+      />
+    </div>
+
+
       <div className="filter-buttons">
         <button onClick={() => { setFilter("all"); setCurrentPage(1); }} className={filter === "all" ? "active" : ""}>
           All
-        </button>
-        <button onClick={() => { setFilter("credit"); setCurrentPage(1); }} className={filter === "credit" ? "active" : ""}>
-          Credit
         </button>
         <button onClick={() => { setFilter("topup"); setCurrentPage(1); }} className={filter === "topup" ? "active" : ""}>
           Top-Up
@@ -78,7 +95,7 @@ export default function AdminLogs() {
         <button onClick={() => { setFilter("checkout"); setCurrentPage(1); }} className={filter === "checkout" ? "active" : ""}>
           Checkout
         </button>
-        <button onClick={() => { setFilter("admin_topup"); setCurrentPage(1); }} className={filter === "admin_topup" ? "active" : ""}>
+        <button onClick={() => { setFilter("Admin_topup"); setCurrentPage(1); }} className={filter === "admin_topup" ? "active" : ""}>
           Admin Top-Up
         </button>
       </div>

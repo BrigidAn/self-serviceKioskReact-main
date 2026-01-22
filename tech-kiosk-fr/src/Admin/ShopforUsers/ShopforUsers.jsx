@@ -18,7 +18,6 @@ export default function ShopForUser() {
   const [currentPage, setCurrentPage] = useState(1);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [cartExpiry, setCartExpiry] = useState(null); // NEW: cart expiration timer
 
   const token = localStorage.getItem("token");
 
@@ -46,23 +45,31 @@ export default function ShopForUser() {
   };
 
   // Fetch cart and account
-  const fetchCartAndAccount = async (userId) => {
-    if (!userId) return;
+const fetchCartAndAccount = async (userId) => {
+  if (!userId) return;
 
+  try {
+    // Fetch cart
     const cartRes = await fetch(`${API_URL}/admin/cart/summary/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const cartTxt = await cartRes.text();
     const cartData = cartTxt ? JSON.parse(cartTxt) : { items: [], expiry: null };
-    setCart(cartData.items || []);
-    setCartExpiry(cartData.expiry ? new Date(cartData.expiry) : null);
 
+    setCart(cartData.items || []);
+
+    // Fetch user account
     const accRes = await fetch(`${API_URL}/user/account/${userId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const accTxt = await accRes.text();
     setAccount(accTxt ? JSON.parse(accTxt) : null);
-  };
+  } catch (err) {
+    toast.error("Failed to fetch cart or account");
+    console.error(err);
+  }
+};
+
 
   useEffect(() => {
     fetchUsers();
@@ -73,23 +80,7 @@ export default function ShopForUser() {
     if (selectedUserId) fetchCartAndAccount(selectedUserId);
   }, [selectedUserId]);
 
-  // Cart countdown timer
-  const [countdown, setCountdown] = useState(null);
-  useEffect(() => {
-    if (!cartExpiry) {
-      setCountdown(null);
-      return;
-    }
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = Math.max(0, Math.floor((cartExpiry - now) / 1000)); // seconds
-      setCountdown(diff);
-      if (diff === 0) clearInterval(interval);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [cartExpiry]);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -106,15 +97,16 @@ export default function ShopForUser() {
     setCurrentPage(page);
   };
 
-  const addToCart = async (productId) => {
-    if (!selectedUserId) return toast.warning("Select a user first");
+const addToCart = async (productId) => {
+  if (!selectedUserId) return toast.warning("Select a user first");
 
-    const product = products.find((p) => p.productId === productId);
-    if (!product || product.quantity === 0) return toast.error("Product out of stock");
+  const product = products.find((p) => p.productId === productId);
+  if (!product || product.quantity === 0) return toast.error("Product out of stock");
 
-    const qty = quantityMap[productId] || 1;
-    if (qty > product.quantity) return toast.error("Exceeds stock");
+  const qty = quantityMap[productId] || 1;
+  if (qty > product.quantity) return toast.error("Exceeds stock");
 
+  try {
     await fetch(`${API_URL}/admin/cart/add`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -123,9 +115,18 @@ export default function ShopForUser() {
 
     toast.success("Added to cart");
     setQuantityMap((prev) => ({ ...prev, [productId]: 1 }));
+
+    // ✅ Fetch fresh cart & expiry after adding
     await fetchCartAndAccount(selectedUserId);
+
+    // Optionally refresh products
     fetchProducts();
-  };
+  } catch (err) {
+    toast.error("Failed to add to cart");
+    console.error(err);
+  }
+};
+
 
   const removeFromCart = async (cartItemId) => {
     if (!selectedUserId) return;
@@ -143,49 +144,45 @@ export default function ShopForUser() {
   };
 
   // Checkout
-  const handleCheckout = async () => {
-    if (!selectedUserId) return toast.warning("Select a user first");
-    if (!cart.length) return toast.warning("Cart is empty");
-    if (countdown === 0) return toast.error("Cart has expired ⏰");
+const handleCheckout = async () => {
+  if (!selectedUserId) return toast.warning("Select a user first");
 
-    setCheckoutLoading(true);
+  // ✅ Always fetch latest cart & expiry
+  await fetchCartAndAccount(selectedUserId);
 
-    // Always fetch latest cart before checkout
-    await fetchCartAndAccount(selectedUserId);
+  if (!cart.length) return toast.warning("Cart is empty");
 
-    const latestCartTotal = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const latestCartTotal = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  if (!account || account.balance < latestCartTotal) {
+    return toast.error("User does not have enough balance");
+  }
 
-    if (!account || account.balance < latestCartTotal) {
-      toast.error("User does not have enough balance");
-      setCheckoutLoading(false);
-      return;
+  setCheckoutLoading(true);
+
+  try {
+    const res = await fetch(`${API_URL}/checkout`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: selectedUserId, deliveryMethod: "delivery" }),
+    });
+
+    const data = await res.json();
+    setCheckoutLoading(false);
+
+    if (res.ok) {
+      toast.success(data.message || "Checkout successful");
+      await fetchCartAndAccount(selectedUserId);
+      fetchProducts();
+    } else {
+      toast.error(data.message || "Checkout failed");
     }
+  } catch (err) {
+    setCheckoutLoading(false);
+    toast.error("Checkout failed: " + err.message);
+  }
+};
 
-    try {
-      const res = await fetch(`${API_URL}/checkout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: selectedUserId, deliveryMethod: "delivery" }),
-      });
 
-      const data = await res.json();
-      setCheckoutLoading(false);
-
-      if (res.ok) {
-        toast.success(data.message || "Checkout successful");
-        fetchCartAndAccount(selectedUserId);
-        fetchProducts();
-      } else {
-        toast.error(data.message || "Checkout failed");
-      }
-    } catch (err) {
-      toast.error("Checkout failed: " + err.message);
-      setCheckoutLoading(false);
-    }
-  };
 
   const cartTotal = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
@@ -244,14 +241,12 @@ export default function ShopForUser() {
               <strong>Cart Total:</strong> R {cartTotal.toFixed(2)}
             </p>
 
-            {countdown !== null && (
-              <p>
-                <strong>Cart expires in:</strong> {Math.floor(countdown / 60)}m {countdown % 60}s
-              </p>
-            )}
-
             <button
-              disabled={checkoutLoading || !cart.length || account.balance < cartTotal || countdown === 0}
+                disabled={
+                  checkoutLoading ||
+                  !cart.length ||
+                  account.balance < cartTotal
+                }
               onClick={handleCheckout}
             >
               {checkoutLoading ? "Processing..." : "Checkout for User"}
@@ -274,54 +269,59 @@ export default function ShopForUser() {
                 </tr>
               </thead>
               <tbody>
-                {loadingProducts ? (
-                  <tr><td colSpan="7">Loading products...</td></tr>
-                ) : paginatedProducts.length === 0 ? (
-                  <tr><td colSpan="7">No products found</td></tr>
-                ) : (
-                  paginatedProducts.map((p) => (
-                    <tr key={p.productId}>
-                      <td>
-                        <img
-                          src={p.imageUrl || "https://via.placeholder.com/60"}
-                          alt={p.name}
-                          className="table-img"
-                        />
-                      </td>
-                      <td>{p.name}</td>
-                      <td>{p.category}</td>
-                      <td>R {p.price.toFixed(2)}</td>
-                      <td>{p.quantity === 0 ? "Out" : p.quantity}</td>
-                      <td>
-                        <input
-                          type="number"
-                          min="1"
-                          max={p.quantity}
-                          value={quantityMap[p.productId] || 1}
-                          disabled={p.quantity === 0}
-                          onChange={(e) =>
-                            setQuantityMap((prev) => ({
-                              ...prev,
-                              [p.productId]: Math.min(
-                                Math.max(+e.target.value, 1),
-                                p.quantity
-                              ),
-                            }))
-                          }
-                        />
-                      </td>
-                      <td>
-                        <button
-                          disabled={p.quantity === 0}
-                          onClick={() => addToCart(p.productId)}
-                        >
-                          Add
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
+                  {Array.from({ length: PAGE_SIZE }).map((_, idx) => {
+                    const product = paginatedProducts[idx];
+                    if (!product) {
+                      return (
+                        <tr key={`placeholder-${idx}`} className="placeholder-row">
+                          {Array.from({ length: 7 }).map((_, col) => (
+                            <td key={col}>&nbsp;</td>
+                          ))}
+                        </tr>
+                      );
+                    }
+                    const isUnavailable = product.quantity === 0 || product.isAvailable === false;
+
+                    return (
+                      <tr key={product.productId} className={isUnavailable ? "unavailable-product" : ""}>
+                        <td>
+                          <img
+                            src={product.imageUrl || "https://via.placeholder.com/60"}
+                            alt={product.name}
+                            className="table-img"
+                          />
+                        </td>
+                        <td>{product.name}</td>
+                        <td>{product.category}</td>
+                        <td>R {product.price.toFixed(2)}</td>
+                        <td>{isUnavailable ? "Out" : product.quantity}</td>
+                        <td>
+                          <input
+                            type="number"
+                            min="1"
+                            max={product.quantity}
+                            value={quantityMap[product.productId] || 1}
+                            disabled={isUnavailable}
+                            onChange={(e) =>
+                              setQuantityMap((prev) => ({
+                                ...prev,
+                                [product.productId]: Math.min(
+                                  Math.max(+e.target.value, 1),
+                                  product.quantity
+                                ),
+                              }))
+                            }
+                          />
+                        </td>
+                        <td>
+                          <button disabled={isUnavailable} onClick={() => addToCart(product.productId)}>
+                            Add
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
             </table>
           </div>
 
