@@ -144,7 +144,9 @@ export default function ManageProducts() {
           fd.append("Category", form.category);
           fd.append("Quantity", Number(form.quantity));
           fd.append("SupplierId", Number(form.supplierId));
-          fd.append("File", form.file);
+          if (form.file) {
+            fd.append("File", form.file);
+          }
 
           res = await fetch(`${API_URL}/product/${editingId}`, {
             method: "PUT",
@@ -274,6 +276,11 @@ export default function ManageProducts() {
     currentPage * PAGE_SIZE
   );
 
+  const paddedProducts = [...paginatedProducts];
+  while (paddedProducts.length < PAGE_SIZE) {
+  paddedProducts.push(null);
+  }
+
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
@@ -318,58 +325,59 @@ export default function ManageProducts() {
               </tr>
             </thead>
             <tbody>
-              {paginatedProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="empty">No products found</td>
-                </tr>
-              ) : (
-                paginatedProducts.map((p, idx) => (
-                  <tr
-                    key={p.productId ?? p.id ?? idx}
-                    className={p.quantity === 0 ? "row-disabled" : ""}
-                  >
-                    <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
-                    <td>
-                      <img
-                        src={p.imageUrl || p.image || "/placeholder.png"}
-                        alt={p.name}
-                        className={p.quantity === 0 ? "img-disabled" : ""}
-                      />
-                    </td>
-                    <td>{p.name}</td>
-                    <td>{p.category}</td>
-                    <td>R {Number(p.price).toFixed(2)}</td>
-                    <td>{p.quantity ?? 0}</td>
-                    <td>{p.supplierId}</td>
-                    <td>
-                      <span className={p.isAvailable ? "status active" : "status inactive"}>
-                        {p.isAvailable ? "Available" : "Unavailable"}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn small"
-                        onClick={() => openEdit(p)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className={`btn small ${p.isAvailable ? "warning" : "success"}`}
-                        onClick={() => toggleAvailability(p.productId ?? p.id, p.isAvailable)}
-                      >
-                        {p.isAvailable ? "Disable" : "Enable"}
-                      </button>
-                      <button
-                        className="btn danger small"
-                        onClick={() => requestDelete(p.productId ?? p.id, p.name)}
-                      >
-                        Delete
-                      </button>
-                    </td>
+                {paddedProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="empty">No products found</td>
                   </tr>
-                ))
-              )}
-            </tbody>
+                ) : (
+                  paddedProducts.map((p, idx) =>
+                    p ? (
+                      <tr
+                        key={p.productId ?? p.id}
+                        className={p.quantity === 0 ? "row-disabled" : ""}
+                      >
+                        <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
+                        <td>
+                          <img
+                            src={p.imageUrl || "/placeholder.png"}
+                            alt={p.name}
+                            className={p.quantity === 0 ? "img-disabled" : ""}
+                          />
+                        </td>
+                        <td>{p.name}</td>
+                        <td>{p.category}</td>
+                        <td>R {Number(p.price).toFixed(2)}</td>
+                        <td>{p.quantity ?? 0}</td>
+                        <td>{p.supplierId}</td>
+                        <td>
+                          <span className={p.isAvailable ? "status active" : "status inactive"}>
+                            {p.isAvailable ? "Available" : "Unavailable"}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn small" onClick={() => openEdit(p)}>Edit</button>
+                          <button
+                            className={`btn small ${p.isAvailable ? "warning" : "success"}`}
+                            onClick={() => toggleAvailability(p.productId ?? p.id, p.isAvailable)}
+                          >
+                            {p.isAvailable ? "Disable" : "Enable"}
+                          </button>
+                          <button
+                            className="btn danger small"
+                            onClick={() => requestDelete(p.productId ?? p.id, p.name)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={`empty-${idx}`} className="empty-row">
+                        <td colSpan={9}>&nbsp;</td>
+                      </tr>
+                    )
+                  )
+                )}
+              </tbody>
           </table>
         </section>
 

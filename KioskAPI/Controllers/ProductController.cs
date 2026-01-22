@@ -41,18 +41,13 @@ namespace KioskAPI.Controllers
     /// </returns>
     // KioskAPI/Controllers/ProductController.cs
     [HttpGet]
-    public async Task<IActionResult> GetProducts([FromQuery] bool adminView = false)
+    public async Task<IActionResult> GetProducts()
     {
-      var query = this._context.Products.Include(p => p.Supplier).AsQueryable();
+      var products = await this._context.Products
+           .Include(p => p.Supplier)
+           .ToListAsync().ConfigureAwait(true);
 
-      if (!adminView) // normal users
-      {
-        query = query.Where(p => p.IsAvailable);
-      }
-
-      var products = await query.ToListAsync().ConfigureAwait(true);
       var productDtos = products.Select(ProductMapper.ToDto).ToList();
-
       return this.Ok(productDtos);
     }
 

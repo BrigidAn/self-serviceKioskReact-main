@@ -110,7 +110,7 @@
   color: #333;
   position: relative;
   top: 5px;
-  right: 250px;
+  left: 200px;
   font-size: 0.95rem;
 }
 
@@ -178,3 +178,35 @@
   box-shadow: 0 0 8px #15532866;
   transform: translateY(-2px);
 }
+
+/* Search bar styling */
+.o-search-input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background: #97a6b6d8;
+  border-radius: 6px;
+  position: relative;
+  right: 900px;       /* Space between filter and search */
+  min-width: 250px;        /* Makes it visible */
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.o-search-input:focus {
+  border-color: #007bff;   /* Blue highlight on focus */
+}
+
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.placeholder-row td {
+  height: 20px;       /* same as normal rows */
+  background-color: transparent; /* no grey */
+}
+

@@ -11,9 +11,9 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [filterStatus, setFilterStatus] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const token = localStorage.getItem("token");
 
@@ -57,9 +57,9 @@ export default function AdminOrders() {
   }, []);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    setOrders(prev => prev.map(o => o.orderId === orderId
-      ? { ...o, status: newStatus } : o
-    ));
+    setOrders((prev) =>
+      prev.map((o) => (o.orderId === orderId ? { ...o, status: newStatus } : o))
+    );
     try {
       const res = await fetch(`${API_URL}/order/${orderId}`, {
         method: "PUT",
@@ -69,7 +69,6 @@ export default function AdminOrders() {
         },
         body: JSON.stringify({ status: newStatus }),
       });
-
       if (!res.ok) throw new Error("Failed to update status");
       toast.success("Order status updated");
       fetchOrders();
@@ -81,13 +80,37 @@ export default function AdminOrders() {
 
   const getProductName = (productId) => {
     const prod = products.find((p) => p.productId === productId);
-    return prod ? prod.name : `Product #${productId}`;
+    return prod?.name || `Unknown Product (#${productId})`;
   };
 
-  const filteredOrders =
-    filterStatus === "All"
-      ? orders
-      : orders.filter((o) => o.status === filterStatus);
+const filteredOrders = orders
+  .filter((o) => {
+    // Exclude orders with no items or items not in products
+    if (!o.items || o.items.length === 0) return false;
+    const allItemsExist = o.items.every((i) =>
+      products.some((p) => p.productId === i.productId)
+    );
+    if (!allItemsExist) return false;
+
+    // Filter by status
+    if (filterStatus !== "All" && o.status !== filterStatus) return false;
+
+    // Filter by search term
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+
+    if (o.orderId.toString().includes(term)) return true;
+    if ((o.customer || "").toLowerCase().includes(term)) return true;
+    if (
+      o.items.some((i) =>
+        getProductName(i.productId).toLowerCase().includes(term)
+      )
+    )
+      return true;
+
+    return false;
+  });
+
 
   const totalPages = Math.ceil(filteredOrders.length / PAGE_SIZE);
   const paginatedOrders = filteredOrders.slice(
@@ -107,28 +130,38 @@ export default function AdminOrders() {
         <header className="dashboard-header">
           <h1>All Orders</h1>
           <div className="controls">
-            <button className="o-btn" onClick={fetchOrders}>
-              Refresh
-            </button>
-            <label className="o-filter"> Filter
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Completed">Completed</option>
+            {/* Filter */}
+            <label className="o-filter">
+              Filter
+              <select
+                value={filterStatus}
+                onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="All">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
               </select>
             </label>
+
+            <input
+              type="text"
+              className="o-search-input"
+              placeholder="Search by user, order ID, or product..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
         </header>
 
         {loading ? (
           <p>Loading orders...</p>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <p>No orders found</p>
         ) : (
           <>
@@ -145,57 +178,62 @@ export default function AdminOrders() {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {paginatedOrders.map((order, idx) => (
-                  <tr key={order.orderId}>
-                    <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
-                    <td>{order.orderId}</td>
-                    <td>{order.customer}</td>
-                    <td>
-                      {order.items?.map((i, index) => (
-                        <div key={index}>
-                          {getProductName(i.productId)} x{i.quantity} @
-                          R{i.priceAtPurchase.toFixed(2)}
-                        </div>
-                      ))}
-                    </td>
-                    <td>R {Number(order.totalAmount).toFixed(2)}</td>
-                    <td>{order.status}</td>
-                    <td>{new Date(order.orderDate).toLocaleString()}</td>
-                    <td>
-                      {order.status !== "Completed" && (
-                        <button
-                          className="btn small"
-                          onClick={() =>
-                            handleStatusChange(order.orderId, "Completed")
-                          }
-                        >
-                          Mark Completed
-                        </button>
-                      )}
-                    </td>
+          <tbody>
+              {paginatedOrders.map((order, idx) => (
+                <tr key={order.orderId}>
+                  <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
+                  <td>{order.orderId}</td>
+                  <td>{order.customer}</td>
+                  <td>
+                    {order.items?.length > 0
+                      ? order.items.map((i, index) => (
+                          <div key={index}>
+                            {getProductName(i.productId)} x{i.quantity} @
+                            R{i.priceAtPurchase.toFixed(2)}
+                          </div>
+                        ))
+                      : "No products"}
+                  </td>
+                  <td>R {Number(order.totalAmount).toFixed(2)}</td>
+                  <td>{order.status}</td>
+                  <td>{new Date(order.orderDate).toLocaleString()}</td>
+                  <td>
+                    {order.status !== "Completed" && (
+                      <button
+                        className="btn small"
+                        onClick={() => handleStatusChange(order.orderId, "Completed")}
+                      >
+                        Mark Completed
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+
+              {/* Placeholder rows to maintain table height */}
+              {paginatedOrders.length < PAGE_SIZE &&
+                Array.from({ length: PAGE_SIZE - paginatedOrders.length }).map((_, idx) => (
+                  <tr key={`placeholder-${idx}`} className="placeholder-row">
+                    {Array.from({ length: 8 }).map((_, col) => (
+                      <td key={col}>&nbsp;</td>
+                    ))}
                   </tr>
                 ))}
-              </tbody>
+            </tbody>
             </table>
-
             {totalPages > 1 && (
               <div className="o-pagination">
-                <button onClick={() => handlePageChange(currentPage - 1)}>
-                  Prev
-                </button>
+                <button onClick={() => handlePageChange(currentPage - 1)}>Prev</button>
                 {[...Array(totalPages)].map((_, i) => (
                   <button
                     key={i}
-                    className= {currentPage === i + 1 ? "active" : ""}
+                    className={currentPage === i + 1 ? "active" : ""}
                     onClick={() => handlePageChange(i + 1)}
                   >
                     {i + 1}
                   </button>
                 ))}
-                <button onClick={() => handlePageChange(currentPage + 1)}>
-                  Next
-                </button>
+                <button onClick={() => handlePageChange(currentPage + 1)}>Next</button>
               </div>
             )}
           </>

@@ -80,9 +80,46 @@ h1 {
   }
 }
 
-
-
 .filter-buttons button.active {
   background-color: #4f46e5;
   color: white;
+}
+
+/* --- Search Bar --- */
+.search-bar {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  background: #a4bec783;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Clear button next to search */
+.search-bar button {
+  padding: 0.5rem 0.75rem;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.search-bar button:hover {
+  background-color: #d32f2f;
 }

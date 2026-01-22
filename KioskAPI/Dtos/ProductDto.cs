@@ -22,7 +22,6 @@ namespace KioskAPI.Dtos
     public string? SupplierName { get; set; }
 
     public bool IsAvailable { get; set; }
-    public bool DisplayAvailable => IsAvailable && Quantity > 0;
   }
 
   public class CreateProductDto
@@ -57,18 +56,15 @@ namespace KioskAPI.Dtos
 
   public class UpdateProductDto
   {
-    [Required]
     [MaxLength(100)]
     public string? Name { get; set; }
 
     [MaxLength(500)]
     public string? Description { get; set; }
 
-    [Required]
     [Range(0.01, double.MaxValue, ErrorMessage = "Price Must be greater than zero")]
     public decimal? Price { get; set; }
 
-    [Required]
     [MaxLength(50)]
     public string? Category { get; set; }
     public string? ImageUrl { get; set; }
@@ -76,7 +72,7 @@ namespace KioskAPI.Dtos
     [Range(0, int.MaxValue, ErrorMessage = "Quantity can not be negative")]
     public int? Quantity { get; set; }
     public int? SupplierId { get; set; }
-    public IFormFile File { get; set; }
+    public IFormFile? File { get; set; }
 
     public bool IsAvailable { get; set; }
   }

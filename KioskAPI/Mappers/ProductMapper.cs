@@ -26,7 +26,7 @@ namespace KioskAPI.Mappers
         ImageUrl = product.ImageUrl,
         SupplierId = product.SupplierId ?? 0,
         SupplierName = product.Supplier?.Name ?? "Unknown",
-        IsAvailable = product.Quantity > 0
+        IsAvailable = product.Quantity > 0 && product.IsAvailable,
       };
     }
 
