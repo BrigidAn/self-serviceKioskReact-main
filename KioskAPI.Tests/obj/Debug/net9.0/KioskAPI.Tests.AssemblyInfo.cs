@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KioskAPI.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+380af1ec4589b6928d7ec71ce451c2c9988f3eb9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef56821c174a169fa03f542b5b2a4ce591b256de")]
 [assembly: System.Reflection.AssemblyProductAttribute("KioskAPI.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KioskAPI.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -17,6 +17,8 @@ namespace KioskAPI.Controllers
   [Authorize]
   public class AccountController : ControllerBase
   {
+    private const decimal MaxSelfTopUpPer24Hours = 1500m;
+
     private readonly IAccountRepository _accountRepo;
 
     /// <summary>
@@ -68,7 +70,7 @@ namespace KioskAPI.Controllers
     /// </summary>
     /// <param name="request">containing the top-up amount.</param>
     /// <returns>200 OK updated account data
-    /// 400 request exceeds the amount of 1500
+    /// 400 request exceeds R1500, or the user's top-ups in the last 24 hours would exceed R1500
     /// 401 an unauthorized user not logged in </returns>
     [HttpPost("topup")]
     public async Task<IActionResult> TopUp([FromBody] TopUpDto request)
@@ -79,9 +81,25 @@ namespace KioskAPI.Controllers
         return this.Unauthorized(new { message = "You are not logged in" });
       }
 
-      if (request.Amount > 1500)
+      if (request.Amount <= 0 || request.Amount > MaxSelfTopUpPer24Hours)
       {
-        return this.BadRequest(new { message = "Maximum amount to deposit is R1500" });
+        return this.BadRequest(new { message = $"Top-up amount must be between R0.01 and R{MaxSelfTopUpPer24Hours}" });
+      }
+
+      // Self top-ups have no payment step, so cap the total a user can add per rolling 24 hours.
+      var since = DateTime.UtcNow.AddHours(-24);
+      var recentTopUps = (await this._accountRepo.GetTransactionsAsync(userId).ConfigureAwait(true))
+        .Where(t => t.Type == "credit" && t.CreatedAt >= since)
+        .Sum(t => t.TotalAmount);
+
+      if (recentTopUps + request.Amount > MaxSelfTopUpPer24Hours)
+      {
+        decimal remainingAllowance = Math.Max(0, MaxSelfTopUpPer24Hours - recentTopUps);
+        return this.BadRequest(new
+        {
+          message = $"Top-up limit reached. You can add R{remainingAllowance:0.00} more in the next 24 hours.",
+          remainingAllowance
+        });
       }
 
       var account = await this._accountRepo.GetAccountByUserIdAsync(userId).ConfigureAwait(true);

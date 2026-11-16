@@ -149,16 +149,12 @@ namespace KioskAPI.Controllers
 
       if (account.Balance < grandTotal)
       {
-        decimal remaining = grandTotal - account.Balance;
-        decimal deducted = account.Balance;
-        account.Balance = 0;
-        await this._context.SaveChangesAsync().ConfigureAwait(true);
-
+        // Nothing is charged: the user tops up the remaining amount and checks out again.
         return this.BadRequest(new
         {
           message = "Insufficient balance",
-          remainingAmount = remaining,
-          deductedAmount = deducted,
+          remainingAmount = grandTotal - account.Balance,
+          currentBalance = account.Balance,
           itemsTotal,
           deliveryFee,
           grandTotal

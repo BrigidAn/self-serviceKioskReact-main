@@ -313,21 +313,5 @@ namespace KioskAPI.Controllers
       await this._context.SaveChangesAsync().ConfigureAwait(true);
       return this.Ok(new { message = "Product availability updated" });
     }
-
-    [HttpPut("{id}/availability")]
-    public async Task<IActionResult> ToggleAvailability(int id, [FromBody] UpdateProductAvailabilityDto dto)
-    {
-      var product = await this._context.Products.FindAsync(id).ConfigureAwait(true);
-      if (product == null)
-      {
-        return this.NotFound();
-      }
-
-      product.IsAvailable = dto.IsAvailable;
-      await this._context.SaveChangesAsync().ConfigureAwait(true);
-
-      return this.Ok(new { product.ProductId, product.IsAvailable });
-    }
-
   }
 }

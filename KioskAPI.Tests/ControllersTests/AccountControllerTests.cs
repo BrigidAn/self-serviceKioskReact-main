@@ -52,6 +52,9 @@ namespace KioskAPI.Tests.ControllersTests
       this._repo.Setup(r => r.GetAccountByUserIdAsync(1))
           .ReturnsAsync(account);
 
+      this._repo.Setup(r => r.GetTransactionsAsync(1))
+          .ReturnsAsync(new List<Transaction>());
+
       this._repo.Setup(r => r.UpdateBalanceAsync(1, 300))
           .Returns(Task.CompletedTask);
 
@@ -62,6 +65,25 @@ namespace KioskAPI.Tests.ControllersTests
 
       var ok = result as OkObjectResult;
       ok.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task TopUp_Exceeds24HourLimit_ReturnsBadRequest_AndDoesNotCredit()
+    {
+      this._repo.Setup(r => r.GetTransactionsAsync(1))
+          .ReturnsAsync(new List<Transaction>
+          {
+            new Transaction { Type = "credit", TotalAmount = 1000, CreatedAt = DateTime.UtcNow.AddHours(-2) },
+            new Transaction { Type = "credit", TotalAmount = 1000, CreatedAt = DateTime.UtcNow.AddDays(-3) } // outside window
+          });
+
+      var result = await this._controller.TopUp(new TopUpDto
+      {
+        Amount = 600
+      });
+
+      result.Should().BeOfType<BadRequestObjectResult>();
+      this._repo.Verify(r => r.UpdateBalanceAsync(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
     }
 
     [Fact]

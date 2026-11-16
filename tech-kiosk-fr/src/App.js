@@ -9,14 +9,14 @@ import AboutPage from "./pages/About/AboutPage";
 import HistoryPage from "./pages/HistoryPage/HistoryPage";
 import Auth from "./pages/Auth/Auth";
 import CheckoutPage from "./pages/Checkout/CheckoutPage";
-import AdminDashboard from "./admin/AdminDashboard/AdminDashboard";
-import ManageUsers from "./admin/ManageUsers/ManageUsers";
-import ManageProducts from "./admin/ManageProducts/ManageProducts";
-import AdminLogs from "./admin/AdminLog/AdminLogs";
+import AdminDashboard from "./Admin/AdminDashboard/AdminDashboard";
+import ManageUsers from "./Admin/ManageUsers/ManageUsers";
+import ManageProducts from "./Admin/ManageProducts/ManageProducts";
+import AdminLogs from "./Admin/AdminLog/AdminLogs";
 import UserRoute from "./components/UserRoute";
 import AdminRoute from "./components/AdminRoute";
-import AdminOrders from "./admin/AdminOrders/AdminOrders";
-import ShopForUser from "./admin/ShopforUsers/ShopforUsers";
+import AdminOrders from "./Admin/AdminOrders/AdminOrders";
+import ShopForUser from "./Admin/ShopforUsers/ShopforUsers";
 
 function App() {
   return (

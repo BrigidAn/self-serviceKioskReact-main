@@ -188,10 +188,12 @@ namespace KioskAPI.Tests.ControllersTests
         UserId = 1,
         Status = "Pending",
         PaymentStatus = "Unpaid",
+        TotalAmount = 100m,
         OrderItems = new List<OrderItem>()
       };
 
       context.Orders.Add(order);
+      context.Accounts.Add(new Account { AccountId = 1, UserId = 1, Balance = 250m });
       await context.SaveChangesAsync();
 
       var controller = GetController(context, userId: 1);
@@ -201,8 +203,64 @@ namespace KioskAPI.Tests.ControllersTests
       result.Should().BeOfType<OkObjectResult>();
 
       var updatedOrder = await context.Orders.FindAsync(1);
-      updatedOrder!.Status.Should().Be("Complete");
+      updatedOrder!.Status.Should().Be("Completed");
       updatedOrder.PaymentStatus.Should().Be("Paid");
+
+      var account = await context.Accounts.FindAsync(1);
+      account!.Balance.Should().Be(150m);
+      context.Transactions.Should().ContainSingle(t => t.OrderId == 1 && t.TotalAmount == 100m);
+    }
+
+    [Fact]
+    public async Task CompleteOrder_ReturnsBadRequest_WhenBalanceInsufficient()
+    {
+      using var context = GetInMemoryDb();
+
+      context.Orders.Add(new Order
+      {
+        OrderId = 1,
+        UserId = 1,
+        Status = "Pending",
+        PaymentStatus = "Unpaid",
+        TotalAmount = 100m,
+        OrderItems = new List<OrderItem>()
+      });
+      context.Accounts.Add(new Account { AccountId = 1, UserId = 1, Balance = 40m });
+      await context.SaveChangesAsync();
+
+      var controller = GetController(context, userId: 1);
+
+      var result = await controller.CompleteOrder(1);
+
+      result.Should().BeOfType<BadRequestObjectResult>();
+      var unchanged = await context.Orders.FindAsync(1);
+      unchanged!.PaymentStatus.Should().Be("Unpaid");
+      (await context.Accounts.FindAsync(1))!.Balance.Should().Be(40m);
+    }
+
+    [Fact]
+    public async Task CompleteOrder_ReturnsBadRequest_WhenAlreadyPaid()
+    {
+      using var context = GetInMemoryDb();
+
+      context.Orders.Add(new Order
+      {
+        OrderId = 1,
+        UserId = 1,
+        Status = "Completed",
+        PaymentStatus = "Paid",
+        TotalAmount = 100m,
+        OrderItems = new List<OrderItem>()
+      });
+      context.Accounts.Add(new Account { AccountId = 1, UserId = 1, Balance = 500m });
+      await context.SaveChangesAsync();
+
+      var controller = GetController(context, userId: 1);
+
+      var result = await controller.CompleteOrder(1);
+
+      result.Should().BeOfType<BadRequestObjectResult>();
+      (await context.Accounts.FindAsync(1))!.Balance.Should().Be(500m);
     }
 
     [Fact]

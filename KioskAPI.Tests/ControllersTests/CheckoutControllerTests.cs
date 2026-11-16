@@ -231,6 +231,9 @@ namespace KioskAPI.Tests.ControllersTests
       var result = await controller.Checkout(dto);
       var badRequest = result as BadRequestObjectResult;
       badRequest.Should().NotBeNull();
+
+      // Nothing should be charged when the balance is too low.
+      (await context.Accounts.FindAsync(account.AccountId))!.Balance.Should().Be(50);
     }
   }
 }

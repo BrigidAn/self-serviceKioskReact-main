@@ -37,7 +37,7 @@ builder.Services.AddScoped<AuthService>();
 
 // ===== Database Context =====
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Local")));
 
 // builder.Services.AddDbContext<AppDbContext>(options =>
 //     options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));

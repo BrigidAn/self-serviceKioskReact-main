@@ -4,7 +4,6 @@ namespace KioskAPI.Data
   using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
   using Microsoft.EntityFrameworkCore;
 
-
   /// <summary>
   /// Represents the application's database context.
   /// Inherits from <see cref="IdentityDbContext{User, Role, int}"/>
@@ -39,12 +38,14 @@ namespace KioskAPI.Data
 
             new Role { Id = 1,
             Name = "Admin",
-            NormalizedName = "ADMIN" },
+            NormalizedName = "ADMIN",
+            ConcurrencyStamp = null },
 
             new Role
             { Id = 2,
             Name = "User",
-            NormalizedName = "USER" }
+            NormalizedName = "USER",
+            ConcurrencyStamp = null }
       };
       builder.Entity<Role>().HasData(roles);
     }

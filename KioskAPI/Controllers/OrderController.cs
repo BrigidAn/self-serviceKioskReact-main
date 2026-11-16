@@ -242,7 +242,46 @@ namespace KioskAPI.Controllers
           return this.NotFound(new { message = "Order not found" });
         }
 
-        order.Status = "Complete";
+        if (order.PaymentStatus == "Paid")
+        {
+          return this.BadRequest(new { message = "Order is already paid" });
+        }
+
+        // Charge the order total to the user's wallet before marking it paid.
+        var account = await this._context.Accounts
+            .FirstOrDefaultAsync(a => a.UserId == userId)
+            .ConfigureAwait(true);
+
+        if (account == null)
+        {
+          return this.BadRequest(new { message = "User account not found" });
+        }
+
+        if (account.Balance < order.TotalAmount)
+        {
+          return this.BadRequest(new
+          {
+            message = "Insufficient balance",
+            remainingAmount = order.TotalAmount - account.Balance,
+            currentBalance = account.Balance,
+            totalAmount = order.TotalAmount
+          });
+        }
+
+        account.Balance -= order.TotalAmount;
+        account.LastUpdated = DateTime.UtcNow;
+
+        this._context.Transactions.Add(new Transaction
+        {
+          AccountId = account.AccountId,
+          OrderId = order.OrderId,
+          Type = "Checkout",
+          TotalAmount = order.TotalAmount,
+          Description = $"Payment for order #{order.OrderId}",
+          CreatedAt = DateTime.UtcNow
+        });
+
+        order.Status = "Completed";
         order.PaymentStatus = "Paid";
 
         await this._context.SaveChangesAsync().ConfigureAwait(true);
