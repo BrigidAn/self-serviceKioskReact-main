@@ -1,0 +1,107 @@
+.ui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition),
+    transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+}
+
+.ui-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ui-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.ui-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---- Sizes ---- */
+.ui-btn--sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+}
+
+.ui-btn--md {
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-base);
+  min-height: 40px;
+}
+
+.ui-btn--lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+  min-height: 48px;
+}
+
+.ui-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ---- Variants ---- */
+.ui-btn--primary {
+  background: var(--gradient-accent);
+  color: var(--color-text-on-accent);
+}
+
+.ui-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 0 14px rgba(0, 255, 234, 0.45);
+}
+
+.ui-btn--secondary {
+  background: var(--color-glass);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.ui-btn--secondary:hover:not(:disabled) {
+  background: var(--color-glass-strong);
+}
+
+.ui-btn--danger {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+.ui-btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+}
+
+.ui-btn--ghost {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.ui-btn--ghost:hover:not(:disabled) {
+  background: var(--color-glass);
+}
+
+/* ---- Loading ---- */
+.ui-btn__spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ui-btn-spin 0.7s linear infinite;
+}
+
+@keyframes ui-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

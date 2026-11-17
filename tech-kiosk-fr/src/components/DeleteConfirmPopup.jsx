@@ -1,29 +1,22 @@
 import React from "react";
-import "./ConfirmTopUpModal.css"; 
+import { Button, Modal } from "./ui";
 
-export default function DeleteConfirmPopup({
-  show,
-  message,
-  onDelete,
-  onCancel,
-}) {
-  if (!show) return null;
-
+export default function DeleteConfirmPopup({ show, message, onDelete, onCancel }) {
   return (
-    <div className="popup-overlay">
-      <div className="popup">
-        <p>{message}</p>
-
-        <div className="popup-actions">
-          <button className="btn danger" onClick={onDelete}>
-            Delete
-          </button>
-
-          <button className="btn" onClick={onCancel}>
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      open={show}
+      onClose={onCancel}
+      title="Delete item?"
+      tone="danger"
+      size="sm"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button variant="danger" onClick={onDelete}>Delete</Button>
+        </>
+      }
+    >
+      <p>{message}</p>
+    </Modal>
   );
 }

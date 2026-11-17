@@ -374,10 +374,13 @@ namespace KioskAPI.Controllers
 
       if (cart == null)
       {
-        cart = new Cart { UserId = dto.UserId, ExpiresAt = DateTime.UtcNow.AddHours(24) };
+        cart = new Cart { UserId = dto.UserId, ExpiresAt = DateTime.UtcNow.AddHours(24), CartItems = new List<CartItem>() };
         this._context.Carts.Add(cart);
         await this._context.SaveChangesAsync().ConfigureAwait(true);
       }
+
+      // Reserve stock the same way the shopper's cart does; it is released on remove/expiry.
+      product.Quantity -= dto.Quantity;
 
       var existingCartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == dto.ProductId);
       if (existingCartItem != null)
@@ -484,8 +487,6 @@ namespace KioskAPI.Controllers
           Quantity = ci.Quantity,
           PriceAtPurchase = ci.UnitPrice
         });
-
-        ci.Product.Quantity -= ci.Quantity;
       }
 
       cart.IsCheckedOut = true;
@@ -518,6 +519,7 @@ namespace KioskAPI.Controllers
         return this.NotFound(new { message = "Cart item not found" });
       }
 
+      cartItem.Product.Quantity += cartItem.Quantity; // release the reserved stock
       this._context.CartItems.Remove(cartItem);
       await this._context.SaveChangesAsync().ConfigureAwait(true);
 

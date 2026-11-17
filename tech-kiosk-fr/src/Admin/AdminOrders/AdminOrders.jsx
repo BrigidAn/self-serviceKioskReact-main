@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../AdminLayout";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AdminOrders.css";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api";
+const API_URL = `${BASE_API_URL}`;
 const PAGE_SIZE = 12;
 
 export default function AdminOrders() {
@@ -125,7 +126,6 @@ const filteredOrders = orders
 
   return (
     <AdminLayout>
-      <ToastContainer position="top-right" />
       <div className="admin-orders">
         <header className="dashboard-header">
           <h1>All Orders</h1>

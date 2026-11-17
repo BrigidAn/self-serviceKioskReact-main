@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./ShopforUsers.css";
 import AdminLayout from "../AdminLayout";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api";
+const API_URL = `${BASE_API_URL}`;
 const PAGE_SIZE = 6;
 
 export default function ShopForUser() {
@@ -188,7 +189,6 @@ const handleCheckout = async () => {
 
   return (
     <AdminLayout>
-      <ToastContainer position="top-right" />
 
       <div className="shop-users-container">
         <h1>🛒 Shop for Users</h1>
@@ -343,7 +343,6 @@ const handleCheckout = async () => {
           </div>
         </div>
 
-        <ToastContainer />
             {totalPages > 1 && (
               <div className="o-pagination">
                 <button onClick={() => handlePageChange(currentPage - 1)}>

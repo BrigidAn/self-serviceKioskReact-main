@@ -3,9 +3,11 @@ import "./AccountPage.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ConfirmTopUpModal from "../../components/ConfirmTopUpModal";
+import { Button, Modal } from "../../components/ui";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const ACCOUNT_API = "https://localhost:5016/api/account";
-const TX_API = "https://localhost:5016/api/Transaction";
+const ACCOUNT_API = `${BASE_API_URL}/account`;
+const TX_API = `${BASE_API_URL}/Transaction`;
 
 function AccountsPage() {
   // 🔐 AUTH STATE (FIXED LOCATION)
@@ -224,19 +226,15 @@ function AccountsPage() {
         onCancel={() => setShowConfirmTopUp(false)}
       />
 
-      {popupMessage && (
-        <div className="popup-overlay" onClick={() => setPopupMessage("")}>
-          <div className="popup-box">
-            <p>{popupMessage}</p>
-            <button
-              className="btn primary"
-              onClick={() => setPopupMessage("")}
-            >
-              OK
-            </button>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={Boolean(popupMessage)}
+        onClose={() => setPopupMessage("")}
+        title="Account"
+        size="sm"
+        footer={<Button onClick={() => setPopupMessage("")}>OK</Button>}
+      >
+        <p>{popupMessage}</p>
+      </Modal>
     </div>
   );
 }

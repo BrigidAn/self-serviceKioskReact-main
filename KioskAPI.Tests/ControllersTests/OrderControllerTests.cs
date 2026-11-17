@@ -144,6 +144,34 @@ namespace KioskAPI.Tests.ControllersTests
     }
 
     [Fact]
+    public async Task CreateOrder_NonAdmin_CannotCreateOrderForAnotherUser()
+    {
+      using var context = GetInMemoryDb();
+
+      context.Products.Add(new Product
+      {
+        ProductId = 1,
+        Name = "Test Product",
+        Price = 50,
+        Quantity = 10,
+        Category = "Food",
+        Description = "Test"
+      });
+      await context.SaveChangesAsync();
+
+      var controller = GetController(context, userId: 1);
+
+      var result = await controller.CreateOrder(new CreateOrderDto
+      {
+        UserId = 2, // tries to order on someone else's behalf
+        Items = new List<CreateOrderItemDto> { new CreateOrderItemDto { ProductId = 1, Quantity = 1 } }
+      });
+
+      result.Should().BeOfType<OkObjectResult>();
+      context.Orders.Should().ContainSingle().Which.UserId.Should().Be(1);
+    }
+
+    [Fact]
     public async Task CreateOrder_ReturnsBadRequest_WhenInsufficientStock()
     {
       using var context = GetInMemoryDb();

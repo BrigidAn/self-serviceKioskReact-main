@@ -1,21 +1,20 @@
 import React from "react";
-import "./InsufficientBalanceModal.css";
+import { Button, Modal } from "./ui";
 
 export default function InsufficientBalanceModal({ show, onClose, remainingAmount, children }) {
-  if (!show) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>Insufficient Balance</h2>
-        <p>Your balance is not enough to complete this purchase.</p>
-
-        <p>Amount Needed: R {remainingAmount.toFixed(2)}</p>
-
-        {children} 
-
-        <button onClick={onClose} className="modal-close-btn">Close</button>
-      </div>
-    </div>
+    <Modal
+      open={show}
+      onClose={onClose}
+      title="Insufficient balance"
+      tone="danger"
+      footer={<Button variant="secondary" onClick={onClose}>Close</Button>}
+    >
+      <p>Your balance is not enough to complete this purchase.</p>
+      <p>
+        Amount needed: <strong>R {Number(remainingAmount || 0).toFixed(2)}</strong>
+      </p>
+      {children}
+    </Modal>
   );
 }

@@ -172,6 +172,50 @@ namespace KioskAPI.Tests.ControllersTests
       response.Should().NotBeNull();
       response.TotalAmount.Should().Be(100);
       response.DeliveryFee.Should().Be(0);
+
+      // Stock was reserved when the items went into the cart; checkout must not deduct it again.
+      (await context.Products.FindAsync(1))!.Quantity.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task Checkout_Succeeds_WhenCartHoldsTheLastReservedUnit()
+    {
+      using var context = this.GetInMemoryDb();
+      int userId = 1;
+
+      // The last unit is already reserved in the cart, so remaining stock is 0.
+      var product = new Product
+      {
+        ProductId = 1,
+        Name = "Last One",
+        Category = "Test",
+        Description = "Desc",
+        Price = 50,
+        Quantity = 0
+      };
+      context.Products.Add(product);
+
+      context.Carts.Add(new Cart
+      {
+        CartId = 1,
+        UserId = userId,
+        IsCheckedOut = false,
+        ExpiresAt = DateTime.UtcNow.AddHours(1),
+        CartItems = new List<CartItem>
+        {
+          new CartItem { CartItemId = 1, ProductId = 1, Quantity = 1, UnitPrice = 50, Product = product }
+        }
+      });
+      context.Accounts.Add(new Account { AccountId = 1, UserId = userId, Balance = 100 });
+      await context.SaveChangesAsync();
+
+      var controller = this.GetController(context, userId);
+
+      var result = await controller.Checkout(new CheckoutRequestDto { DeliveryMethod = "pickup" });
+
+      result.Should().BeOfType<OkObjectResult>();
+      (await context.Products.FindAsync(1))!.Quantity.Should().Be(0);
+      (await context.Accounts.FindAsync(1))!.Balance.Should().Be(50);
     }
 
     [Fact]

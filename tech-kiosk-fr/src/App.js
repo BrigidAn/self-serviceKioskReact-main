@@ -17,10 +17,14 @@ import UserRoute from "./components/UserRoute";
 import AdminRoute from "./components/AdminRoute";
 import AdminOrders from "./Admin/AdminOrders/AdminOrders";
 import ShopForUser from "./Admin/ShopforUsers/ShopforUsers";
+import { ToastContainer } from "react-toastify";
+import { CartTimerProvider } from "./context/CartTimerContext";
+import CartTimerPill from "./components/CartTimerPill/CartTimerPill";
 
 function App() {
   return (
     <Router>
+      <CartTimerProvider>
       <Routes>
         <Route path="/" element={<Auth/>} />
         <Route path="/landing" element={<UserRoute> <LandingPage/> </UserRoute>} />
@@ -41,6 +45,9 @@ function App() {
         <Route path="/admin/shop" element={<AdminRoute> <ShopForUser /> </AdminRoute>} />
 
       </Routes>
+      <CartTimerPill />
+      </CartTimerProvider>
+      <ToastContainer position="top-right" autoClose={3500} newestOnTop />
     </Router>
   );
 }

@@ -3,15 +3,19 @@ import "./ProductsPage.css";
 import NavBar from "../../components/Navbar";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useCartTimer } from "../../context/CartTimerContext";
+import { Button } from "../../components/ui";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const PRODUCTS_API = "https://localhost:5016/api/product";
+const PRODUCTS_API = `${BASE_API_URL}/product`;
 const PLACEHOLDER = "https://via.placeholder.com/600x600.png?text=No+Image";
-const CART_API = "https://localhost:5016/api/cart";
+const CART_API = `${BASE_API_URL}/cart`;
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cartCount, setCartCount] = useState(0);
+  const { refreshCart } = useCartTimer();
 
   const [searchText, setSearchText] = useState("");
   const [category, setCategory] = useState("All");
@@ -135,6 +139,7 @@ export default function ProductsPage() {
       );
 
       setCartCount((c) => c + 1);
+      refreshCart(); // adding an item restarts the reservation timer
       toast.success(`${product.name} added to cart`);
     } catch (err) {
       console.error(err);
@@ -279,13 +284,15 @@ export default function ProductsPage() {
                       <div className="vp-card-footer">
                         <div className="vp-price">R {Number(p.price).toFixed(2)}</div>
 
-                        <button
-                          className="vp-add-btn"
+                        <Button
+                          size="sm"
+                          variant={p.quantity > 0 ? "primary" : "secondary"}
                           onClick={() => handleAdd(p)}
                           disabled={p.quantity <= 0}
+                          aria-label={p.quantity > 0 ? `Add ${p.name} to cart` : `${p.name} is sold out`}
                         >
-                          {p.quantity > 0 ? "Add" : "Sold out"}
-                        </button>
+                          {p.quantity > 0 ? "Add to cart" : "Sold out"}
+                        </Button>
                       </div>
 
                     </div>
@@ -297,13 +304,15 @@ export default function ProductsPage() {
             </section>
 
             <div className="vp-pagination">
-              <button
-                className="vp-page-btn"
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-label="Previous page"
                 onClick={() => setCurrentPage((s) => Math.max(1, s - 1))}
                 disabled={currentPage === 1}
               >
                 ←
-              </button>
+              </Button>
 
               {Array.from({ length: totalPages }).map((_, i) => {
                 const page = i + 1;
@@ -333,13 +342,15 @@ export default function ProductsPage() {
                 );
               })}
 
-              <button
-                className="vp-page-btn"
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-label="Next page"
                 onClick={() => setCurrentPage((s) => Math.min(totalPages, s + 1))}
                 disabled={currentPage === totalPages}
               >
                 →
-              </button>
+              </Button>
             </div>
           </main>
         </div>

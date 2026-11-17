@@ -236,3 +236,24 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Top-up form inside the insufficient-balance modal */
+.checkout-topup {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.checkout-topup .ui-input {
+  flex: 1;
+}
+
+@media (max-width: 420px) {
+  .checkout-topup {
+    flex-direction: column;
+  }
+}
+
+.checkout-back {
+  align-self: flex-start;
+}

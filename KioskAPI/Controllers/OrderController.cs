@@ -131,6 +131,22 @@ namespace KioskAPI.Controllers
         return this.BadRequest(this.ModelState);
       }
 
+      // Regular users can only create orders for themselves; only admins may order on behalf of another user.
+      if (!int.TryParse(this.User.FindFirstValue(ClaimTypes.NameIdentifier), out var currentUserId))
+      {
+        return this.Unauthorized(new { message = "Invalid token" });
+      }
+
+      bool isAdmin = this.User.IsInRole("Admin");
+      if (!isAdmin || newOrderDto.UserId <= 0)
+      {
+        newOrderDto.UserId = currentUserId;
+      }
+      else if (!await this._context.Users.AnyAsync(u => u.Id == newOrderDto.UserId).ConfigureAwait(true))
+      {
+        return this.BadRequest(new { message = $"User {newOrderDto.UserId} not found." });
+      }
+
       using var transaction = await this._context.Database.BeginTransactionAsync().ConfigureAwait(true);
       try
       {

@@ -1,5 +1,27 @@
-node_modules
+# Dependencies
+node_modules/
 
-KioskAPI/obj
-KioskAPI/bin
-KioskAPI/bin/Debug
+# .NET build output
+bin/
+obj/
+TestResults/
+*.user
+
+# IDEs
+.vs/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+Logs/
+*.log
+
+# Frontend build
+tech-kiosk-fr/build/
+
+# Secrets — never commit these (use .env.example as the template)
+.env
+.env.*
+!.env.example
+appsettings.*.local.json

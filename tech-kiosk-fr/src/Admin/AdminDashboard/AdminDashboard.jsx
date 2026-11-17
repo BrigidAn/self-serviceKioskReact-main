@@ -17,8 +17,9 @@ import {
   CartesianGrid,
 } from "recharts";
 import "./AdminDashboard.css";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api";
+const API_URL = `${BASE_API_URL}`;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({

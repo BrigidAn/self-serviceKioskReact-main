@@ -10,11 +10,12 @@ namespace KioskAPI.Services
   /// </summary>
   public class CloudinaryService : ICloudinaryService
   {
-    private readonly Cloudinary _cloudinary;
+    private readonly Cloudinary? _cloudinary;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CloudinaryService"/> class.
-    /// Configures Cloudinary using provided application settings.
+    /// Configures Cloudinary using provided application settings. If credentials are not configured
+    /// (e.g. in the Docker demo), the service stays disabled and uploads return <c>null</c>.
     /// </summary>
     /// <param name="config">The application configuration containing Cloudinary credentials.</param>
     public CloudinaryService(IConfiguration config)
@@ -23,8 +24,17 @@ namespace KioskAPI.Services
       var apiKey = config["Cloudinary:ApiKey"];
       var apiSecret = config["Cloudinary:ApiSecret"];
 
-      this._cloudinary = new Cloudinary(new Account(cloudName, apiKey, apiSecret));
+      if (IsSet(cloudName) && IsSet(apiKey) && IsSet(apiSecret))
+      {
+        this._cloudinary = new Cloudinary(new Account(cloudName, apiKey, apiSecret));
+      }
     }
+
+    /// <summary>Gets a value indicating whether Cloudinary credentials are configured.</summary>
+    public bool IsConfigured => this._cloudinary != null;
+
+    private static bool IsSet(string? value) =>
+      !string.IsNullOrWhiteSpace(value) && value != "SET_IN_USER_SECRETS_OR_ENV";
 
     /// <summary>
     /// Uploads an image file to Cloudinary.
@@ -35,7 +45,7 @@ namespace KioskAPI.Services
     /// </returns>
     public async Task<string> UploadImageAsync(IFormFile file)
     {
-      if (file == null || file.Length == 0)
+      if (file == null || file.Length == 0 || this._cloudinary == null)
       {
         return null;
       }

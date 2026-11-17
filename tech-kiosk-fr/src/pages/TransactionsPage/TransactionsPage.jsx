@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./TransactionsPage.css";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -17,7 +18,7 @@ function TransactionsPage() {
     const fetchTransactions = async () => {
       try {
         const res = await axios.get(
-          `https://localhost:5016/api/Transaction/mytrasactions`,
+          `${BASE_API_URL}/Transaction/mytrasactions`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

@@ -1,23 +1,33 @@
 import React from "react";
-import "./Popup.css";
+import { Button, Modal } from "../../components/ui";
 
-export default function Popup({ message, onConfirm, onCancel, type }) {
+/**
+ * Admin confirm / message popup.
+ * type: "confirm" shows Yes/No, "error" shows a red title, anything else shows OK.
+ */
+export default function Popup({ message, onConfirm, onCancel, type, title, disableConfirm = false }) {
+  const isConfirm = type === "confirm";
+  const isError = type === "error";
+
   return (
-    <div className="popup-overlay">
-      <div className={`popup ${type === "error" ? "popup-error" : ""}`}>
-        <p>{message}</p>
-
-        <div className="popup-actions">
-          {type === "confirm" ? (
-            <>
-              <button className="btn primary" onClick={onConfirm}>Yes</button>
-              <button className="btn" onClick={onCancel}>No</button>
-            </>
-          ) : (
-            <button className="btn primary" onClick={onConfirm}>OK</button>
-          )}
-        </div>
-      </div>
-    </div>
+    <Modal
+      open
+      onClose={isConfirm ? onCancel : onConfirm}
+      title={title || (isError ? "Something went wrong" : isConfirm ? "Please confirm" : "Notice")}
+      tone={isError ? "danger" : "default"}
+      closeOnOverlay={false}
+      footer={
+        isConfirm ? (
+          <>
+            <Button variant="secondary" onClick={onCancel}>No</Button>
+            <Button onClick={onConfirm} disabled={disableConfirm}>Yes</Button>
+          </>
+        ) : (
+          <Button onClick={onConfirm}>OK</Button>
+        )
+      }
+    >
+      {typeof message === "string" ? <p>{message}</p> : message}
+    </Modal>
   );
 }

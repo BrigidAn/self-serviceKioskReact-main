@@ -103,82 +103,43 @@
   color: #777;
 }
 
-/* Modal overlay */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+/* Add / edit product form (inside the shared Modal) */
+.product-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
-/* Modal */
-.modal {
-  background: linear-gradient(120deg, #4c7182, #5a757f, #8cb2c3);
-  border-radius: 30px;
-  width: 500px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  height: auto;
-}
-
-.modal.small-modal {
-  width: 300px;
-}
-
-.modal-header {
-  padding: 15px 20px;
-  background-color: #4c7182;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h3 {
-  font-size: 18px;
-}
-
-.modal-header .close {
-  font-size: 18px;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* Modal form */
-.modal-form {
-  padding: 20px;
+.product-form label {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
 }
 
-.modal-form label {
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  color: #333;
+/* Full-width rows: description, image upload, preview */
+.product-form label:nth-of-type(2),
+.product-form label:nth-of-type(7),
+.product-form .preview-wrap {
+  grid-column: 1 / -1;
 }
 
-.modal-form input,
-.modal-form textarea,
-.modal-form select {
-  margin-top: 5px;
-  padding: 8px 10px;
-  border: 1px solid #000000f3;
-  border-radius: 8px;
-  background: rgba(245, 245, 245, 0.26);
-}
-
-.modal-form textarea {
+.product-form textarea {
   resize: vertical;
-  min-height: 60px;
-  width: auto;
+  min-height: 80px;
+}
+
+.product-form .error {
+  color: var(--color-danger-soft);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 560px) {
+  .product-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Modal preview */
@@ -191,18 +152,6 @@
   max-width: 100%;
   max-height: 150px;
   border-radius: 6px;
-}
-
-/* Modal actions */
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 15px;
-}
-
-.modal-actions .btn {
-  padding: 8px 14px;
 }
 
 /* Buttons */

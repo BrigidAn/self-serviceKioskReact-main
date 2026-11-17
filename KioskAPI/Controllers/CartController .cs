@@ -379,7 +379,7 @@ namespace KioskAPI.Controllers
         var cart = await this._context.Carts
             .Include(c => c.CartItems)
             .ThenInclude(ci => ci.Product)
-            .FirstOrDefaultAsync(c => c.UserId == userId)
+            .FirstOrDefaultAsync(c => c.UserId == userId && !c.IsCheckedOut)
             .ConfigureAwait(true);
 
         if (cart == null || !cart.CartItems.Any())

@@ -2,13 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CheckoutPage.css";
 import InsufficientBalanceModal from "../../components/InsufficientBalanceModal";
+import { Button, Modal } from "../../components/ui";
+import { useCartTimer } from "../../context/CartTimerContext";
 import toast, { Toaster } from "react-hot-toast";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api";
-const token = localStorage.getItem("token");
+const API_URL = `${BASE_API_URL}`;
 
 export default function CheckoutPage() {
+  const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const { refreshCart } = useCartTimer();
   const [cart, setCart] = useState([]);
   const [balance, setBalance] = useState(0);
   const [orderSummary, setOrderSummary] = useState(null);
@@ -83,9 +87,11 @@ export default function CheckoutPage() {
         body: JSON.stringify({ amount: Number(topUpAmount) }),
       });
 
-      if (!res.ok) throw new Error("Failed to top up");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Top-up failed.");
+      }
 
-      const data = await res.json();
       setBalance(prev => prev + Number(topUpAmount));
       setTopUpAmount("");
 
@@ -96,7 +102,7 @@ export default function CheckoutPage() {
       toast.success("Top-up successful!");
     } catch (err) {
       console.error(err);
-      toast.error("Top-up failed.");
+      toast.error(err.message);
     }
   };
 
@@ -136,6 +142,7 @@ export default function CheckoutPage() {
 
       setCart([]);
       setBalance((prev) => prev - data.totalAmount);
+      refreshCart(); // cart is checked out, so the floating timer disappears
     } catch (err) {
       console.error(err);
       toast.error(err.message);
@@ -150,12 +157,9 @@ export default function CheckoutPage() {
 />
 
     <div className="checkout-container">
-      <button
-        className="checkout-back-btn"
-        onClick={() => navigate("/products")}
-      >
+      <Button variant="secondary" className="checkout-back" onClick={() => navigate("/products")}>
         ← Back
-      </button>
+      </Button>
 
       <div className="vp-hero-floating">
                 <div className="float-shape fs1"></div>
@@ -208,57 +212,50 @@ export default function CheckoutPage() {
         ))}
       </div>
 
-      <button className="checkout-confirm-btn" onClick={handleCheckout}>
-        Confirm Checkout
-      </button>
+      <Button size="lg" block onClick={handleCheckout}>
+        Confirm checkout
+      </Button>
 
        <InsufficientBalanceModal
         show={showInsufficientModal}
         onClose={() => setShowInsufficientModal(false)}
         remainingAmount={amountNeeded}
       >
-        <div className="topup-container">
+        <div className="checkout-topup">
           <input
             type="number"
+            min="0"
             placeholder="Enter top-up amount"
             value={topUpAmount}
             onChange={(e) => setTopUpAmount(e.target.value)}
-            className="modal-input"
+            className="ui-input"
+            aria-label="Top-up amount"
           />
-          <button className="modal-topup-btn" onClick={handleTopUp}>
-            Top Up
-          </button>
+          <Button onClick={handleTopUp}>Top up</Button>
         </div>
       </InsufficientBalanceModal>
 
-      {orderSummary && (
-        <div className="checkout-popup">
-          <h3 className="checkout-popup-title">🎉 Thank You!</h3>
-
-          <p>Delivery Fee: R {orderSummary.deliveryFee.toFixed(2)}</p>
-          <p>Total Paid: R {orderSummary.total.toFixed(2)}</p>
-
-          <p className="checkout-remaining">
-            Remaining Balance: R {balance.toFixed(2)}
-          </p>
-
-          <div className="checkout-popup-buttons">
-            <button
-              className="checkout-popup-btn"
-              onClick={() => navigate("/account")}
-            >
-              Top Up
-            </button>
-
-            <button
-              className="checkout-popup-btn"
-              onClick={() => navigate("/products")}
-            >
-              Exit
-            </button>
-          </div>
-        </div>
-      )}
+      <Modal
+        open={Boolean(orderSummary)}
+        onClose={() => navigate("/products")}
+        title="🎉 Thank you for your order!"
+        size="sm"
+        closeOnOverlay={false}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => navigate("/account")}>Top up wallet</Button>
+            <Button onClick={() => navigate("/products")}>Continue shopping</Button>
+          </>
+        }
+      >
+        {orderSummary && (
+          <>
+            <p>Delivery fee: R {orderSummary.deliveryFee.toFixed(2)}</p>
+            <p>Total paid: <strong>R {orderSummary.total.toFixed(2)}</strong></p>
+            <p>Remaining balance: R {balance.toFixed(2)}</p>
+          </>
+        )}
+      </Modal>
       </div>
     </>
   );

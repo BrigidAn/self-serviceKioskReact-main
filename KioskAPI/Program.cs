@@ -13,6 +13,7 @@ using Serilog;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
     .WriteTo.Console()
     .WriteTo.File(
         path: "Logs/kioskapi-.log",
@@ -36,11 +37,24 @@ builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<AuthService>();
 
 // ===== Database Context =====
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Local")));
+// Secrets come from user-secrets (local dev) or environment variables (Docker / hosting) — never appsettings.json.
+const string Placeholder = "SET_IN_USER_SECRETS_OR_ENV";
 
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("Secondary")));
+string RequireSetting(string key)
+{
+  var value = builder.Configuration[key];
+  if (string.IsNullOrWhiteSpace(value) || value == Placeholder)
+  {
+    throw new InvalidOperationException(
+      $"Missing configuration '{key}'. Set it with `dotnet user-secrets set \"{key}\" \"<value>\"` " +
+      $"or the environment variable '{key.Replace(":", "__")}'. See README.md.");
+  }
+
+  return value;
+}
+
+var connectionString = RequireSetting("ConnectionStrings:DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddIdentity<User, Role>(options =>
 {
@@ -56,7 +70,13 @@ builder.Services.AddIdentity<User, Role>(options =>
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+var jwtKey = RequireSetting("Jwt:Key");
+if (jwtKey.Length < 32)
+{
+  throw new InvalidOperationException("Jwt:Key must be at least 32 characters long.");
+}
+
+var key = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication(options =>
 {
@@ -116,13 +136,29 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowReactApp", policy =>
-      policy.WithOrigins("http://localhost:3000")
+      policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000" })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
 });
 
 var app = builder.Build();
+
+// Optional: apply EF Core migrations and load demo data at startup (used by the Docker demo).
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+  using var scope = app.Services.CreateScope();
+  var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+  db.Database.Migrate();
+
+  if (app.Configuration.GetValue<bool>("Database:SeedDemoData"))
+  {
+    // The script only inserts when the database has no users/products, so it is safe on every start.
+    var seedPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "DemoData.sql");
+    db.Database.ExecuteSqlRaw(File.ReadAllText(seedPath));
+    Log.Information("Demo data seed script executed ({SeedPath})", seedPath);
+  }
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -137,4 +173,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" })).AllowAnonymous();
 app.Run();

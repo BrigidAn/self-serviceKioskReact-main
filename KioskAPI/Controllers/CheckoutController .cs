@@ -176,21 +176,16 @@ namespace KioskAPI.Controllers
           OrderItems = new List<OrderItem>()
         };
 
+        // Stock was already reserved when each item was added to the cart (see CartController.AddToCart),
+        // so checkout only converts the reserved cart items into order items.
         foreach (var item in cart.CartItems)
         {
-          if (item.Product.Quantity < item.Quantity)
-          {
-            return this.BadRequest(new { message = $"Not enough stock for {item.Product.Name}" });
-          }
-
           order.OrderItems.Add(new OrderItem
           {
             ProductId = item.ProductId,
             Quantity = item.Quantity,
             PriceAtPurchase = item.UnitPrice
           });
-
-          item.Product.Quantity -= item.Quantity;
         }
 
         this._context.Orders.Add(order);

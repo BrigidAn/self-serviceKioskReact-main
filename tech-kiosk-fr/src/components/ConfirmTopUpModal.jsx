@@ -1,24 +1,22 @@
-import "./ConfirmTopUpModal.css";
+import { Button, Modal } from "./ui";
 
 export default function ConfirmTopUpModal({ show, amount, onConfirm, onCancel }) {
-  if (!show) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-
-        <h2 className="modal-title">Confirm Top-Up</h2>
-
-        <p className="modal-message">
-          Are you sure you want to add <strong>R {amount.toFixed(2)}</strong> to your account?
-        </p>
-
-        <div className="modal-btn-row">
-          <button className="modal-confirm-btn" onClick={onConfirm}>Yes</button>
-          <button className="modal-cancel-btn" onClick={onCancel}>No</button>
-        </div>
-
-      </div>
-    </div>
+    <Modal
+      open={show}
+      onClose={onCancel}
+      title="Confirm top-up"
+      size="sm"
+      footer={
+        <>
+          <Button variant="secondary" onClick={onCancel}>Cancel</Button>
+          <Button onClick={onConfirm}>Top up</Button>
+        </>
+      }
+    >
+      <p>
+        Are you sure you want to add <strong>R {Number(amount || 0).toFixed(2)}</strong> to your account?
+      </p>
+    </Modal>
   );
 }

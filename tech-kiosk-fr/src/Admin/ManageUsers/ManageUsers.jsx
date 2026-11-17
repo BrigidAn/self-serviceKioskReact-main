@@ -5,9 +5,10 @@ import Popup from "../components/Popup";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const ADMIN_API = "https://localhost:5016/api/Admin";
-const AUTH_API = "https://localhost:5016/api/auth";
+const ADMIN_API = `${BASE_API_URL}/Admin`;
+const AUTH_API = `${BASE_API_URL}/auth`;
 
 function ManageUsers() {
   const token = localStorage.getItem("token");

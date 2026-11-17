@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./HistoryPage.css";
 import { useNavigate } from "react-router-dom";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
 const ORDERS_PER_PAGE = 6;
 
@@ -19,7 +20,7 @@ function HistoryPage() {
       return;
     }
 
-    fetch("https://localhost:5016/api/order/myOrders", {
+    fetch(`${BASE_API_URL}/order/myOrders`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

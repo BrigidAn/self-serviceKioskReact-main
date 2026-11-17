@@ -1,186 +1,112 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./CartPage.css";
 import { toast } from "react-toastify";
+import "./CartPage.css";
+import { API_URL, authHeaders } from "../../api/config";
+import { Button, Modal } from "../../components/ui";
+import { formatCountdown, useCartTimer } from "../../context/CartTimerContext";
 
-
-const API_URL = "https://localhost:5016/api";
-const token = localStorage.getItem("token");
+const PLACEHOLDER = "https://via.placeholder.com/100";
 
 export default function CartPage() {
   const navigate = useNavigate();
+  const { isActive, remainingMs, expiredAt, refreshCart } = useCartTimer();
 
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [expiredMessage, setExpiredMessage] = useState("");
-
-  // ✅ NEW: expiry + countdown
-  const [expiresAt, setExpiresAt] = useState(null);
-  const [timeLeft, setTimeLeft] = useState("");
-  const [expired, setExpired] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const mountedAt = useRef(Date.now());
+
+  const total = cart.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
 
   /* ---------------- FETCH CART ---------------- */
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/checkout/summary`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await fetch(`${API_URL}/checkout/summary`, { headers: authHeaders() });
       if (!res.ok) throw new Error("Failed to fetch cart");
-
       const data = await res.json();
-
       setCart(data.items || []);
-      const expiry =
-      data.expiresAt ??
-      new Date(Date.now() + 1 * 60 * 1000).toISOString(); // 15 minutes fallback
-
-      setExpiresAt(expiry);
-
-
-      setTotal(
-        data.items?.reduce(
-          (sum, i) => sum + i.unitPrice * i.quantity,
-          0
-        ) || 0
-      );
     } catch (err) {
       console.error(err);
       setCart([]);
-      setTotal(0);
     } finally {
       setLoading(false);
     }
-  };
-
-  /* ---------------- INITIAL LOAD ---------------- */
-  useEffect(() => {
-    fetchCart();
   }, []);
 
-  /* ---------------- COUNTDOWN TIMER ---------------- */
   useEffect(() => {
-    if (!expiresAt) return;
+    fetchCart();
+  }, [fetchCart]);
 
-    const interval = setInterval(async () => {
-      const now = new Date();
-      const expiry = Date.parse(expiresAt);
-      if (isNaN(expiry)) return;
+  /* ---------------- EXPIRY (timer lives in CartTimerContext) ---------------- */
+  useEffect(() => {
+    if (!expiredAt || expiredAt < mountedAt.current) return undefined;
 
-      const diff = expiry - Date.now();
+    setCart([]);
+    setExpiredMessage("⏰ Your cart has expired. Redirecting to products...");
+    const id = setTimeout(() => navigate("/products"), 3000);
+    return () => clearTimeout(id);
+  }, [expiredAt, navigate]);
 
-                if (diff <= 0 && !expired) {
-            setExpired(true);
+  /* ---------------- CART CHANGES ---------------- */
+  const afterChange = async () => {
+    await fetchCart();
+    await refreshCart(); // keeps the floating timer and item count in sync
+  };
 
-            await fetch(`${API_URL}/cart/expire`, {
-              method: "POST",
-              headers: { Authorization: `Bearer ${token}` },
-            });
-
-            setCart([]);
-            setTotal(0);
-            setTimeLeft("");
-            navigate("/products");
-          }
-
-
-      if (diff <= 0) {
-        clearInterval(interval);
-
-        await fetch(`${API_URL}/cart/expire`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setCart([]);
-        setTotal(0);
-        setTimeLeft("");
-
-      setExpiredMessage("⏰ Your cart has expired. Redirecting to products...");
-        setCart([]);
-        setTotal(0);
-        setTimeLeft("");
-
-        setTimeout(() => {
-          navigate("/products");
-        }, 3000);
-
-        return;
-
-      }
-
-      const minutes = Math.floor(diff / 60000);
-      const seconds = Math.floor((diff % 60000) / 1000);
-
-      setTimeLeft(
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiresAt, navigate]);
-
-  /* ---------------- REMOVE ITEM ---------------- */
   const handleRemove = async (cartItemId) => {
     try {
       const res = await fetch(`${API_URL}/cart/item/${cartItemId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: authHeaders(),
       });
-
       if (!res.ok) throw new Error("Failed to remove item");
-      await fetchCart();
+      await afterChange();
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      toast.error(err.message);
     }
   };
 
- /* ---------------- CLEAR ALL ITEMS ---------------- */
-const handleClearCart = async () => {
-  try {
-    await Promise.all(
-      cart.map((item) =>
-        fetch(`${API_URL}/cart/item/${item.cartItemId}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      )
-    );
+  const handleClearCart = async () => {
+    setClearing(true);
+    try {
+      await Promise.all(
+        cart.map((item) =>
+          fetch(`${API_URL}/cart/item/${item.cartItemId}`, {
+            method: "DELETE",
+            headers: authHeaders(),
+          })
+        )
+      );
+      await afterChange();
+      toast.success("Cart cleared");
+    } catch (err) {
+      console.error("Failed to clear cart:", err);
+      toast.error("Failed to clear cart");
+    } finally {
+      setClearing(false);
+      setShowClearConfirm(false);
+    }
+  };
 
-    setCart([]);
-    setTotal(0);
-  } catch (err) {
-    console.error("Failed to clear cart:", err);
-  }
-};
-
-  /* ---------------- UPDATE QUANTITY ---------------- */
   const handleQuantityChange = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
 
     try {
       const res = await fetch(`${API_URL}/cart/item/${cartItemId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ quantity: newQuantity }),
       });
-
       if (!res.ok) throw new Error("Failed to update quantity");
-      await fetchCart();
+      await afterChange();
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      toast.error(err.message);
     }
-  };
-
-  const handleCheckout = () => {
-    navigate("/checkout");
   };
 
   /* ---------------- LOADING ---------------- */
@@ -201,57 +127,48 @@ const handleClearCart = async () => {
     return (
       <div className="cart-page empty-cart">
         <div className="cart-message">
-          <h2>Your cart is empty 😔</h2>
-          <button className="cart-back-btn" onClick={() => navigate("/products")}>
-            ← Browse Products
-          </button>
+          {expiredMessage ? (
+            <div className="cart-expired-message">{expiredMessage}</div>
+          ) : (
+            <h2>Your cart is empty 😔</h2>
+          )}
+          <Button variant="secondary" onClick={() => navigate("/products")}>
+            ← Browse products
+          </Button>
         </div>
       </div>
     );
   }
 
   /* ---------------- UI ---------------- */
+  const warning = isActive && remainingMs <= 30 * 1000;
+
   return (
     <div className="cart-page">
       <div className="cart-container">
-        <button className="cart-back-btn" onClick={() => navigate("/products")}>
-          ← Back
-        </button>
-
         <h2 className="cart-title">Your Cart</h2>
 
-        {expiredMessage && (
-          <div className="cart-expired-message">
-            {expiredMessage}
-          </div>
-        )}
-
-        {/* ✅ COUNTDOWN DISPLAY */}
-        {timeLeft && (
-          <div className="cart-expiry">
-            ⏳ Cart expires in <span>{timeLeft}</span>
+        {isActive && (
+          <div className={`cart-expiry ${warning ? "cart-expiry--warning" : ""}`} role="timer">
+            ⏳ Items are reserved for <span>{formatCountdown(remainingMs)}</span>
+            <small>Adding an item restarts the timer.</small>
           </div>
         )}
 
         <div className="cart-actions">
-          <button className="cart-back-btn" onClick={() => navigate("/products")}>
+          <Button variant="secondary" onClick={() => navigate("/products")}>
             ← Back
-          </button>
-
-          <button
-            className="cart-clear-btn"
-            onClick={() => setShowClearConfirm(true)}
-          >
-            Clear All
-          </button>
-
+          </Button>
+          <Button variant="danger" onClick={() => setShowClearConfirm(true)}>
+            Clear all
+          </Button>
         </div>
 
         <div className="cart-items">
           {cart.map((item) => (
             <div key={item.cartItemId} className="cart-item-card">
               <img
-                src={item.imageUrl || "https://via.placeholder.com/100"}
+                src={item.imageUrl || PLACEHOLDER}
                 alt={item.productName}
                 className="cart-item-image"
               />
@@ -260,25 +177,26 @@ const handleClearCart = async () => {
                 <div className="cart-item-name">{item.productName}</div>
 
                 <div className="cart-item-qty-controls">
-                  <button
-                    className="qty-btn"
-                    onClick={() =>
-                      handleQuantityChange(item.cartItemId, item.quantity - 1)
-                    }
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`Decrease ${item.productName} quantity`}
+                    disabled={item.quantity <= 1}
+                    onClick={() => handleQuantityChange(item.cartItemId, item.quantity - 1)}
                   >
-                    -
-                  </button>
+                    −
+                  </Button>
 
                   <span className="qty-number">{item.quantity}</span>
 
-                  <button
-                    className="qty-btn"
-                    onClick={() =>
-                      handleQuantityChange(item.cartItemId, item.quantity + 1)
-                    }
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`Increase ${item.productName} quantity`}
+                    onClick={() => handleQuantityChange(item.cartItemId, item.quantity + 1)}
                   >
                     +
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -287,12 +205,9 @@ const handleClearCart = async () => {
                   R {(item.unitPrice * item.quantity).toFixed(2)}
                 </div>
 
-                <button
-                  className="cart-item-remove-btn"
-                  onClick={() => handleRemove(item.cartItemId)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => handleRemove(item.cartItemId)}>
                   Remove
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -303,34 +218,30 @@ const handleClearCart = async () => {
           <span>R {total.toFixed(2)}</span>
         </div>
 
-        <button className="cart-checkout-btn" onClick={handleCheckout}>
+        <Button size="lg" block onClick={() => navigate("/checkout")}>
           Checkout
-        </button>
+        </Button>
       </div>
-      {showClearConfirm && (
-        <div className="clear-cart-popup">
-          <div className="clear-cart-popup-content">
-            <p>Are you sure you want to clear your entire cart?</p>
-            <div className="clear-cart-popup-actions">
-              <button
-                className="confirm-btn"
-                onClick={() => {
-                  handleClearCart(); // your existing clear function
-                  setShowClearConfirm(false);
-                }}
-              >
-                Yes
-              </button>
-              <button
-                className="cancel-btn"
-                onClick={() => setShowClearConfirm(false)}
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+      <Modal
+        open={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        title="Clear cart?"
+        tone="danger"
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowClearConfirm(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" loading={clearing} onClick={handleClearCart}>
+              Clear cart
+            </Button>
+          </>
+        }
+      >
+        <p>All items will be removed from your cart and returned to stock.</p>
+      </Modal>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./Auth.css";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -44,8 +45,8 @@ export default function Auth() {
     if (!validateForm()) return;
 
     const url = isLogin
-      ? "https://localhost:5016/api/Auth/login"
-      : "https://localhost:5016/api/Auth/register";
+      ? `${BASE_API_URL}/Auth/login`
+      : `${BASE_API_URL}/Auth/register`;
 
     const body = isLogin
       ? { email, password }
@@ -88,7 +89,6 @@ export default function Auth() {
 
   return (
     <div className="auth-container">
-      <ToastContainer />
 
       <div className="auth-floating c1"></div>
       <div className="auth-floating c2"></div>

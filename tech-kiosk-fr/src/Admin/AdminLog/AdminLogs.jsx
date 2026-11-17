@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../AdminLayout";
 import "./AdminLogs.css";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api/admin/transactions?page=1&pageSize=100";
+const API_URL = `${BASE_API_URL}/admin/transactions?page=1&pageSize=100`;
 
 export default function AdminLogs() {
   const [filter, setFilter] = useState("all");

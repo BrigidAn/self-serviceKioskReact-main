@@ -8,7 +8,7 @@ SET QUOTED_IDENTIFIER ON;
 SET ANSI_NULLS ON;
 SET XACT_ABORT ON;
 IF EXISTS (SELECT 1 FROM AspNetUsers) OR EXISTS (SELECT 1 FROM Products)
-BEGIN RAISERROR('Database already has data - demo seed skipped.',16,1); RETURN; END;
+BEGIN PRINT 'Database already has data - demo seed skipped.'; RETURN; END;
 
 BEGIN TRY
 BEGIN TRANSACTION;

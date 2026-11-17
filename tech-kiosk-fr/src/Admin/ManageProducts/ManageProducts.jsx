@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../AdminLayout";
 import "./ManageProducts.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DeleteConfirmPopup from "../../components/DeleteConfirmPopup";
+import { Button, Modal } from "../../components/ui";
+import { API_URL as BASE_API_URL } from "../../api/config";
 
-const API_URL = "https://localhost:5016/api";
+const API_URL = `${BASE_API_URL}`;
 
 export default function ManageProducts() {
   const [stats, setStats] = useState({ totalProducts: 0, lowStock: 0 });
@@ -288,7 +290,6 @@ export default function ManageProducts() {
 
   return (
     <AdminLayout>
-      <ToastContainer position="top-right" />
       <div className="admin-dashboard">
         <header className="dashboard-header">
           <h1>Manage Products</h1>
@@ -398,15 +399,20 @@ export default function ManageProducts() {
           </div>
         )}
 
-        {showModal && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <header className="modal-header">
-                <h3>{isEditing ? "Edit Product" : "Add Product"}</h3>
-                <button className="close" onClick={() => setShowModal(false)}>✕</button>
-              </header>
-
-              <form className="modal-form" onSubmit={handleSubmit}>
+        <Modal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          title={isEditing ? "Edit product" : "Add product"}
+          size="lg"
+          closeOnOverlay={false}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+              <Button type="submit" form="product-form">{isEditing ? "Update product" : "Add product"}</Button>
+            </>
+          }
+        >
+          <form id="product-form" className="product-form" onSubmit={handleSubmit}>
                 <label>
                   Name
                   <input name="name" value={form.name} onChange={handleFormChange} />
@@ -468,14 +474,8 @@ export default function ManageProducts() {
                   </div>
                 )}
 
-                <div className="modal-actions">
-                  <button type="submit" className="btn primary">{isEditing ? "Update" : "Add Product"}</button>
-                  <button type="button" className="btn" onClick={() => setShowModal(false)}>Cancel</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+          </form>
+        </Modal>
 
         <DeleteConfirmPopup
           show={popup.show}
